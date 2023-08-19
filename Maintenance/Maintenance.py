@@ -1207,27 +1207,28 @@ def trackNewRoster(newRosterName,buildNewRosterFile=False,dataStorageObject=None
 
 
 
+'''
+----------------------------------------------------------
+This code block generates an entirely new Players.db file, copying over up to maxSpriteID players
+from an old Players.db file.
+----------------------------------------------------------
+
+maxSpriteID = 355
+oldPlayersFilePath = f"{b.paths.databases}\\PlayersSad.db"
+newPlayersFilePath = f"{b.paths.databases}\\Guppies.db"
+
+
 
 genBlankPlayersTable(dbPath="S:\\Coding\\Projects\\NBA2k13\\SaveData\\Data\\Guppies.db")
-#genBlankFactionsDatabase(f"{b.paths.factions}\\Factions.db")
-
-#playersXML = "Examples\\UpToDate\\Players.xml"
-#statsXML = "Examples\\UpToDate\\Stats.xml"
-#playersDB = "SaveData\\Players.db"
-#statsDB = "SaveData\\Stats.db"
-#
-#genBlankPlayersTable(dbPath=playersDB)
-#convertPlayersXMLToSQL(dbPath=playersDB,xmlPath=playersXML)
-#
-#genBlankStatsTable(dbPath=statsDB)
-#convertStatsXMLToSQL(dbPath=statsDB,xmlPath=statsXML)
-
-
-#d = DataStorage.DataStorage()
-#trackNewRoster("Premier",buildNewRosterFile=True,dataStorageObject=d)
-#for i in range(291,355):
-#    h.addPlayerToRoster(i,"Premier",dataStorageObject = d,saveFile=False)
-#d.playersDB_Execute()
-#h.saveCSVChangesToFiles("Premier",d)
-#h.importRedMCCSVs("Premier")
-
+dOld = DataStorage.DataStorage(playersPathOverride=oldPlayersFilePath)
+dNew = DataStorage.DataStorage(playersPathOverride=newPlayersFilePath)
+allPlayers = []
+for i in range(maxSpriteID):
+    thisPlayer = dOld.playersDB_GetPlayer(i)
+    allPlayers.append(thisPlayer)
+for thisPlayer in allPlayers:
+    print(f"-{thisPlayer['First_Name']} {thisPlayer['Last_Name']}")
+    newID = dNew.playersDB_AddBlankPlayer()
+    dNew.playersDB_UpdatePlayer(spriteID=newID,player=thisPlayer)
+dNew.playersDB_Execute()
+'''

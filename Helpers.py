@@ -328,6 +328,14 @@ def generateRosterFromFile(rosterName):
     importRedMCCSVs(rosterName)
 '''
 
+d = DataStorage.DataStorage()
+importRosterData(rosterName="NewPremier",dataStorageObject=d)
+for i in range(64):
+    spriteID = i + 292
+    thisPlayer = d.playersDB_GetPlayer(spriteID=spriteID)
+    d.csv_UpdatePlayer(rosterName="NewPremier",rosterID=i + 1,player=thisPlayer)
+exportRosterData(rosterName="NewPremier",dataStorageObject=d)
+
 '''
 d = DataStorage.DataStorage()
 exportRedMCCSVs(rosterName="FactionTest",dataStorageObject=d)
