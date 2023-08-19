@@ -1,0 +1,19 @@
+template = '''```
+$UNREFINED_BACKSTORY
+```
+
+Above is a generated backstory for a character. You are going to help make this backstory more refined and/or interesting. I'm going to give you some instructions, which you will then use to rewrite this backstory to make it better.
+
+1. The new backstory should be just a bit longer than the original, roughly a 5-6 sentences. Remember, this is a BACKSTORY, not an actual story - it should not be ongoing.
+2. The main character is a male named $CHARACTER_NAME
+3. $SCOPE_LEVEL
+4. Respond with ONLY the rewritten backstory, and nothing else.
+5. Further develop this person's personality so they have and behave consistently with these traits: $CHARACTER_TRAITS
+$MODIFIERS_LIST
+
+Using these instructions, please rewrite this backstory from beginning to end.'''
+
+[scope]
+level1 = "He is an inconsequential person, don't make him do anything too grandiose or consequential outside of his own life."
+level2 = "He may have had an effect on some significant events in his life, but he is ultimately just a small character in a larger world."
+level3 = "He is a highly important figure, and has had a huge impact on the world."

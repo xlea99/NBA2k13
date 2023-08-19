@@ -1,0 +1,1644 @@
+
+
+pmod{
+*PMOD_NAME = "Scrolls of Power Words: Rick and Morty"
+*PMOD_DESCRIPTION = "Randomly add 50 to Speed or Quickness. Subtract 50 from the other. Randomly add 25 to Vertical or both Rebounds. Subtract 25 from the other. Randomly add 10 to Shot 3pt or 4 inches to Height. Do the reverse for the other."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+$Attribute1 = ?[SSpeed,SQuick]
+$Attribute2 = {SSpeed,SQuick/&Attribute1&}
+@&Attribute1& += 50
+@&Attribute2& -= 50
+
+
+$VerticalBuff = ?[25,-25]
+$ReboundBuff = {25,-25/&VerticalBuff&}
+@SVertical += &VerticalBuff&
+@SDReb += &ReboundBuff&
+@SOReb += &ReboundBuff&
+
+
+$3Num = ?[1,-1]
+$HeightNum = {1,-1/&3Num&}
+$3Val = 0
+$HeightVal = 0
+
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$3Val = {&3Num& + &3Val&}
+$HeightVal = {&HeightNum& + &HeightVal&}
+$HeightVal = {&HeightNum& + &HeightVal&}
+$HeightVal = {&HeightNum& + &HeightVal&}
+$HeightVal = {&HeightNum& + &HeightVal&}
+@SSht3PT += &3Val&
+@Height_In += &HeightVal&
+
+}
+
+pmod{
+*PMOD_NAME = "Jared Juicer's Blacklist"
+*PMOD_DESCRIPTION = "Amazed that almost every single person he knows is on this blacklist, the player decides to totally rethink his in game strategy. Add any special shot, add 3 random skill cards, Randomly set all stats to 25-90."
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+!specialShotRareEpicLegendary
+@SigSkill1 = ?<1,31>
+@SigSkill2 = ?<1,31>
+@SigSkill3 = ?<1,31>
+
+@(&ALL_ATTRIBUTES&) = ?<25,90>
+
+}
+
+
+pmod{
+*PMOD_NAME = "Fredwardo's Magnificent S.H.R.I.N.K Ray (Something to Help Reduce Inconsistencies in NBA Knowledge)"
+*PMOD_DESCRIPTION = "As a big fan of Fredwardo's past work, the Player points the Ray at his head and hopes for the best. Set height to 1'0. Set all attributes to 90-99. "
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@Height_In = 12
+@(&ALL_ATTRIBUTES&) = ?<90,99>
+
+}
+
+pmod{
+*PMOD_NAME = "Sneh's Crippling Gambling Addiction"
+*PMOD_DESCRIPTION = "Set all stats to 25. 5 random stats are set to 99. Add 5 random Skill Cards. Add 5 inches to Height."
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+$Stat1 = ?[&ALL_ATTRIBUTES&]
+@&Stat1& = 99
+$Stat2 = ?[{&ALL_ATTRIBUTES&/&USED_VALUES&}]
+@&Stat2& = 99
+$Stat3 = ?[{&ALL_ATTRIBUTES&/&USED_VALUES&}]
+@&Stat3& = 99
+$Stat4 = ?[{&ALL_ATTRIBUTES&/&USED_VALUES&}]
+@&Stat4& = 99
+$Stat5 = ?[{&ALL_ATTRIBUTES&/&USED_VALUES&}]
+@&Stat5& = 99
+
+
+@({&ALL_ATTRIBUTES&/&USED_VALUES&}) = 25
+@SigSkill1 = ?<1,31>
+@SigSkill2 = ?<1,31>
+@SigSkill3 = ?<1,31>
+@SigSkill4 = ?<1,31>
+@SigSkill5 = ?<1,31>
+
+@Height_In += 5
+
+}
+
+pmod{
+*PMOD_NAME = "Remnants of an Arcane Explosion Caused by the Dark Magic of Matt Bleakstar."
+*PMOD_DESCRIPTION = "Randomly assign a stat the value of 30. Randomly assign another stat the value of 32. Randomly assign another stat the value of 34. Keep going until you hit 90, this should cover all stats. "
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@?[&ALL_ATTRIBUTES&] = 30
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 32
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 34
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 36
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 38
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 40
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 42
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 44
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 46
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 48
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 50
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 52
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 54
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 56
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 58
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 60
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 62
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 64
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 66
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 68
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 70
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 72
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 74
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 76
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 78
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 80
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 82
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 84
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 86
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 88
+@?[{&ALL_ATTRIBUTES&/&USED_VALUES&}] = 90
+
+
+}
+
+
+pmod{
+*PMOD_NAME = "Home Brewed Insecticide Lite Beer by HHP Inc"
+*PMOD_DESCRIPTION = "Take 100 swigs of the addictive brew. This causes severe alcohol poisoning and sends you into court-mandated rehab. You become a new, better person - randomly select a new Primary, Secondary, and Tertiary set, as well as new accents for each stat. Important tendencies are randomized. Add 2 random skill cards."
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+
+# First we define which set gets which grade of values.
+$ScoringVals = ?[80,55,35]
+$DefenseVals = ?[{80,55,35/&ScoringVals&}]
+$ControlVals = {80,55,35/&ScoringVals&,&DefenseVals&}
+
+# Now we set each stat to their median.
+@(&SCORING_ATTRIBUTES&) = &ScoringVals&
+@(&DEFENSIVE_ATTRIBUTES&) = &DefenseVals&
+@(&CONTROL_ATTRIBUTES&) = &ControlVals&
+
+# Now, we apply initial randomization.
+@({&ALL_ATTRIBUTES&|&SCORING_ATTRIBUTES&,&DEFENSIVE_ATTRIBUTES&,&CONTROL_ATTRIBUTES&}) += ?<-10,10>
+
+# Now, we swap the accents and apply extra sway.
+@({&ALL_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += ?<1,7>
+@({&ALL_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) -= ?<1,7>
+
+# Finally, we randomly set the generals.
+@({&ALL_ATTRIBUTES&/&SCORING_ATTRIBUTES&,&DEFENSIVE_ATTRIBUTES&,&CONTROL_ATTRIBUTES&}) = ?<50,99>
+
+@TSpotUp = ?<1,100>
+@TPostUp = ?<1,100>
+@TDunkvLU = ?<1,100>
+@TPostFaceU = ?<1,100>
+@TPostBDown = ?<1,100>
+
+@SigSkill1 = ?<1,31>
+@SigSkill2 = ?<1,31>
+
+}
+
+pmod{
+*PMOD_NAME = "Russian Roulette, A Fuzion Frenzy Special Event!"
+*PMOD_DESCRIPTION = "Set all stats to 99. Play 1-6 rounds of Russian Roulette, for each round subtract 10-20 from each stat. "
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@(&ALL_ATTRIBUTES&) = 99
+$Rounds = ?<1,6>
+
+!repeat&Rounds&`@(&ALL_ATTRIBUTES&) -= ?<10,20>`
+
+}
+
+pmod{
+*PMOD_NAME = "The Broken Promise of Fitzgerald Kambavolo's Last Words: 'No One Else'"
+*PMOD_DESCRIPTION = "Height is set to 8'0. All abilities except for one random primary and one random secondary are set to 25. Give the player Brick Wall."
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@Height_In = 96
+
+$TargetPrimary = ?[&PRIMARY_ATTRIBUTES&]
+$TargetSecondary = ?[&SECONDARY_ATTRIBUTES&]
+
+@({&ALL_ATTRIBUTES&/&TargetPrimary&,&TargetSecondary&}) = 25
+@SigSkill1 = 15
+
+}
+
+pmod{
+*PMOD_NAME = "The Electrified Ashes of Simple Rick"
+*PMOD_DESCRIPTION = "Set all attributes to 70. "
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@(&ALL_ATTRIBUTES&) = 70
+
+
+}
+
+pmod{
+*PMOD_NAME = "Concoction J.O.E. #30330"
+*PMOD_DESCRIPTION = "Set all attributes to 30. Add Microwave, War General, Defensive Anchor, Lockdown Defender, and Acrobat. All zones are Burning Zones."
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@(&ALL_ATTRIBUTES&) = 30
+@SigSkill1 = 27
+@SigSkill2 = 30
+@SigSkill3 = 31
+@SigSkill4 = 16
+@SigSkill5 = 4
+@(HZ1,HZ2,HZ3,HZ4,HZ5,HZ6,HZ7,HZ8,HZ9,HZ10,HZ11,HZ12,HZ13,HZ14) = 3
+
+
+}
+
+pmod{
+*PMOD_NAME = "Physicalized Biases of a Less Refined Time"
+*PMOD_DESCRIPTION = "Set 3pt between 80-100. -25 to all other stats."
+*PMOD_RARITY = "Godlike"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@SSht3PT = ?<80,99>
+@({&ALL_ATTRIBUTES&/SSht3PT}) -= 25
+
+
+}
+
+pmod{
+*PMOD_NAME = "Yes Cindy, I'm sure they're the right ones..."
+*PMOD_DESCRIPTION = "Add 20 to all tertiary stats, remove 20 from all primary stats. Add a fully random special shot:"
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@(&TERTIARY_ATTRIBUTES&) += 20
+@(&PRIMARY_ATTRIBUTES&) -= 20
+!specialShotRareEpicLegendary
+
+
+}
+
+
+pmod{
+*PMOD_NAME = "A Certification, declaring: 'Ah yes, you know your Primary well!'"
+*PMOD_DESCRIPTION = "Secondary stats are rerolled 25-45. +15 to all unaccented primary stats, +10 to all accented primary stats. Add 2 random skill cards."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@(&SECONDARY_ATTRIBUTES&) = ?<25,45>
+@({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 15
+@({&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) += 10
+@SigSkill1 = ?<1,31>
+@SigSkill2 = ?<1,31>
+
+}
+
+
+
+pmod{
+*PMOD_NAME = "Bowl of Honey Laatz Crunch"
+*PMOD_DESCRIPTION = "Three random, accented tertiary skills are set to 80. All points gained are randomly removed from other primary skills."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+$AccentedTertiary = {&TERTIARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}
+
+$Tertiary1Name = ?[&AccentedTertiary&]
+$Tertiary2Name = ?[{&AccentedTertiary&/Tertiary1}]
+$Tertiary3Name = ?[{&AccentedTertiary&/Tertiary1,Tertiary2}]
+
+$Tertiary1OrigVal = %&Tertiary1Name&%
+$Tertiary2OrigVal = %&Tertiary2Name&%
+$Tertiary3OrigVal = %&Tertiary3Name&%
+
+$PointsToSubtract1 = {80+-&Tertiary1OrigVal&}
+$PointsToSubtract2 = {80+-&Tertiary2OrigVal&}
+$PointsToSubtract3 = {80+-&Tertiary3OrigVal&}
+
+$TotalPointsToSubtract = {&Tertiary1OrigVal&+&Tertiary2OrigVal&}
+$TotalPointsToSubtract = {&TotalPointsToSubtract&+&Tertiary3OrigVal&}
+!repeat&TotalPointsToSubtract&`@?[&PRIMARY_ATTRIBUTES&] -= 1`
+
+@(&Tertiary1Name&,&Tertiary2Name&,&Tertiary3Name&) = 80
+
+
+
+}
+
+pmod{
+*PMOD_NAME = "Scroll of Power Word: Siamese"
+*PMOD_DESCRIPTION = "Both Shot Form and Shot Base are set to the same random ID. Select one primary stat and have it copy the stat of another random primary stat. Add 2 random skill cards.  Set spot-up and post-up tendencies to 50 each. "
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@(AShtForm,AShtBase) = ?<1,124>
+
+$TargetPrimaryStat = ?[&PRIMARY_ATTRIBUTES&]
+$StatToCopy = ?[{&PRIMARY_ATTRIBUTES&/&TargetPrimaryStat&}]
+@&TargetPrimaryStat& = %&StatToCopy&%
+@SigSkill1 = ?<1,31>
+@SigSkill2 = ?<1,31>
+
+@TSpotUp = 50
+@TPostUp = 50
+
+
+}
+
+pmod{
+*PMOD_NAME = "Scroll of Power Word: Bluegill"
+*PMOD_DESCRIPTION = "Set Dunk, Standing Dunk, and Vertical to 99. Add 3 cool dunk packages. Add Posterizer and Highlight Film. -10 to all other stats. "
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@(@SDunk,SVertical,SStdDunk) = 99
+
+$ValidDunks = 23,24,25,26,27,28,35,51,55,63,64,65
+@AGoToDunk = ?[&ValidDunks&]
+$ValidDunks = {23,24,25,26,27,28,35,51,55,63,64,65/%AGoToDunk%}
+@ADunk2 = ?[&ValidDunks&]
+$ValidDunks = {23,24,25,26,27,28,35,51,55,63,64,65/%ADunk2%,%AGoToDunk%}
+@ADunk3 = ?[&ValidDunks&]
+
+@SigSkill1 = 1
+@SigSkill2 = 2
+
+@({&ALL_ATTRIBUTES&/@SDunk,SVertical,SStdDunk}) -= 10
+
+}
+
+
+pmod{
+*PMOD_NAME = "Scroll of Power Word: Confuse"
+*PMOD_DESCRIPTION = "Swap 2 primary and 2 tertiary stats. -3 to all secondary stats."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+$PrimarySwap1 = ?[&PRIMARY_ATTRIBUTES&]
+$TertiarySwap1 = ?[&TERTIARY_ATTRIBUTES&]
+$PrimarySwap2 = ?[{&PRIMARY_ATTRIBUTES&/&PrimarySwap1&}]
+$TertiarySwap2 = ?[{&TERTIARY_ATTRIBUTES&/&TertiarySwap1&}]
+
+$PrimaryTransfer1 = %&PrimarySwap1&%
+$PrimaryTransfer2 = %&PrimarySwap2&%
+
+@&PrimarySwap1& = %&TertiarySwap1&%
+@&PrimarySwap2& = %&TertiarySwap2&%
+@&TertiarySwap1& = &PrimaryTransfer1&
+@&TertiarySwap2& = &PrimaryTransfer2&
+
+@(&SECONDARY_ATTRIBUTES&) -= 3
+
+}
+
+pmod{
+*PMOD_NAME = "Scroll of Power Word: Bo"
+*PMOD_DESCRIPTION = "Shot Inside is set to 99. Shot Close, Shot Medium, and Shot 3pt are set to 25.  Add 6 inches to Height."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@SShtIns = 99
+@(SShtCls,SShtMed,SSht3PT) = 25
+@Height_In += 6
+
+
+}
+
+pmod{
+*PMOD_NAME = "Blue Crystal Meth"
+*PMOD_DESCRIPTION = "Subtract -40 from both Offensive and Defensive Awareness.  Adds Microwave."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@(SOAwar,SDAwar) -= 40
+@SigSkill1 = 27
+
+}
+
+pmod{
+*PMOD_NAME = "Bowl of Lincoln-O's"
+*PMOD_DESCRIPTION = "A random, accented primary skill is set to 25. All points lost in the category are randomly distributed across secondary skills."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+$TargetAttribute = ?[{&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}]
+$InitialValue = %&TargetAttribute&%
+$PointsToAllocate = {&InitialValue&+-25}
+!repeat&PointsToAllocate&`@?[&SECONDARY_ATTRIBUTES&] += 1`
+@&TargetAttribute& = 25
+
+}
+
+pmod{
+*PMOD_NAME = "Warren the Undying's Intense Pilates Crash Course "
+*PMOD_DESCRIPTION = "Add +5-7 to all accented Primary stats. -5 to all other stats."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+$TargetAttributes = {&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}
+@(&TargetAttributes&) += ?<5,7>
+@({&ALL_ATTRIBUTES&/&TargetAttributes&}) -= 5
+
+
+
+}
+
+pmod{
+*PMOD_NAME = "Corner Guy's Famous Subway Club"
+*PMOD_DESCRIPTION = "-5 inches to height. +5 to all unaccented primary stats. Adds Corner Specialist."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@Height_In -= 5
+@({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 5
+@SigSkill1 = 8
+
+
+}
+
+pmod{
+*PMOD_NAME = "Bowl of Scooter Loops"
+*PMOD_DESCRIPTION = "A random, accented secondary skill is set to 25. All points lost in the category are randomly distributed across other secondary skills."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+$TargetAttribute = ?[{&SECONDARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}]
+$InitialValue = %&TargetAttribute&%
+$PointsToAllocate = {&InitialValue&+-25}
+!repeat&PointsToAllocate&`@?[{&SECONDARY_ATTRIBUTES&/&TargetAttribute&}] += 1`
+@&TargetAttribute& = 25
+
+
+}
+
+pmod{
+*PMOD_NAME = "Sandals Dipped in Rome's Finest Slime Cauldron"
+*PMOD_DESCRIPTION = "Add 25 to Vertical. -30 to a random, accented Primary Stat."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@SVertical += 30
+@?[{&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}] -= 30
+
+}
+
+pmod{
+*PMOD_NAME = "Sneakers that Mike Buffett Sabotaged with Glue"
+*PMOD_DESCRIPTION = "Player must have a set shot.  Set Vertical to 25."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@SVertical = 25
+@AShtBase = ?<41,58>
+
+}
+
+pmod{
+*PMOD_NAME = "Happy Happy Pesticide Juice 4 Kids"
+*PMOD_DESCRIPTION = "Add Antifreeze. -25 a random, unaccented Primary Stat."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@SigSkill1 = 26
+@?[{&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}] -= 25
+
+}
+
+pmod{
+*PMOD_NAME = "Glass of Caleb's Lemonade"
+*PMOD_DESCRIPTION = "-5 to all attributes. Add 5 inches to height."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@Height_In += 5
+@(&ALL_ATTRIBUTES&) -= 5
+
+}
+
+pmod{
+*PMOD_NAME = "Gary's Enchanted Gloves"
+*PMOD_DESCRIPTION = "Adds Pickpocket, Active Hands, and Interceptor. Remove 40 attribute points randomly across all primary stats. "
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Neutral"
+
+@SigSkill1 = 19
+@SigSkill2 = 20
+@SigSkill3 = 18
+!repeat40`@?[&PRIMARY_ATTRIBUTES&] -= 1`
+
+}
+
+pmod{
+*PMOD_NAME = "A 'No.' from Fernando Valencia, After Being Asked to Accept the Transfer of a User He's Been Working With"
+*PMOD_DESCRIPTION = "Feeling belittled and a bit confused from the overly confident rejection, the player adds a rare or epic Engineer special shot:"
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+!specialShotRareEpic
+
+}
+
+pmod{
+*PMOD_NAME = "Ancient iPhone Outlet Adapter, Used by Sidhant Mehta to Flirt with Women"
+*PMOD_DESCRIPTION = "While being entirely unsuccessful in the romance game, this artifact does add a rare or epic Engineer special shot:"
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+!specialShotRareEpic
+
+}
+
+pmod{
+*PMOD_NAME = "A Plastic Bin Filled with a Vile Mixure of Spilled Sauces "
+*PMOD_DESCRIPTION = "A common and grotesque sight at Subway. The player adds a rare or epic Engineer special shot:"
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+!specialShotRareEpic
+
+}
+
+pmod{
+*PMOD_NAME = "Nervous Laughter from an Audience in Harlem who Joe Biden just addressed as his '"'Brothas from the Hood'"
+*PMOD_DESCRIPTION = "Atta boy Joe, way to secure the Blafrican vote! The player adds a rare or epic Engineer special shot:"
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+!specialShotRareEpic
+
+}
+
+pmod{
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'I wipe my ASS with your bachelor of arts degree!'"
+*PMOD_DESCRIPTION = "Feeling thankful that they got an engineering degree, the player adds a rare or epic Engineer special shot:"
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+!specialShotRareEpic
+
+}
+
+pmod{
+*PMOD_NAME = "Some Geezer Eating a Pimento Sandwich"
+*PMOD_DESCRIPTION = "Having had a good long look at the geezer, the player is rejuvenated and adds a rare or epic Director Special Shot:"
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+!specialShotRareEpic
+
+}
+
+
+pmod{
+*PMOD_NAME = "An Antique Scorecard of the S1 League Championship Game, Signed "A Fine Effort from an Extraordinary Team" by Charles Dick"
+*PMOD_DESCRIPTION = "Shedding a tear at such a beautiful piece of 2k history, the player is reformed in the following fashion: Subtract 10 from all stats. Add Microwave, Deadeye, Spot-up Shooter, Shot Creator, and War General.  Get an epic or legendary special shot."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@(&ALL_ATTRIBUTES&) -= 10
+@SigSkill1 = 7
+@SigSkill2 = 27
+@SigSkill3 = 5
+@SigSkill4 = 6
+@SigSkill5 = 30
+
+!specialShotEpicLegendary
+
+}
+
+pmod{
+*PMOD_NAME = "Voucher Reading '25 percnt of Next Spicy at Eggrol r We', Gloriously Lacking an Expiration Date"
+*PMOD_DESCRIPTION = "Visit Eggrolls R We 1-7 times. For each time you visit, -4 to all attributes, and make another random zone Hot. If the same zone is selected twice, it becomes Burning. If it is selected thrice, it becomes Cold."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+$Eggroll = ?<1,5>
+!repeat&Eggroll&`@(&ALL_ATTRIBUTES&) -= 4`
+!repeat&Eggroll&`@?[HZ1,HZ2,HZ3,HZ4,HZ5,HZ6,HZ7,HZ8,HZ9,HZ10,HZ11,HZ12,HZ13,HZ14] += 1`
+}
+
+
+
+
+
+pmod{
+*PMOD_NAME = "Artistic Interpretation of Donald Trump's Relationship with China"
+*PMOD_DESCRIPTION = "It's very big and beautiful, the greatest art. I do have to say it is really great. This sets the player's height to 7'6. Set all Signature Skills to Yao Ming's. Set Vertical to 25, and all secondary stats randomized between 25-40. Add Finisher and Deadeye skills."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@Height_In = 90
+@SVertical = 25
+@(&SECONDARY_ATTRIBUTES&) = ?<25,40>
+@SigSkill1 = 7
+@SigSkill2 = 3
+@AShtBase = 124
+@AFadeaway = 30
+
+
+}
+
+pmod{
+*PMOD_NAME = "Eddie Smith's Memoir, 'THanks for Nothing'"
+*PMOD_DESCRIPTION = "Mentally recovering from that journey of a story, the player receives the following changes: Set Vertical and Shoot off Dribble to 25. Set player's shot to a Set Shot. Add 10 to 3pt Shot. Add Deadeye."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@SVertical = 25
+@SShtOfD = 25
+@AShtBase = ?<41,58>
+@SSht3PT += 10
+@SigSkill1 = 7
+
+
+}
+
+pmod{
+*PMOD_NAME = "The Quiet and Friendly Candor of Chandara Cheng"
+*PMOD_DESCRIPTION = "Feeling at peace from the soothing and rhythmic tones of Mr. Cheng, the player is changed as follows: Add 10 to all accented primary attributes. Add 10 to all tertiary stats. Subtract 20 from all non-accented attributes. Add 30 to Strength."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@({&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) += 10
+@(&TERTIARY_ATTRIBUTES&) += 10
+@({&ALL_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) -=20
+@SStrength += 30
+
+
+}
+
+
+pmod{
+*PMOD_NAME = "The Gall of Drew Meier"
+*PMOD_DESCRIPTION = "Feeling enraged by the absolute nerve of fellow coworker Drew Meier passing his 9th call of the day, the player spitefully changes as follows: Set Passing and Quickness to 99.  Add Dimer and Alley-Ooper. -10 to all primary stats. "
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@SPass = 99
+@SQuick = 99
+@(&PRIMARY_ATTRIBUTES&) -= 10
+@SigSkill1 = 12
+@SigSkill2 = 14
+
+
+}
+
+pmod{
+*PMOD_NAME = "A Smile and a Shrug from Nick Rumoro"
+*PMOD_DESCRIPTION = "Sitting in a dulled state of shock after Nick just messaged you 'Everyone does it, get over yourself', shortly following him calling Road Hog for 40 minutes, the player changes as follows: Add 5 to all non-accented primary stats. Subtract 20 from Vertical, Dunk, and Standing Dunk. Add Shot Creator"
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@SVertical -= 20
+@SDunk -= 20
+@SStdDunk -= 20
+@({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 5
+@SigSkill1 = 6
+
+
+}
+
+pmod{
+*PMOD_NAME = "Nat's Vicious, Bloodthirsty Hound from Hell"
+*PMOD_DESCRIPTION = "The demon living in Nat's golden retriever has left its host and has attached itself to the player, changing the player as follows: Add 20 to Vertical, Dunk, and Standing Dunk. -5 to all non-accented primary stats. Add Posterizer and Highlight Film."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@SVertical += 20
+@SDunk += 20
+@SStdDunk += 20
+@({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) -= 5
+@SigSkill1 = 1
+@SigSKill2 = 2
+
+
+}
+
+
+
+pmod{
+*PMOD_NAME = "A Written Apology from Chap"
+*PMOD_DESCRIPTION = "Feeling completely unsatisfied by Chap's attempt at an apology which somehow reads as him being the savior of the situation, the player adds 10 to all non-accented secondary attributes. Also subtracts 10 to all accented secondary attributes. Adds Antifreeze and Heat Retention. "
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@({&SECONDARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) -= 10
+@({&SECONDARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 10
+@SigSkill1 = 26
+@SigSkill2 = 28
+
+
+}
+
+pmod{
+*PMOD_NAME = "A Nasty Email from Nancy Soleto"
+*PMOD_DESCRIPTION = "Confused by the ferocious nature of a message about putting hyphens in a line of service in TMA, the player changes as follows: Add 10 to all accented secondary attributes. Subtract 10 from all non-accented secondary attributes. Add Scrapper. "
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Vigilante"
+
+@({&SECONDARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) += 10
+@({&SECONDARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) -= 10
+@SigSkill1 = 25
+
+
+}
+
+
+pmod{
+*PMOD_NAME = "A Vision from a Space Monk, with Instructions to Seek Out Some Planet called 'Dagobah'"
+*PMOD_DESCRIPTION = "The player visits Dagobah and morphs into a slimy alien midget who can move random objects with his mind. Height is set between 4'0 and 4'6. +10 to Shot 3pt, Speed, and Quickness. Vertical and Strength are set to 99. -40 to Steal and Block. Get an epic or legendary special shot:"
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@Height_In = ?<48,54>
+@SSht3PT += 10
+@SSpeed += 10
+@SQuick += 10
+@SVertical = 99
+@SStrength = 99
+@SSteal -= 40
+@SBlock -= 40
+
+!specialShotEpicLegendary
+
+}
+
+
+pmod{
+*PMOD_NAME = "A Cold and Refreshing Bottle of Sprite"
+*PMOD_DESCRIPTION = "The player realizes that it is Sprite Time and it is Game Time. Set all Signature Skills to Lebron James's.  Add Finisher. -5 to all accented primary stats, add 10 to all non-accented primary stats. Add 40 to dunk."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@({&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) -= 5
+@({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 10
+@SDunk += 40
+@SigSkill1 = 3
+@AFadeaway = 21
+@AContestd = 0
+@AEscDrPlU = 0
+@ARunner = 15
+@AFreeT = 67
+@ADrPullUp = 9
+@ASpinJmpr = 2
+@AHopJmpr = 10
+@APstFade = 5
+@APstHook = 1
+@APstHopSh = 7
+@APstShmSh = 0
+@APstDrvStB = 3
+@APstSpnStB = 3
+@APstPrtct = 0
+@APstPrtSpn = 2
+@AIsoCross = 5
+@AIsoBhBck = 1
+@AIsoSpin = 5
+@AIsoHesit = 1
+@ALayUp = 0
+@AGoToDunk = 21
+@ADunk2 = 13
+@ADunk3 = 22
+@ADunk4 = 26
+@ADunk5 = 29
+@ADunk6 = 33
+@ADunk7 = 50
+@ADunk8 = 62
+@ADunk9 = 45
+@ADunk10 = 40
+@ADunk11 = 60
+@ADunk12 = 61
+@ADunk13 = 2
+
+
+}
+
+
+pmod{
+*PMOD_NAME = "A Bottle of David Ruiz's Aspirations"
+*PMOD_DESCRIPTION = "David always wanted to be Kobe Bryant, and the player makes the leap where David could not and turns from a soft-spoken Mexican man to a basketball overlord. Set all Signature Skills to Kobe Bryant's.  Add Acrobat. Set all tertiary stats to 25. -30 to passing. "
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+
+@(&TERTIARY_ATTRIBUTES&) = 25
+@SPass -= 30
+@SigSkill1 = 4
+
+
+@AShtForm = 93
+@AShtBase = 71
+@AFadeaway = 19
+@AContestd = 0
+@AEscDrPlU = 1
+@ARunner = 1
+@AFreeT = 36
+@ADrPullUp = 4
+@ASpinJmpr = 6
+@AHopJmpr = 2
+@APstFade = 4
+@APstHook = 5
+@APstHopSh = 7
+@APstShmSh = 0
+@APstDrvStB = 3
+@APstSpnStB = 0
+@APstPrtct = 0
+@APstPrtSpn = 0
+@AIsoCross = 1
+@AIsoBhBck = 6
+@AIsoSpin = 6
+@AIsoHesit = 1
+@ALayUp = 8
+@AGoToDunk = 8
+@ADunk2 = 5
+@ADunk3 = 7
+@ADunk4 = 10
+@ADunk5 = 16
+@ADunk6 = 30
+@ADunk7 = 46
+
+
+}
+
+pmod{
+*PMOD_NAME = "Ancient Slice of Pizza, Once Widely Considered a Token of  Illuminati Membership. "
+*PMOD_DESCRIPTION = "Ah, a member I see. The player joins the illuminati and changes in the following fashion: Set Offensive and Defensive awareness to 99.  Add 20 to Pass. Add Dimer, Post Playmaker,  Alley-ooper, and Ankle Breaker.  -12 to 3Pt."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@(SOAwar,SDAwar) = 99
+@SPass += 20
+@SigSkill1 = 12
+@SigSkill2 = 11
+@SigSkill3 = 14
+@SigSkill4 = 10
+@SSht3PT -= 12
+
+
+}
+
+pmod{
+*PMOD_NAME = "Ancient Cup of Coffee, Once Wielded by Joe Biden 5 Minutes Ago"
+*PMOD_DESCRIPTION = "Feeling a bit concerned that Joe Biden just referred to his steaming cup of coffee as an ancient mayan artifact, the player changes as follows: Add 30 to Dunk, Standing Dunk, and Vertical. Subtract 5 from all accented primary stats. Add Posterizer and Finisher. Add 3 cool dunk packages."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@(SDunk,SStdDunk,SVertical) += 30
+@({&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) -= 5
+@SigSkill1 = 1
+@SigSkill2 = 3
+
+$ValidDunks = 23,24,25,26,27,28,35,51,55,63,64,65
+@AGoToDunk = ?[&ValidDunks&]
+$ValidDunks = {23,24,25,26,27,28,35,51,55,63,64,65/%AGoToDunk%}
+@ADunk2 = ?[&ValidDunks&]
+$ValidDunks = {23,24,25,26,27,28,35,51,55,63,64,65/%ADunk2%,%AGoToDunk%}
+@ADunk3 = ?[&ValidDunks&]
+
+}
+
+pmod{
+*PMOD_NAME = "Ancient Pair of Diamond Boots, Summoned from the Heavens by a Member of the Illuminati"
+*PMOD_DESCRIPTION = "Knowing full and well that Danny cheated, the player feels justified that they have these boots of retribution. Add +7 to non-accented Primary Skills. Spot up tendencies will be set to almost always have the player post up in the paint."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 7
+@TSpotUp = 10
+@TPostUp = 90
+
+
+}
+
+pmod{
+*PMOD_NAME = "Ancient All-Powerful-Immortality-Bringing Sword, Once Wielded by a 17 Year Old Bartender."
+*PMOD_DESCRIPTION = "Besides gaining the psychotic 3 consciences of Algemi and the disembodied voice of Christian Shearcliff all screaming at each other in their mind, the player also loses 3 inches in Height.  Add Spot up Shooter."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@Height_In -= 3
+@SigSkill1 = 5
+
+
+}
+
+pmod{
+*PMOD_NAME = "Ancient  Military-Grade Laser Pointer, Once Wielded by Tim Molkowski"
+*PMOD_DESCRIPTION = "Absolutely bewildered by the idea that a teenager once shined this light of lethal caliber directly into their eye, the player changes as follows: Add 3 inches to Height. -25 subtracted randomly across all accented primary stats. "
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@Height_In += 3
+!repeat20`@?[{&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}] -= 1`
+
+
+}
+
+pmod{
+*PMOD_NAME = "Ancient Wired Mouse, Once Wielded by Wojciech Kois"
+*PMOD_DESCRIPTION = "Gaining a vision of a young man watching a very lethargic wizard of ancient times teach his craft, the player is inspired and changes:  Subtract -30 from Speed and Consistency. Add Microwave, Heat Retention, and Antifreeze."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@SSpeed -= 30
+@SConsis -= 30
+@SigSkill1 = 27
+@SigSkill2 = 28
+@SigSkill3 = 26
+
+
+}
+
+pmod{
+*PMOD_NAME = "Ancient Rapier, Once Wielded by Sir Alfred Cornbread"
+*PMOD_DESCRIPTION = "Delicate and light, this blade helped a legendary general cut down his enemies in the war of 1812. Add +30 to Vertical and Dunk. Subtract -5 from 3pt Shot."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Slayer"
+
+@SVertical += 30
+@SDunk += 30
+@SSht3PT -= 5
+
+
+}
+
+pmod{
+*PMOD_NAME = "A Greasy, Cracked iPhone 5 Left on the Basketball Court by the Annoying 11 Year Old Kid Who Completely Ruined the Game for Everyone Else"
+*PMOD_DESCRIPTION = "Feeling unbelievably annoyed at the audacity of the young child, the player changes as follows: Steal, Hustle, Block, Emotion, and Offensive Rebound are set to 99. -20 to all other Primary and Secondary Stats. Make all Hotspots and Freelance Tendencies equal (by their category). Add Pickpocket, Scrapper, Chasedown Artist, Active Hands, and Highlight Film."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@(SSteal,SHustle,SBlock,SEmotion,SOReb) = 99
+@({&PRIMARY_ATTRIBUTES&,&SECONDARY_ATTRIBUTES&/SSteal,SHustle,SBlock,SEmotion,SOReb}) -= 20
+
+@HIso3PLft = 17
+@HIso3PCtr = 17
+@HIso3PRgt = 16
+@HIsoHPLft = 17
+@HIsoHPCtr = 17
+@HIsoHPRgt = 16
+@HP_rLCrnr = 20
+@HP_rLWing = 20
+@HP_rTopOA = 20
+@HP_rRWing = 20
+@HP_rRCrnr = 20
+@HSpt3PLCr = 10
+@HSpt3PLWg = 10
+@HSpt3PTop = 10
+@HSpt3PRWg = 10
+@HSpt3PRCr = 10
+@HSptMdLBl = 10
+@HSptMdLWg = 10
+@HSptMdCtr = 10
+@HSptMdRWg = 10
+@HSptMdRBl = 10
+@HPstRHigh = 25
+@HPstRLow = 25
+@HPstLHigh = 25
+@HPstLLow = 25
+@TTouches = 50
+@TUsePick = 50
+@TSetPick = 50
+@TIsolat = 50
+@TUseOBScr = 50
+@TSetOBScr = 50
+@TPostUp = 50
+@TSpotUp = 50
+@TGiveGo = 50
+
+}
+
+pmod{
+*PMOD_NAME = "A Rancid Strawberry"
+*PMOD_DESCRIPTION = "Pucker up, this strawberry is pungent with flavor tasted sparingly since the early days of Spritopia. -20 to all primary stats. -10 to all secondary stats. +40 to 3pt.  Get a random epic or legendary special shot:"
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@(&PRIMARY_ATTRIBUTES&) -= 20
+@(&SECONDARY_ATTRIBUTES&) -= 10
+@SSht3PT += 40
+
+!specialShotEpicLegendary
+
+}
+
+pmod{
+*PMOD_NAME = "The Compress-O-Matic, invented by Fredwardo Jalapeno"
+*PMOD_DESCRIPTION = "Enter the Compress-O-Matic 1-5 times, each time the player enters they are squished and lose 3 inches of height, while gaining 5-10 to all secondary attributes. "
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+$Compress = ?<1,5>
+!repeat&Compress&`@Height_In -= 3`
+!repeat&Compress&`@(&SECONDARY_ATTRIBUTES&) += ?<5,10>`
+
+
+
+}
+
+pmod{
+*PMOD_NAME = "CCTV Footage of a Car Banging a U-Turn on the Road Adjacent to Subway"
+*PMOD_DESCRIPTION = "Yep, brace for the dreaded beep. The player changes while bracing for the drive-thru customer in the following way: Add +10 to accented Primary Skills. Spot up tendencies/hotspots will be set to almost always have the player post up for 3s. Add Alley-ooper and Deadeye."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@({&PRIMARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) += 10
+@TPostUp = ?<1,20>
+@TSpotUp = ?<70,100>
+@HSpt3PLCr = 15
+@HSpt3PLWg = 15
+@HSpt3PTop = 15
+@HSpt3PRWg = 15
+@HSpt3PRCr = 15
+@HSptMdLBl = 5
+@HSptMdLWg = 5
+@HSptMdCtr = 5
+@HSptMdRWg = 5
+@HSptMdRBl = 5
+@SigSkill1 = 14
+@SigSkill2 = 7
+
+
+
+}
+
+pmod{
+*PMOD_NAME = "Spotlessly Clean Gloves, demanded to be removed 15 seconds after they were acquired."
+*PMOD_DESCRIPTION = "Feeling depressed that these beautiful gloves had to go to waste because of an obnoxious, power-hungry sewer mutant of a human being, the player changes as follows: Add 40 to Pass and Hands. -15 to all non-accented Primary and Secondary stats. Add Dimer, Break Starter, and Scrapper."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@SPass += 40
+@SHands += 40
+@({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) -= 15
+@({&SECONDARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) -= 15
+@SigSkill1 = 12
+@SigSkill2 = 13
+@SigSkill3 = 25
+
+
+
+}
+
+pmod{
+*PMOD_NAME = "A Circled, Highlighted, and Captioned Photo of a Single Olive on the Floor of a Subway Restaurant"
+*PMOD_DESCRIPTION = "Perplexed at the hollywood-esque lengths that Sneh went to produce an image of a tiny fruit, the player morphs as follows: Add +15 to all accented secondary attributes. Set Low-Post Offense to 99. -15 to all non-accented primary attributes. -10 to both Rebounds. Add Ankle Breaker."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@({&SECONDARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) += 15
+@SDLowPost = 99
+@({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) -= 15
+@(SOReb,SDReb) -= 10
+@SigSkill1 = 10
+
+
+}
+
+pmod{
+*PMOD_NAME = "Newspaper Cutout Advertising the Honey Oat Bread from 2009"
+*PMOD_DESCRIPTION = "Gaslit into thinking that perhaps this bread still exists, the player changes: Add +10 to Strength to On Ball Defense.  -10 to Speed and Quickness. Add Lockdown Defender."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@SSpeed -= 10
+@SQuick -= 10
+@SStrength += 10
+@SOnBallD += 10
+@SigSkill1 = 16
+
+
+}
+
+pmod{
+*PMOD_NAME = "An Audio Recording of a Customer Inquiring: 'Can I have the uh JARDEENYA peppas?'"
+*PMOD_DESCRIPTION = "Stunned by the complete butchering of the topping, the player changes as follows: Add +10 to Speed and Quickness. -10 to Strength and On Ball Defense. Add Chasedown Artist."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@SSpeed += 10
+@SQuick += 10
+@SStrength -= 10
+@SOnBallD -= 10
+@SigSkill1 = 22
+
+
+}
+
+pmod{
+*PMOD_NAME = "'This is How You Wrap' Apron"
+*PMOD_DESCRIPTION = "Stylish and groovy, this will surely make the player fit in with the cool crowd. Add +10 to all Secondary Stats. -10 to Offensive, Defensive Rebound, and Vertical. Add Post Playmaker."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@SOReb -= 10
+@SDReb -= 10
+@SVertical -= 10
+@(&SECONDARY_ATTRIBUTES&) += 10
+@SigSkill1 = 11
+
+
+}
+
+pmod{
+*PMOD_NAME = "$10 Subway Gift Card, 8 years expired."
+*PMOD_DESCRIPTION = "Not enough to buy a 6 inch steak and cheese sandwich, but just enough to buy a miniature pizza. Add +10 to Offensive, Defensive Rebound, and Vertical. -10 to all Secondary Stats. Add Break Starter."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Medic"
+
+@SOReb += 10
+@SDReb += 10
+@SVertical += 10
+@(&SECONDARY_ATTRIBUTES&) -= 10
+@SigSkill1 = 13
+
+
+}
+
+
+pmod{
+*PMOD_NAME = "The Icy Touch of the Night King"
+*PMOD_DESCRIPTION = "The player vibrates with an ancient power, morphing into a White Walker and changing as follows: All zones are Cold Zones. Reroll all Secondary and Tertiary Stats to be values between 40 and 60. Add Post Proficiency, Post Play Maker, Deadeye, and Finisher. Gain an epic or legendary shot:"
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+@HZ1 = 0
+@HZ2 = 0
+@HZ3 = 0
+@HZ4 = 0
+@HZ5 = 0
+@HZ6 = 0
+@HZ7 = 0
+@HZ8 = 0
+@HZ9 = 0
+@HZ10 = 0
+@HZ11 = 0
+@HZ12 = 0
+@HZ13 = 0
+@HZ14 = 0
+@(&SECONDARY_ATTRIBUTES&) = ?<40,60>
+@(&TERTIARY_ATTRIBUTES&) = ?<40,60>
+@SigSkill1 = 9
+@SigSkill2 = 11
+@SigSkill3 = 7
+@SigSkill4 = 3
+
+!specialShotEpicLegendary
+
+}
+
+pmod{
+*PMOD_NAME = "Michael Jordan's Amputated Leg"
+*PMOD_DESCRIPTION = "Ew what the fuck is that? Before the player can react they are infected by the severed limb and are changed as follows: Set height to 6'6, Set all Signature Skills besides Shot Base to Michael Jordan's.  +30 to Vertical. "
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+
+@Height_In = 78
+@SVertical += 30
+@AShtForm = 115
+@AFadeaway = 1
+@AContestd = 0
+@AEscDrPlU = 1
+@ARunner = 16
+@AFreeT = 73
+@ADrPullUp = 4
+@ASpinJmpr = 6
+@AHopJmpr = 2
+@APstFade = 11
+@APstHook = 0
+@APstHopSh = 7
+@APstShmSh = 0
+@APstDrvStB = 3
+@APstSpnStB = 0
+@APstPrtct = 0
+@APstPrtSpn = 0
+@AIsoCross = 5
+@AIsoBhBck = 6
+@AIsoSpin = 4
+@AIsoHesit = 1
+@ALayUp = 7
+@AGoToDunk = 14
+@ADunk2 = 13
+@ADunk3 = 7
+@ADunk4 = 28
+@ADunk5 = 60
+@ADunk6 = 32
+@ADunk7 = 45
+@ADunk8 = 34
+@ADunk9 = 41
+@ADunk10 = 27
+@ADunk11 = 2
+@ADunk12 = 46
+@ADunk13 = 0
+@ADunk14 = 0
+@ADunk15 = 0
+
+
+}
+
+
+
+
+pmod{
+*PMOD_NAME = "A Lying Dog-Faced Pony Soldier"
+*PMOD_DESCRIPTION = "No you didn't. Now sit down fat, before I call Crimea. Add Pickpocket. Steal is set to a number between 80 and 99.  Strength and On-Ball Defense are set to a random number between 25 and 40."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+@SSteal = ?<80,99>
+@SStrength = ?<25,40>
+@SOnBallD = ?<25,40>
+@SigSkill1 = 19
+
+
+}
+
+pmod{
+*PMOD_NAME = "A Pen Joe Biden Mistakenly Gave to a Coat Rack instead of the Small Child to His Left"
+*PMOD_DESCRIPTION = "It's the thought that counts, even when the thought is half formulated by a deteriorating brain. Vertical is set to 99. Offensive and Defensive Rebound are set to 25. Add Hustle Points."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+@SVertical = 99
+@SOReb = 25
+@SDReb = 25
+@SigSkill1 = 24
+
+}
+
+pmod{
+*PMOD_NAME = "A Confused GPS Device, Desperately Trying to Load the Location of 'JOE 30330'"
+*PMOD_DESCRIPTION = "The player thought they did everything right -- they agreed with Joe and were on their way to Joe 30330. What went wrong?? The player is anguished and changes as follows: Add Spot Up Shooter and Deadeye. All 3pt Hotzones turn cold. "
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+@SigSkill1 = 5
+@SigSkill2 = 7
+@HZ10 = 0
+@HZ11 = 0
+@HZ12 = 0
+@HZ13 = 0
+@HZ14 = 0
+
+}
+
+
+pmod{
+*PMOD_NAME = "The Mysterious Elixir Last Drunken by Fitzgerald Kambavolo"
+*PMOD_DESCRIPTION = "The Guardian takes, randomly, 1-5 swigs of the mysterious elixir. For each swig taken, reduce all stats by 5, and increase height by 3 inches. Add Brick Wall."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+$Swigs = ?<1,5>
+
+!repeat&Swigs&`@(&ALL_ATTRIBUTES&) -= 5`
+!repeat&Swigs&`@Height_In += 3`
+@SigSkill1 = 15
+
+}
+
+pmod{
+*PMOD_NAME = "Joe Biden, the Man the Roaches Taught A Lot To"
+*PMOD_DESCRIPTION = "C'mon man give him a chance! The player finds no contentment in giving Joe a chance, but does it anyway since the alternative is objectively worse. Add 10 to 3pt shooting, -5 to all other stats. Add Spot-up Shooter skill."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+@SSht3PT += 10
+@({&ALL_ATTRIBUTES&/SSht3PT}) -= 5
+@SigSkill1 = 5
+
+}
+
+pmod{
+*PMOD_NAME = "The Roaches Joe Learned A Lot About"
+*PMOD_DESCRIPTION = "Grinning ear to ear, the player is content; he knows that few others realize the power of having a few roaches over for dinner. Add 5 to all other stats, -10 to 3pt shooting. Add Posterizer."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+@SSht3PT -= 10
+@({&ALL_ATTRIBUTES&/SSht3PT}) += 5
+@SigSkill1 = 1
+
+}
+
+pmod{
+*PMOD_NAME = "Joe Biden's Dentures, stained with the blood of Cornpop."
+*PMOD_DESCRIPTION = "Feeling energized at the idea of possessing a battle-tested piece of weaponry, the player changes: Add 20 to Defensive Rebound, Subtract 20 from Offensive Rebound.  Add Scrapper skill. "
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+@SOReb -= 20
+@SDReb += 20
+@SigSkill1 = 25
+
+}
+
+pmod{
+*PMOD_NAME = "Cornpop's Razor Blade, stained with the blood of Joe Biden"
+*PMOD_DESCRIPTION = "The player hates the idea of owning something that was once used to attack a godly man like Joseph Biden, and changes as a result: Add 20 to Offensive Rebound, Subtract 20 from Defensive Rebound.  Add Hustle Points skill."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Guardian"
+
+@SOReb += 20
+@SDReb -= 20
+@SigSkill1 = 24
+
+}
+
+pmod{
+*PMOD_NAME = "The Bewildered and Horrified Look on Sneh's Face After Tim Molkosky Cautioned Him that the 'Floor is Lava'"
+*PMOD_DESCRIPTION = "Uncomfortable by Sneh's everyone-for-themself approach of locking himself in the freezer, the player changes as follows: All zones are hot zones. Add 20 to all tertiary stats. Randomly subtract 150 from all primary and secondary stats. Add an Epic or Legendary special shot."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@(HZ1,HZ2,HZ3,HZ4,HZ5,HZ6,HZ7,HZ8,HZ9,HZ10,HZ11,HZ12,HZ13,HZ14) = 2
+@(&TERTIARY_ATTRIBUTES&) += 20
+!repeat150`@?[&PRIMARY_ATTRIBUTES&,&SECONDARY_ATTRIBUTES&] -= 1`
+
+!specialShotEpicLegendary
+}
+
+pmod{
+*PMOD_NAME = "Backstage Pass, VIP Tickets to see Michael Laatz in Concert, Won from Laatz' 'ROAD TO SIX YOUTUBE SUBSCRIBERS SWEEPSTAKES'"
+*PMOD_DESCRIPTION = "Astonished to own this once in a lifetime opportunity to see the most influential artist in Spritopian history, the player evolves: -25 to Speed, Offensive Rebound, Defensive Rebound, and Pass. Quickness and Dunk are set to 99, and Dunk Tendency is set to 99. +50 to Low Post Offense. Add Ankle Breaker, Finisher, Highlight Film, and Post Proficiency. Add 4 Dunk Packages from cool dunk types."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@(SSpeed,SOReb,SDReb,SPass) -= 25
+@(SQuick,SDunk) = 99
+@TDunkvLU = 99
+@SOLowPost += 50
+@SigSkill1 = 10
+@SigSkill2 = 3
+@SigSkill3 = 2
+@SigSkill4 = 9
+
+$ValidDunks = 23,24,25,26,27,28,35,51,55,63,64,65
+@AGoToDunk = ?[&ValidDunks&]
+$ValidDunks = {23,24,25,26,27,28,35,51,55,63,64,65/%AGoToDunk%}
+@ADunk2 = ?[&ValidDunks&]
+$ValidDunks = {23,24,25,26,27,28,35,51,55,63,64,65/%ADunk2%,%AGoToDunk%}
+@ADunk3 = ?[&ValidDunks&]
+$ValidDunks = {23,24,25,26,27,28,35,51,55,63,64,65/%ADunk3%,%ADunk2%,%AGoToDunk%}
+@ADunk4 = ?[&ValidDunks&]
+
+}
+
+pmod{
+*PMOD_NAME = "Security Serum, courtesy of Amalgamo Inc."
+*PMOD_DESCRIPTION = "Take 1-5 swigs of the Security Serum. For each swig taken, -10 Speed and Quickness, -5 Offensive Rebound, +5 Defensive Rebound, and +10 to Low Post Defense and On-Ball Defense.  Add Lockdown Defender and Eraser."
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+$Swigs = ?<1,5>
+!repeat&Swigs&`@(SSpeed,SQuick) -= 10`
+!repeat&Swigs&`@SOReb -= 5`
+!repeat&Swigs&`@(SDLowPost,SOnBallD) += 10`
+!repeat&Swigs&`@SDReb += 5`
+@SigSkill1 = 16
+@SigSkill2 = 21
+
+}
+
+
+pmod{
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'Nothing you can do will scare me - I work in TECH SUPPORT!'"
+*PMOD_DESCRIPTION = "Feeling relieved to work a job that builds so much character, the player evolves: Add 6 inches to height, subtract 30 from speed, quickness, and vertical. Add 20 to non-accented secondary stats. Add Eraser and Brick Wall."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@Height_In += 6
+@SSpeed -= 30
+@SQuick -= 30
+@SVertical -= 30
+@({&SECONDARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 20
+@SigSkill1 = 21
+@SigSkill2 = 15
+
+}
+
+
+pmod{
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'I don't speak MORON, we'll have to communicate in sign language!' Below is an image of a white man giving the middle finger. "
+*PMOD_DESCRIPTION = "After uncontrollably laughing on the floor, nearly dying from asphyxiation, the player changes as follows: Set Vertical and Dunk to 99. Add 2 Dunk Packages from cool dunk types. Set all tertiary stats to 25. Add Posterizer, Finisher, and Highlight Film. "
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@SVertical = 99
+@SDunk = 99
+@(&TERTIARY_ATTRIBUTES&) = 25
+@SigSkill1 = 1
+@SigSkill2 = 3
+@SigSkill3 = 2
+
+$ValidDunks = 23,24,25,26,27,28,35,51,55,63,64,65
+@AGoToDunk = ?[&ValidDunks&]
+$ValidDunks = {23,24,25,26,27,28,35,51,55,63,64,65/%AGoToDunk%}
+@ADunk2 = ?[&ValidDunks&]
+
+}
+
+pmod{
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'If you don't want a sarcastic answer, don't ask a STUPID question!'"
+*PMOD_DESCRIPTION = "So damn true. The player smiles knowingly and changes as follows: Add 20 to Speed and Quickness. Add 15 to accented secondary stats.  Strength and Low Post Defense are set to 25. -6 inches to Height."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@SSpeed += 20
+@SQuick += 20
+@({&SECONDARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) += 15
+@SStrength = 25
+@SDLowPost = 25
+@Height_In -= 6
+
+}
+
+
+pmod{
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'Stay back,  I am deathly allergic to STUPID!'"
+*PMOD_DESCRIPTION = "Scott's humor knows no bounds, the player revels in sharing an occupation with the next George Carlin. Add 15 Quickness, -10 Speed. Add Post Playmaker."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@SSpeed -= 10
+@SQuick += 15
+@SigSkill1 = 11
+
+}
+
+pmod{
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'Keep your mask on, it stops all the STUPID from spilling out!'"
+*PMOD_DESCRIPTION = "After letting out a hearty chuckle, knowing full and well that the mask mandate is a deep state PSYOP, the player changes: Add 10 Speed, -15 Quickness. Add Chasedown Artist."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@SSpeed += 10
+@SQuick -= 15
+@SigSkill1 = 22
+
+}
+
+
+
+pmod{
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'Be warned, I'm legally armed with weaponry....and BACON!'"
+*PMOD_DESCRIPTION = "Nodding their head up and down, failing to hold back a good laugh, the player holsters their glock and prepares to make some bacon. Add 20 to Offensive Rebound, Subtract 20 from Defensive Rebound.  Add Hustle Points skill."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@SDReb -= 20
+@SOReb += 20
+@SigSkill1 = 24
+
+}
+
+
+pmod{
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: '2nd to Shoot, 1st to Kill! #RightToBearArms'"
+*PMOD_DESCRIPTION = "Knowing that hoodlums are terrible shots, and that the player themself is a shooter akin John Wayne, the player lets out a roaring set of laughs. Add 20 to Defensive Rebound, Subtract 20 from Offensive Rebound.  Add Scrapper skill."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Engineer"
+
+@SDReb += 20
+@SOReb -= 20
+@SigSkill1 = 25
+
+}
+
+pmod{
+*PMOD_NAME = "An Assorted Baggy of Mystical Melvin Milkdud's Hallucinogenic Narcotics Labeled "Magic Candy for Kids of All Ages!""
+*PMOD_DESCRIPTION = "Putting all their trust into the disheveled and wild eyed 90 year old, the player giddily gulps down 5 of Melvin's finest candies. Add 40 to Vertical, Offensive Rebound, Defensive Rebound. Remove 6-8 inches of height. Randomly assign each non-3pt zone a hot or cold value. "
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@(SVertical,SOReb,SDReb) += 40
+@Height_In -= ?<6,8>
+@HZ1 = ?[0,2]
+@HZ2 = ?[0,2]
+@HZ3 = ?[0,2]
+@HZ4 = ?[0,2]
+@HZ5 = ?[0,2]
+@HZ6 = ?[0,2]
+@HZ7 = ?[0,2]
+@HZ8 = ?[0,2]
+@HZ9 = ?[0,2]
+
+}
+
+
+pmod{
+*PMOD_NAME = "An Ancient Mid Certification Badge, Passed Down for Hundreds of Years"
+*PMOD_DESCRIPTION = "The player knows the weight that such a certification carries, and feels empowered that they are able to carry on its legacy. Shot Medium, Shot Close, and Consistency are set to 99. Add Corner Specialist and Acrobat. All 3PT Hotzones are Cold Zones. -10 to 3PT shot. Add a epic or legendary shot:"
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@(SShtMed,SShtCls,SConsis) = 99
+@SigSkill1 = 8
+@SigSkill2 = 4
+@(HZ10,HZ11,HZ12,HZ13,HZ14) = 0
+@SSht3PT -= 10
+
+!specialShotEpicLegendary
+
+
+}
+
+
+pmod{
+*PMOD_NAME = "Swiftness Serum, courtesy of Amalgamo Inc."
+*PMOD_DESCRIPTION = "Take 1-5 swigs of the Swiftness Serum, each swig provides the player 5 speed and quickness, along with adding 2 to accented secondary stats. Each swig also burns the liver of the player, removing 10 from ball handling and ball security, as well as subtracting 4 from all non-accented secondary stats.  "
+*PMOD_RARITY = "Legendary"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+$Swigs = ?<1,5>
+!repeat&Swigs&`@(SSpeed,SQuick) += 5`
+!repeat&Swigs&`@({&SECONDARY_ATTRIBUTES&|&ACCENTED_ATTRIBUTES&}) += 2`
+!repeat&Swigs&`@(SBallHndl,SBallSec) -= 10`
+!repeat&Swigs&`@({&SECONDARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) -= 4`
+
+}
+
+pmod{
+*PMOD_NAME = "A Burnt Out Candle, Stained with a Single Drop of Blood"
+*PMOD_DESCRIPTION = "Holy fuck. The player didn't expect such a deeply unnerving artifact and changes as follows: Set Offensive and Defensive awareness to 99.  Add Shot Creator, Brick Wall,  Antifreeze, and Microwave.  Subtract 7 from all secondary stats."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@SOAwar = 99
+@SDAwar = 99
+@SigSkill1 = 6
+@SigSkill2 = 15
+@SigSkill3 = 26
+@SigSkill4 = 27
+@(&SECONDARY_ATTRIBUTES&) -=7
+
+}
+
+
+pmod{
+*PMOD_NAME = "A Cellphone Snapped Perfectly in Two"
+*PMOD_DESCRIPTION = "Feeling pleased at the sight of a southern man grinning with glee at the broken piece of technology, the player evolves as follows: Add 10 to all non-accented stats. Subtract 150 points randomly across all accented stats."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@({&ALL_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 10
+!repeat150`@?[&ACCENTED_ATTRIBUTES&] -= 1`
+
+}
+
+pmod{
+*PMOD_NAME = "Vial of Vince Gilligan's Humility, Liquified"
+*PMOD_DESCRIPTION = "Feeling like they can morph the world in any way they want, but also like they don't want any of the credit for it, the player changes as follows: Add Defensive Anchor and War General. Set Hustle, Pass, Offensive Awareness, and Defensive Awareness to 99. -15 to all other Primary attributes."
+*PMOD_RARITY = "Epic"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@SigSkill1 = 30
+@SigSkill2 = 31
+
+$StatsToChange = SHustle,SPass,SDAwar,SOAwar
+@(&StatsToChange&) = 99
+@({&ALL_ATTRIBUTES&/&StatsToChange&}) -= 15
+
+}
+
+
+
+pmod{
+*PMOD_NAME = "Jimmy McGill's Wartorn Boxing Gear"
+*PMOD_DESCRIPTION = "Feeling perplexed on the very existence of this artifact, the player ponders on this thought and loses 2 inches of height. +10 speed and quickness. Add Chasedown artist."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@SSpeed += 10
+@SQuick += 10
+@SigSkill1 = 22
+@Height_In -= 2
+
+}
+
+
+pmod{
+*PMOD_NAME = "Howard Hamlin's Pristine Boxing Gear"
+*PMOD_DESCRIPTION = "Appreciating the delicate care taken to the dueling gear, the player finds a state of zen and changes as follows: Add 2 inches of height. -10 speed and quickness. Add Defensive Anchor."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@SSpeed -= 10
+@SQuick -= 10
+@SigSkill1 = 31
+@Height_In += 2
+
+}
+
+pmod{
+*PMOD_NAME = "A Bag of "Meth" Recovered from a Massive Explosion in the City"
+*PMOD_DESCRIPTION = "Knowing that they shouldn't waste good meth, the player snorts the explosive powder and changes: Adds Heat Retention and Shot Creator. +10 Shoot Off Dribble, -10 Shoot In Traffic."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@SigSkill1 = 6
+@SigSkill2 = 28
+@SShtOfD += 10
+@SShtInT -= 10
+
+
+}
+
+
+
+
+pmod{
+*PMOD_NAME = "A Bag of 'Rocks' Recovered from a DEA Agent's Remains"
+*PMOD_DESCRIPTION = "Blissfully unaware of the difference between rocks and minerals, the player decides these will be perfect for skipping across a good lake. Adds Highlight Film and Dimer. +10 Pass. -10 Hands."
+*PMOD_RARITY = "Rare"
+*PMOD_ARCHETYPE_LOCK = "Director"
+
+@SigSkill1 = 12
+@SigSkill2 = 2
+@SPass += 10
+@SHands -= 10
+
+}

@@ -1,0 +1,17 @@
+template = '''You are a machine that generates full unique, interesting backstories for randomly generated characters. These backstories will follow these rules:
+
+1. Each backstory should be roughly 3-4 sentences in length, and unique enough to distinguish from other backstories.
+2. The main character is a male named $CHARACTER_NAME
+3. $INTEREST_LEVEL
+4. You will write each backstory in FULL. I will only provide a guide - it is up to you to convert it into fully fleshed out backstories.
+5. I will provide a simple "idea" for the backstory. Take this idea as a sort of writing prompt, and generate some unique backstories based off of it.
+6. Number each backstory separate by a newline.
+7. If the backstory involves some sort of event, actually TELL US what that event was,
+8. $BASE_IDEA Please include this in each backstory.
+
+Following these rules and using this starting point, please generate $BACKSTORY_COUNT FULL character backstories below. Response to this message with ONLY the $BACKSTORY_COUNT backstories, each numbered and separated by a newline. Include NOTHING ELSE in your response besides those $BACKSTORY_COUNT generated backstories.'''
+
+[interest]
+level1 = "Do not go over the top with making them unique and different - just generate a backstory for a cookie cutter person, abiding to these instructions."
+level2 = "Include something that makes them unique: an important memory, a weird quirk, a hidden secret, an interesting relationship, or something else."
+level3 = "Include something that makes them utterly fascinating: an important memory, a bizarre quirk, a deep dark secret, a fascinating relationship, or something else truly bizarre."
