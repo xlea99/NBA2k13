@@ -167,7 +167,6 @@ paths = Paths()
 # endregion === Config and Pathing Setup ===
 
 
-
 #region === Miscellaneous Functions ===
 
 # Simple backup management function. Will attempt to backup the file given by filePath
@@ -321,6 +320,23 @@ def rStringProcess(rString,recursiveProcessing : bool = True):
 
     return rString
 
+# This function converts a decimal number into a "alphaBase26" number, using only letters of the alphabet.
+def alphaBase26(decimalNumber : int,maxPlaces : int):
+    chars = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 
+    # Initialize a list to hold the characters for the output string
+    letterList = [None] * maxPlaces
+
+    # Manipulate the input decimal number and fill in the output letter list
+    for i in range(maxPlaces - 1, -1, -1):
+        division = 26 ** i
+        index, decimalNumber = divmod(decimalNumber, division)
+        letterList[maxPlaces - 1 - i] = chars[index]
+
+    # Concatenate letter list into return string
+    returnString = ""
+    for letter in letterList:
+        returnString += letter
+    return returnString
 
 #endregion === Miscellaneous Functions ===

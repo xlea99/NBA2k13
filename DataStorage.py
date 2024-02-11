@@ -1810,490 +1810,6 @@ JUMBLED_NAMES = [["*___--~*~**-|-=-", "*==_*~|=*=_*=|~|"],
                  ["*=~|~*-_=_--**|*", "*~-===_|=_||=--="],
                  ["*=~|~|=-*--_--_-", "*|_~-|__-~~=__-_"],
                  ["*=~~_-~~|~~~|_--", "**~|_*-*~___*|||"]]
-PLAYERS_TABLE_COLUMNS = {"Last_Name": "Text",
-                         "First_Name": "Text",
-                         "NickName": "Text",
-                         "Archetype": "Text",
-                         "Rarity": "Text",
-                         "CAP_Nick": "Integer",
-                         "ArtifactName": "Text",
-                         "ArtifactDesc": "Text",
-                         "ArtifactCode": "Blob",
-                         "Hand": "Integer",
-                         "Height": "Real",
-                         "Weight": "Real",
-                         "PortrID": "Integer",
-                         "GenericF": "Integer",
-                         "CF_ID": "Integer",
-                         "AudioID_M": "Integer",
-                         "NmOrder": "Integer",
-                         "SkinTone": "Integer",
-                         "Muscles": "Integer",
-                         "EyeColor": "Integer",
-                         "Bodytype": "Integer",
-                         "Clothes": "Integer",
-                         "Number": "Integer",
-                         "Pos": "Integer",
-                         "SecondPos": "Integer",
-                         "PlayInitor": "Integer",
-                         "PlayStyle": "Integer",
-                         "PlayType1": "Integer",
-                         "PlayType2": "Integer",
-                         "PlayType3": "Integer",
-                         "PlayType4": "Integer",
-                         "SShtIns": "Integer",
-                         "SShtCls": "Integer",
-                         "SShtMed": "Integer",
-                         "SSht3PT": "Integer",
-                         "SShtFT": "Integer",
-                         "SLayUp": "Integer",
-                         "SDunk": "Integer",
-                         "SStdDunk": "Integer",
-                         "SShtInT": "Integer",
-                         "SPstFdaway": "Integer",
-                         "SPstHook": "Integer",
-                         "SShtOfD": "Integer",
-                         "SBallHndl": "Integer",
-                         "SOffHDrib": "Integer",
-                         "SBallSec": "Integer",
-                         "SPass": "Integer",
-                         "SBlock": "Integer",
-                         "SSteal": "Integer",
-                         "SHands": "Integer",
-                         "SOnBallD": "Integer",
-                         "SOReb": "Integer",
-                         "SDReb": "Integer",
-                         "SOLowPost": "Integer",
-                         "SDLowPost": "Integer",
-                         "SOAwar": "Integer",
-                         "SDAwar": "Integer",
-                         "SConsis": "Integer",
-                         "SStamina": "Integer",
-                         "SSpeed": "Integer",
-                         "SQuick": "Integer",
-                         "SStrength": "Integer",
-                         "SVertical": "Integer",
-                         "SHustle": "Integer",
-                         "SDurab": "Integer",
-                         "SPOT": "Integer",
-                         "SEmotion": "Integer",
-                         "SigSkill1": "Integer",
-                         "SigSkill2": "Integer",
-                         "SigSkill3": "Integer",
-                         "SigSkill4": "Integer",
-                         "SigSkill5": "Integer",
-                         "TShtTend": "Integer",
-                         "TInsShots": "Integer",
-                         "TCloseSht": "Integer",
-                         "TMidShots": "Integer",
-                         "T3PTShots": "Integer",
-                         "TPutbacks": "Integer",
-                         "TDriveLn": "Integer",
-                         "TPullUp": "Integer",
-                         "TPumpFake": "Integer",
-                         "TTrplThrt": "Integer",
-                         "TTTShot": "Integer",
-                         "TNoTT": "Integer",
-                         "TStrghtDr": "Integer",
-                         "TSizeUp": "Integer",
-                         "THesitat": "Integer",
-                         "TDriveRvL": "Integer",
-                         "TCrossov": "Integer",
-                         "TSpin": "Integer",
-                         "TStepBack": "Integer",
-                         "THalfSpin": "Integer",
-                         "TDblCross": "Integer",
-                         "TBhndBack": "Integer",
-                         "THesCross": "Integer",
-                         "TInAndOut": "Integer",
-                         "TDPSimpDr": "Integer",
-                         "TAttackB": "Integer",
-                         "TPassOut": "Integer",
-                         "THopStep": "Integer",
-                         "TSpinLUp": "Integer",
-                         "TEuroStep": "Integer",
-                         "TRunner": "Integer",
-                         "TFadeaway": "Integer",
-                         "TStpbJmpr": "Integer",
-                         "TSpinJmpr": "Integer",
-                         "TDunkvLU": "Integer",
-                         "TAlleyOop": "Integer",
-                         "TUseGlass": "Integer",
-                         "TDrawFoul": "Integer",
-                         "TStpThrgh": "Integer",
-                         "TVShCrash": "Integer",
-                         "TUsePick": "Integer",
-                         "TSetPick": "Integer",
-                         "TIsolat": "Integer",
-                         "TUseOBScr": "Integer",
-                         "TSetOBScr": "Integer",
-                         "TSpotUp": "Integer",
-                         "TPostUp": "Integer",
-                         "TGiveGo": "Integer",
-                         "TTouches": "Integer",
-                         "TPostSpn": "Integer",
-                         "TPostDrv": "Integer",
-                         "TPostAgBd": "Integer",
-                         "TLeavePost": "Integer",
-                         "TPostDrpSt": "Integer",
-                         "TPostFaceU": "Integer",
-                         "TPostBDown": "Integer",
-                         "TPostShots": "Integer",
-                         "TPostHook": "Integer",
-                         "TPostFdawy": "Integer",
-                         "TPostShmSh": "Integer",
-                         "TPostHopSh": "Integer",
-                         "TFlshPass": "Integer",
-                         "TThrowAO": "Integer",
-                         "THardFoul": "Integer",
-                         "TTakeChrg": "Integer",
-                         "TPassLane": "Integer",
-                         "TOnBalStl": "Integer",
-                         "TContShot": "Integer",
-                         "TCommFoul": "Integer",
-                         "HIso3PLft": "Integer",
-                         "HIso3PCtr": "Integer",
-                         "HIso3PRgt": "Integer",
-                         "HIsoHPLft": "Integer",
-                         "HIsoHPCtr": "Integer",
-                         "HIsoHPRgt": "Integer",
-                         "HP_rLCrnr": "Integer",
-                         "HP_rLWing": "Integer",
-                         "HP_rTopOA": "Integer",
-                         "HP_rRWing": "Integer",
-                         "HP_rRCrnr": "Integer",
-                         "HSpt3PLCr": "Integer",
-                         "HSpt3PLWg": "Integer",
-                         "HSpt3PTop": "Integer",
-                         "HSpt3PRWg": "Integer",
-                         "HSpt3PRCr": "Integer",
-                         "HSptMdLBl": "Integer",
-                         "HSptMdLWg": "Integer",
-                         "HSptMdCtr": "Integer",
-                         "HSptMdRWg": "Integer",
-                         "HSptMdRBl": "Integer",
-                         "HPstRHigh": "Integer",
-                         "HPstRLow": "Integer",
-                         "HPstLHigh": "Integer",
-                         "HPstLLow": "Integer",
-                         "HZ1": "Integer",
-                         "HZ2": "Integer",
-                         "HZ3": "Integer",
-                         "HZ4": "Integer",
-                         "HZ5": "Integer",
-                         "HZ6": "Integer",
-                         "HZ7": "Integer",
-                         "HZ8": "Integer",
-                         "HZ9": "Integer",
-                         "HZ10": "Integer",
-                         "HZ11": "Integer",
-                         "HZ12": "Integer",
-                         "HZ13": "Integer",
-                         "HZ14": "Integer",
-                         "AShtForm": "Integer",
-                         "AShtBase": "Integer",
-                         "AFadeaway": "Integer",
-                         "AContestd": "Integer",
-                         "AEscDrPlU": "Integer",
-                         "ARunner": "Integer",
-                         "AFreeT": "Integer",
-                         "ADrPullUp": "Integer",
-                         "ASpinJmpr": "Integer",
-                         "AHopJmpr": "Integer",
-                         "APstFade": "Integer",
-                         "APstHook": "Integer",
-                         "APstHopSh": "Integer",
-                         "APstShmSh": "Integer",
-                         "APstDrvStB": "Integer",
-                         "APstSpnStB": "Integer",
-                         "APstPrtct": "Integer",
-                         "APstPrtSpn": "Integer",
-                         "AIsoCross": "Integer",
-                         "AIsoBhBck": "Integer",
-                         "AIsoSpin": "Integer",
-                         "AIsoHesit": "Integer",
-                         "ALayUp": "Integer",
-                         "AGoToDunk": "Integer",
-                         "ADunk2": "Integer",
-                         "ADunk3": "Integer",
-                         "ADunk4": "Integer",
-                         "ADunk5": "Integer",
-                         "ADunk6": "Integer",
-                         "ADunk7": "Integer",
-                         "ADunk8": "Integer",
-                         "ADunk9": "Integer",
-                         "ADunk10": "Integer",
-                         "ADunk11": "Integer",
-                         "ADunk12": "Integer",
-                         "ADunk13": "Integer",
-                         "ADunk14": "Integer",
-                         "ADunk15": "Integer",
-                         "AIntHLght": "Integer",
-                         "AIntPreG1": "Integer",
-                         "AIntPreG2": "Integer",
-                         "AIntPreT1": "Integer",
-                         "AIntPreT2": "Integer",
-                         "GHeadband": "Integer",
-                         "GHdbndLg": "Integer",
-                         "GUndrshrt": "Integer",
-                         "GUndrsCol": "Integer",
-                         "GLeftArm": "Integer",
-                         "GLArmCol": "Integer",
-                         "GLeftElb": "Integer",
-                         "GLElbCol": "Integer",
-                         "GLeftWrst": "Integer",
-                         "GLWrstC1": "Integer",
-                         "GLWrstC2": "Integer",
-                         "GLeftFngr": "Integer",
-                         "GLFngrCol": "Integer",
-                         "GRghtArm": "Integer",
-                         "GRArmCol": "Integer",
-                         "GRghtElb": "Integer",
-                         "GRElbCol": "Integer",
-                         "GRghtWrst": "Integer",
-                         "GRWrstC1": "Integer",
-                         "GRWrstC2": "Integer",
-                         "GRghtFngr": "Integer",
-                         "GRFngrCol": "Integer",
-                         "GPresShrt": "Integer",
-                         "GPrsShCol": "Integer",
-                         "GLeftLeg": "Integer",
-                         "GLLegCol": "Integer",
-                         "GLeftKnee": "Integer",
-                         "GLKneeCol": "Integer",
-                         "GLeftAnkl": "Integer",
-                         "GLAnklCol": "Integer",
-                         "GRghtLeg": "Integer",
-                         "GRLegCol": "Integer",
-                         "GRghtKnee": "Integer",
-                         "GRKneeCol": "Integer",
-                         "GRghtAnkl": "Integer",
-                         "GRAnklCol": "Integer",
-                         "GSockLngh": "Integer",
-                         "GShsBrLck": "Integer",
-                         "GShsBrand": "Integer",
-                         "GShsModel": "Integer",
-                         "GShsUCusC": "Integer",
-                         "GShsTHC1": "Integer",
-                         "GShsTHC2": "Integer",
-                         "GShsTAC1": "Integer",
-                         "GShsTAC2": "Integer",
-                         "GShsHCol1": "Blob",
-                         "GShsHCol2": "Blob",
-                         "GShsHCol3": "Blob",
-                         "GShsACol1": "Blob",
-                         "GShsACol2": "Blob",
-                         "GShsACol3": "Blob",
-                         "CAP_FaceT": "Integer",
-                         "CAP_Hstl": "Integer",
-                         "CAP_Hcol": "Integer",
-                         "CAP_Hlen": "Integer",
-                         "CAP_BStyle": "Integer",
-                         "CAP_Moust": "Integer",
-                         "CAP_Goatee": "Integer",
-                         "CAP_Fhcol": "Integer",
-                         "CAP_Eyebr": "Integer",
-                         "CAP_T_LftN": "Integer",
-                         "CAP_T_LftS": "Integer",
-                         "CAP_T_RgtS": "Integer",
-                         "CAP_T_LftB": "Integer",
-                         "CAP_T_RgtB": "Integer",
-                         "CAP_T_LftF": "Integer",
-                         "CAP_T_RgtF": "Integer",
-                         "HParam1": "Integer",
-                         "HParam2": "Integer",
-                         "HdBrwHght": "Integer",
-                         "HdBrwWdth": "Integer",
-                         "HdBrwSlpd": "Integer",
-                         "HdNkThck": "Integer",
-                         "HdNkFat": "Integer",
-                         "HdChnLen": "Integer",
-                         "HdChnWdth": "Integer",
-                         "HdChnProt": "Integer",
-                         "HdJawSqr": "Integer",
-                         "HdJawWdth": "Integer",
-                         "HdChkHght": "Integer",
-                         "HdChkWdth": "Integer",
-                         "HdChkFull": "Integer",
-                         "HdDefinit": "Integer",
-                         "MtULCurve": "Integer",
-                         "MtULThick": "Integer",
-                         "MtULProtr": "Integer",
-                         "MtLLCurve": "Integer",
-                         "MtLLThick": "Integer",
-                         "MtLLProtr": "Integer",
-                         "MtSzHght": "Integer",
-                         "MtSzWdth": "Integer",
-                         "MtCrvCorn": "Integer",
-                         "ErHeight": "Integer",
-                         "ErWidth": "Integer",
-                         "ErEarLobe": "Integer",
-                         "ErTilt": "Integer",
-                         "NsNsHght": "Integer",
-                         "NsNsWdth": "Integer",
-                         "NsNsProtr": "Integer",
-                         "NsBnBridge": "Integer",
-                         "NsBnDefin": "Integer",
-                         "NsBnWdth": "Integer",
-                         "NsTipHght": "Integer",
-                         "NsTipWdth": "Integer",
-                         "NsTipTip": "Integer",
-                         "NsTipBnd": "Integer",
-                         "NsNtHght": "Integer",
-                         "NsNtWdth": "Integer",
-                         "EsFrmOpen": "Integer",
-                         "EsFrmSpac": "Integer",
-                         "EsFrmLwEl": "Integer",
-                         "EsFrmUpEl": "Integer",
-                         "EsPlcHght": "Integer",
-                         "EsPlcWdth": "Integer",
-                         "EsPlcRot": "Integer",
-                         "EsPlcProt": "Integer",
-                         "EsShpOtEl": "Integer",
-                         "EsShpInEl": "Integer",
-                         "HS_ID": "Integer",
-                         "IsRegNBA": "Integer",
-                         "IsSpecial": "Integer",
-                         "SlotType": "Integer",
-                         "IsGener": "Integer",
-                         "IsDraftee": "Integer",
-                         "IsDrafted": "Integer",
-                         "ASA_ID": "Integer",
-                         "IsFA": "Integer",
-                         "TeamID1": "Integer",
-                         "TeamID2": "Integer",
-                         "BirthDay": "Integer",
-                         "BirthMonth": "Integer",
-                         "BirthYear": "Integer",
-                         "YearsPro": "Integer",
-                         "CollegeID": "Integer",
-                         "DraftedBy": "Integer",
-                         "DraftYear": "Integer",
-                         "DraftRound": "Integer",
-                         "DraftPos": "Integer",
-                         "Personality": "Integer",
-                         "Play4Winner": "Integer",
-                         "FinSecurity": "Integer",
-                         "Loyalty": "Integer",
-                         "PeakAgeS": "Integer",
-                         "PeakAgeE": "Integer",
-                         "MinsAsg": "Integer",
-                         "Morale": "Integer",
-                         "Fatigue": "Integer",
-                         "FARestr": "Integer",
-                         "CtrThoughts": "Integer",
-                         "InjDaysLeft": "Integer",
-                         "InjType": "Integer",
-                         "StatY0": "Integer",
-                         "StatY1": "Integer",
-                         "StatY2": "Integer",
-                         "StatY3": "Integer",
-                         "StatY4": "Integer",
-                         "StatY5": "Integer",
-                         "StatY6": "Integer",
-                         "StatY7": "Integer",
-                         "StatY8": "Integer",
-                         "StatY9": "Integer",
-                         "StatY10": "Integer",
-                         "StatY11": "Integer",
-                         "StatY12": "Integer",
-                         "StatY13": "Integer",
-                         "StatY14": "Integer",
-                         "StatY15": "Integer",
-                         "StatY16": "Integer",
-                         "StatY17": "Integer",
-                         "StatY18": "Integer",
-                         "StatY19": "Integer",
-                         "StatPOs": "Integer",
-                         "GH_CarPts": "Integer",
-                         "GH_CarFGM": "Integer",
-                         "GH_CarFGA": "Integer",
-                         "GH_CarStl": "Integer",
-                         "GH_CarBlk": "Integer",
-                         "GH_Car3PM": "Integer",
-                         "GH_Car3PA": "Integer",
-                         "GH_CarFTM": "Integer",
-                         "GH_CarFTA": "Integer",
-                         "GH_CarOReb": "Integer",
-                         "GH_CarDReb": "Integer",
-                         "GH_CarRebs": "Integer",
-                         "GH_CarAst": "Integer",
-                         "GH_SeaPts": "Integer",
-                         "GH_SeaFGM": "Integer",
-                         "GH_SeaFGA": "Integer",
-                         "GH_SeaStl": "Integer",
-                         "GH_SeaBlk": "Integer",
-                         "GH_Sea3PM": "Integer",
-                         "GH_Sea3PA": "Integer",
-                         "GH_SeaFTM": "Integer",
-                         "GH_SeaFTA": "Integer",
-                         "GH_SeaOReb": "Integer",
-                         "GH_SeaDReb": "Integer",
-                         "GH_SeaRebs": "Integer",
-                         "GH_SeaAst": "Integer",
-                         "BirdYears": "Integer",
-                         "CClrYears": "Integer",
-                         "CRole": "Integer",
-                         "COption": "Integer",
-                         "CNoTrade": "Integer",
-                         "CYear1": "Integer",
-                         "CYear2": "Integer",
-                         "CYear3": "Integer",
-                         "CYear4": "Integer",
-                         "CYear5": "Integer",
-                         "CYear6": "Integer",
-                         "SgndTYWith": "Integer",
-                         "YrsForCurT": "Integer",
-                         "ExtraValue1": "Text",
-                         "ExtraValue2": "Text",
-                         "ExtraValue3": "Text",
-                         "ExtraValue4": "Text",
-                         "ExtraValue5": "Text",
-                         "ExtraValue6": "Text",
-                         "ExtraValue7": "Text",
-                         "ExtraValue8": "Text",
-                         "ExtraValue9": "Text",
-                         "ExtraValue10": "Text",
-                         "ExtraValue11": "Text",
-                         "ExtraValue12": "Text",
-                         "ExtraValue13": "Text",
-                         "ExtraValue14": "Text",
-                         "ExtraValue15": "Text",
-                         "ExtraValue16": "Text",
-                         "ExtraValue17": "Text",
-                         "ExtraValue18": "Text",
-                         "ExtraValue19": "Text",
-                         "ExtraValue20": "Text",
-                         "ExtraValue21": "Text",
-                         "ExtraValue22": "Text",
-                         "ExtraValue23": "Text",
-                         "ExtraValue24": "Text",
-                         "ExtraValue25": "Text",
-                         "ExtraValue26": "Text",
-                         "ExtraValue27": "Text",
-                         "ExtraValue28": "Text",
-                         "ExtraValue29": "Text",
-                         "ExtraValue30": "Text",
-                         "ExtraValue31": "Text",
-                         "ExtraValue32": "Text",
-                         "ExtraValue33": "Text",
-                         "ExtraValue34": "Text",
-                         "ExtraValue35": "Text",
-                         "ExtraValue36": "Text",
-                         "ExtraValue37": "Text",
-                         "ExtraValue38": "Text",
-                         "ExtraValue39": "Text",
-                         "ExtraValue40": "Text",
-                         "ExtraValue41": "Text",
-                         "ExtraValue42": "Text",
-                         "ExtraValue43": "Text",
-                         "ExtraValue44": "Text",
-                         "ExtraValue45": "Text",
-                         "ExtraValue46": "Text",
-                         "ExtraValue47": "Text",
-                         "ExtraValue48": "Text",
-                         "ExtraValue49": "Text",
-                         "ExtraValue50": "Text"}
 
 
 # This class handles all communications with Databases and CSV sets
@@ -2301,6 +1817,21 @@ class DataStorage:
 
     def __init__(self, openCSVFiles=True, openPlayersTable=True, openStatsTable=True, openGauntletTable=True,
                  playersPathOverride: str = None, statsPathOverride: str = None, gauntletPathOverride: str = None):
+
+        if(playersPathOverride is None):
+            self.playersDBPath = f"{b.paths.databases}\\Players.db" # Default PlayersDB path
+        else:
+            self.playersDBPath = playersPathOverride
+
+        if(statsPathOverride is None):
+            self.statsDBPath = f"{b.paths.databases}\\Stats.db" # Default StatsDB path
+        else:
+            self.statsDBPath = statsPathOverride
+
+        if(gauntletPathOverride is None):
+            self.gauntletDBPath = f"{b.paths.databases}\\Gauntlet.db" # Default GauntletDB path
+        else:
+            self.gauntletDBPath = gauntletPathOverride
 
         self.csvRosterDict = {}
         self.csvDBDict = {}
@@ -2347,7 +1878,6 @@ class DataStorage:
         query = f'UPDATE SpriteIDs SET SpriteID = {spriteID} WHERE RosterID = {rosterID};'
         self.csvCursorDict[rosterName].execute(query)
         self.csvDBDict[rosterName].commit()
-
     # This method adds a valid height adjustment (between 0.00 and 2.53) for the given RosterID, applies it,
     # stores it in RosterVals.db, and returns True if the Roster isn't yet full. realHeight should be in inches.
     def __csv_AdjustHeight(self, rosterName, rosterID, realHeight):
@@ -2379,7 +1909,6 @@ class DataStorage:
 
             self.csvRosterDict[rosterName]["Players"][rosterID]["Height"] = str(
                 round((realHeight * 2.54) + (thisAdjustment * 0.01), 2))
-
     # This method uses the RosterVals.db database present alongside each exported Roster csv set to generate
     # a dictionary that relates each ID of the Players tab of the rosterName roster to a SpriteID.
     def csv_GenSpriteIDDict(self, rosterName):
@@ -2394,13 +1923,11 @@ class DataStorage:
             spriteIDDict[allUsedPlayerIDs[i]] = spriteIDList[i][0]
 
         self.csvRosterDict[rosterName]["SpriteIDs"] = spriteIDDict
-
     # This method simply returns the SpriteID of a player on a roster, given RosterID.
     def csv_GetSpriteIDFromRosterID(self, rosterName, rosterID):
         query = f"SELECT SpriteID FROM SpriteIDs WHERE RosterID = {rosterID}"
         self.csvCursorDict[rosterName].execute(query)
         return self.csvCursorDict[rosterName].fetchone()[0]
-
     # This method simply returns the RosterID if a player exists on a roster with given SpriteID.
     def csv_GetRosterIDFromSpriteID(self, rosterName, spriteID):
         for rosterID in self.csvRosterDict[rosterName]["SpriteIDs"]:
@@ -2459,7 +1986,6 @@ class DataStorage:
         genRosterValsDBConnection()
 
         self.csv_GenSpriteIDDict(rosterName)
-
     # This method turns a CSV dictionary into four files, saves them to the rosterName csv folder for
     # RedMC import, and overwrites any existing files there.
     def csv_ExportCSVs(self, rosterName):
@@ -2488,10 +2014,12 @@ class DataStorage:
     # essentially means the RosterID is set to inactive and their name is reset.
     def csv_UpdatePlayer(self, rosterName, rosterID, player: Player.Player = None):
         rosterID = int(rosterID)
+        if(rosterID > 999):
+            raise ValueError(f"ERROR: RosterID must be <= 999, given value is {rosterID}")
         if (player is None):
             self.csvRosterDict[rosterName]["Players"][rosterID]["IsRegNBA"] = "0"
-            self.csvRosterDict[rosterName]["Players"][rosterID]["Last_Name"] = JUMBLED_NAMES[rosterID][0]
-            self.csvRosterDict[rosterName]["Players"][rosterID]["First_Name"] = JUMBLED_NAMES[rosterID][1]
+            self.csvRosterDict[rosterName]["Players"][rosterID]["First_Name"] = f"*{b.alphaBase26(decimalNumber=rosterID,maxPlaces=15)}"
+            self.csvRosterDict[rosterName]["Players"][rosterID]["Last_Name"] = f"*{b.alphaBase26(decimalNumber=-1 * rosterID - 1,maxPlaces=15)}"
             self.csvRosterDict[rosterName]["Players"][rosterID]["NickName"] = "**************"
             self.__csv_UpdateSpriteID(rosterName, rosterID, -1)
             self.csv_GenSpriteIDDict(rosterName)
@@ -2527,7 +2055,6 @@ class DataStorage:
             self.__csv_AdjustHeight(rosterName=rosterName, rosterID=rosterID, realHeight=player["HeightIn"])
             self.__csv_UpdateSpriteID(rosterName, rosterID, player["SpriteID"])
             self.csv_GenSpriteIDDict(rosterName)
-
     # This method uses exported CSVs (specifically, headshapes and players csvs) to generate a Player object.
     # Assumes rosterName CSVs are already exported and up to date. It uses rosterID to target a single player.
     def csv_ExtractPlayer(self, rosterName, rosterID):
@@ -2551,13 +2078,13 @@ class DataStorage:
         return player
 
     # This method simply returns the first unused RosterID on the "Players" tab of a CSV dict
+    # TODO Max rosterID error handling
     def csv_FindFirstUnusedRosterID(self, rosterName):
         for singlePlayer in self.csvRosterDict[rosterName]["Players"][1:]:
             if (singlePlayer["IsRegNBA"] == "1"):
                 continue
             else:
                 return singlePlayer[1]
-
     # This method simply returns a list of all used RosterIDs on the "Players" tab of a CSV dict
     def csv_FindAllUsedPlayerIDs(self, rosterName):
         returnList = []
@@ -2565,7 +2092,6 @@ class DataStorage:
             if (singlePlayer["IsRegNBA"] == "1"):
                 returnList.append(int(singlePlayer["ID"]))
         return returnList
-
     # This method uses the HeightMap table of RosterVals.db to determine, given a list of SpriteIDs,
     # the mapped Ball Handling IDs for that team.
     def csv_FindBallHandlingMap(self, rosterName, rosterIDs: list):
@@ -2628,17 +2154,15 @@ class DataStorage:
 
     # Simple open function forms connection to Players.db
     def playersDB_Open(self):
-        self.playersDB = sql.connect(f"{b.paths.databases}\\Players.db")
+        self.playersDB = sql.connect(self.playersDBPath)
         self.playersDB.row_factory = sql.Row
         self.playersCursor = self.playersDB.cursor()
-
     # This method simply executes all pending changes to the Players database.
     def playersDB_Execute(self):
         self.playersCursor.executescript(self.playersPendingWriteQueries)
         self.playersDB.commit()
         self.playersPendingWriteQueries = ""
         self.playersPendingWriteQueriesCount = 0
-
     # Method for executing and clearing changes if pending change list gets too big.
     def playersDB_SafeExecuteTest(self):
         if (self.playersPendingWriteQueriesCount > 50):
@@ -2660,7 +2184,6 @@ class DataStorage:
             return self.playersCursor.fetchall()[0]
         else:
             raise InvalidElementNameType(elementName)
-
     # Write method can write a single value to a single elementName, or multiple values to
     # multiple elementNames. If lists are used, the method ASSUMES they are ordered - IE,
     # elementName = [FirstName,LastName,Age] elementText = ["Judas",45,"Bob"] would set a
@@ -2706,29 +2229,16 @@ class DataStorage:
 
     # This method simply adds a blank Player entry to the DB, and returns its SpriteID.
     def playersDB_AddBlankPlayer(self):
-        columnsString = ""
-        valuesString = ""
-        for key in PLAYERS_TABLE_COLUMNS.keys():
-            columnsString += key + ","
-            if (PLAYERS_TABLE_COLUMNS[key] == "Integer" or PLAYERS_TABLE_COLUMNS[key] == "Real"):
-                valuesString += "0"
-            else:
-                valuesString += "NULL"
-            valuesString += ","
-
-        query = f"INSERT INTO Players ({columnsString.rstrip(',')}) VALUES ({valuesString.rstrip(',')});"
+        query = "INSERT INTO Players DEFAULT VALUES;"
         self.playersPendingWriteQueries += query
         self.playersPendingWriteQueriesCount += 1
-        self.playersDB_Execute()
 
         return self.playersDB_GetPlayerCount()
-
     # This function simply returns the number of players in the Players table
     def playersDB_GetPlayerCount(self):
         spriteQuery = "SELECT seq FROM sqlite_sequence WHERE name = 'Players'"
         self.playersCursor.execute(spriteQuery)
         return int(self.playersCursor.fetchone()[0])
-
     # This function completely overwrites the given spriteID with the contents of a player object.
     # By default, values not specified in the PlayerDictionary or set to None will still be
     # overwritten.
@@ -2751,7 +2261,6 @@ class DataStorage:
                 newValues.append(finalVal)
 
         self.playersDB_WriteElement(spriteID, elementsToUpdate, newValues)
-
     # This method returns a Player entry from the Players table as a Player object.
     def playersDB_GetPlayer(self, spriteID):
         player = Player.Player()
@@ -2824,9 +2333,8 @@ class DataStorage:
 
     # Simple open function forms connection to Stats.db
     def statsDB_Open(self):
-        self.statsDB = sql.connect(f"{b.paths.databases}\\Stats.db")
+        self.statsDB = sql.connect(self.statsDBPath)
         self.statsCursor = self.statsDB.cursor()
-
     # This method simply executes all pending changes to the Stats database.
     def statsDB_Execute(self):
         self.statsCursor.executescript(self.statsPendingWriteQueries)
@@ -2962,9 +2470,8 @@ class DataStorage:
 
     # Simple open function forms connection to Gauntlet.db
     def gauntletDB_Open(self):
-        self.gauntletDB = sql.connect(f"{b.paths.databases}\\Gauntlet.db")
+        self.gauntletDB = sql.connect(self.gauntletDBPath)
         self.gauntletCursor = self.gauntletDB.cursor()
-
     # This method simply executes all pending changes to the Gauntlet database.
     def gauntletDB_Execute(self):
         self.gauntletCursor.executescript(self.gauntletPendingWriteQueries)
@@ -2978,27 +2485,22 @@ class DataStorage:
 class InvalidElementNameType(ValueError):
     def __init__(self, elementName):
         super().__init__("Invalid elementName '" + str(elementName) + "' of type '" + str(type(elementName)) + "'.")
-
-
 class WriteElementLengthError(ValueError):
     def __init__(self, elementName, elementText):
         super().__init__(
             "Length of elementName array '" + str(elementName) + "' does not match elementText array '" + str(
                 elementText) + "' (" + str(len(elementName)) + " vs " + str(len(elementText)) + ")")
-
-
 class WriteElementMismatch(ValueError):
     def __init__(self, elementName, elementText):
         super().__init__("elementName and elementText MUST be the same type. elementName was '" + str(
             type(elementName)) + "', while elementText was '" + str(type(elementText)) + "'.")
 
 
-d = DataStorage()
-beggar = d.playersDB_GetPlayer(9)
-print(beggar)
-# newID = d.playersDB_AddBlankPlayer()
-# d.playersDB_UpdatePlayer(spriteID=newID,player = beggar)
-# d.playersDB_Execute()
-# d.csv_UpdatePlayer(rosterName="Premier",rosterID=12,player=beggar)
-# d.csv_ExportCSVs("Premier")
-# print(d.csv_ExtractPlayer(rosterName="Premier",rosterID=2))
+
+#d = DataStorage()
+#wambsy = d.playersDB_GetPlayer(spriteID=312)
+#d.csv_UpdatePlayer(rosterName="Premier",rosterID=21,player=wambsy)
+#
+#for i in range(65,1001):
+#    d.csv_UpdatePlayer(rosterName="Premier", rosterID=i)
+#d.csv_ExportCSVs(rosterName="Premier")
