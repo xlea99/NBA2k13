@@ -772,7 +772,6 @@ class Player:
     def __ge__(self, other):
         return f"{self.vals['First_Name']}{self.vals['Last_Name']}" >= f"{other.vals['First_Name']}{other.vals['Last_Name']}"
 
-
     #endregion === Init and Constants ===
 
     #region === Getter and Setter ===

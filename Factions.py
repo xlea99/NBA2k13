@@ -71,6 +71,7 @@ FACTIONS_ATTRIBUTES = {"Race" : "Text",
                        "Backstory Modifier" : "Text",
                        "Buckets" : "Text",
                        "Description" : "Text",
+                       "Generatable" : "Integer",
                        "Special Gear Sets" : "Text",
                        "Basic Gearset Chance" : "Real",
                        "Hair Style" : "Text",
@@ -366,7 +367,7 @@ def updateFactions():
 
             if(attr in ["Basic Gearset Chance","Facial Hair Probability","Hair Color Match Prob","FN Ratio","LN Ratio","Symmetrical Name Chance","Tattoo Probability"]):
                 finalVal = round(float(entry[attr].split("%")[0])/100,2)
-            elif(attr == "Tattoo Symmetry"):
+            elif(attr in ["Tattoo Symmetry","Generatable"]):
                 if(entry[attr] == "checked"):
                     finalVal = 1
                 else:

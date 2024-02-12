@@ -5,6 +5,7 @@ import BaseFunctions as b
 import sqlite3 as sql
 from datetime import date
 import random
+import StatsRipper
 
 JERSEY_DICT = {
     'SixersHome': ['uh000', 'logo000', '0', 'B7E8E31A', '00000000', '61', '0', '0', '1', '1', '0', '4', '0', '0', '0',
@@ -1815,7 +1816,7 @@ JUMBLED_NAMES = [["*___--~*~**-|-=-", "*==_*~|=*=_*=|~|"],
 # This class handles all communications with Databases and CSV sets
 class DataStorage:
 
-    def __init__(self, openCSVFiles=True, openPlayersTable=True, openStatsTable=True, openGauntletTable=True,
+    def __init__(self, openCSVFiles=True, openPlayersTable=True, openGauntletTable=True,
                  playersPathOverride: str = None, statsPathOverride: str = None, gauntletPathOverride: str = None):
 
         if(playersPathOverride is None):
@@ -1848,12 +1849,8 @@ class DataStorage:
         if (openPlayersTable):
             self.playersDB_Open()
 
-        self.statsDB = None
-        self.statsCursor = None
-        self.statsPendingWriteQueries = ""
-        self.statsPendingWriteQueriesCount = 0
-        if (openStatsTable):
-            self.statsDB_Open()
+        self.stats = {}
+        self.statsDB_DownloadRaw()
 
         self.gauntletDB = None
         self.gauntletCursor = None
@@ -2179,7 +2176,7 @@ class DataStorage:
             for thisElement in elementName:
                 query += thisElement + ","
             query = query.rstrip(",") + " FROM Players WHERE SpriteID=" + str(spriteID)
-            print(f"likc my querying balls: {query}")
+            #print(f"likc my querying balls: {query}")
             self.playersCursor.execute(query)
             return self.playersCursor.fetchall()[0]
         else:
@@ -2331,16 +2328,219 @@ class DataStorage:
                            "Wins"  # This stat returns the total wins a player has.
                            ]
 
-    # Simple open function forms connection to Stats.db
-    def statsDB_Open(self):
-        self.statsDB = sql.connect(self.statsDBPath)
-        self.statsCursor = self.statsDB.cursor()
-    # This method simply executes all pending changes to the Stats database.
-    def statsDB_Execute(self):
-        self.statsCursor.executescript(self.statsPendingWriteQueries)
-        self.statsDB.commit()
-        self.statsPendingWriteQueries = ""
-        self.statsPendingWriteQueriesCount = 0
+    # Downloads the full Stats database in the stats member of this object.
+    def statsDB_DownloadRaw(self):
+        def dictFactory(_cursor, _row):
+            """Converts query results to a dictionary."""
+            d = {}
+            for idx, col in enumerate(_cursor.description):
+                d[col[0]] = _row[idx]
+            return d
+
+
+        conn = sql.connect(f"{b.paths.databases}\\Stats.db")
+        conn.row_factory = dictFactory
+        cursor = conn.cursor()
+
+        # Fetch all games
+        cursor.execute("SELECT * FROM Games")
+        games = cursor.fetchall()
+
+        # Initialize the main dictionary to store game data
+        gamesDict = {}
+
+        # Iterate over each game to fetch its details and related player slots
+        for game in games:
+            gameId = game['GameID']
+
+            # Fetch player slots for this game
+            cursor.execute("SELECT * FROM PlayerSlots WHERE GameID = ?", (gameId,))
+            playerSlots = cursor.fetchall()
+
+
+            game["DataState"] = "Committed"
+            game['PlayerSlots'] = {}
+            for playerSlot in playerSlots:
+                playerSlot["DataState"] = "Committed"
+                slotID = playerSlot["PlayerSlot"]
+                game["PlayerSlots"][slotID] = playerSlot
+
+            # Add the player slots list to the game dictionary
+
+
+            # Add this game's dictionary to the main dictionary
+            gamesDict[gameId] = game
+
+        # Close the database connection
+        conn.close()
+
+        self.stats["Raw"] = gamesDict
+    # Uploads all changes made to the Stats dict to the actual stats database.
+    def statsDB_UploadRaw(self):
+        conn = sql.connect(f"{b.paths.databases}\\Stats.db")
+        cursor = conn.cursor()
+
+        updateQueries = []
+        insertQueries = []
+        # Iterate through each game in the dictionary
+        for gameId, gameInfo in self.stats["Raw"].items():
+            # Check if the game is marked as updated.
+            if(gameInfo["DataState"] == "Updated"):
+                # Prepare an UPDATE statement for the Games table
+                updateGameQuery = """
+                    UPDATE Games SET
+                    LoadedRoster = ?,
+                    Mode = ?,
+                    PlayDate = ?,
+                    GameDuration = ?,
+                    BallerzScore = ?,
+                    RingersScore = ?,
+                    ExtraValue1 = ?, ExtraValue2 = ?, ExtraValue3 = ?,
+                    ExtraValue4 = ?, ExtraValue5 = ?, ExtraValue6 = ?,
+                    ExtraValue7 = ?, ExtraValue8 = ?, ExtraValue9 = ?,
+                    ExtraValue10 = ?
+                    WHERE GameID = ?
+                """
+                gameVals = (
+                    gameInfo["LoadedRoster"],
+                    gameInfo["Mode"],
+                    gameInfo["PlayDate"],
+                    gameInfo["GameDuration"],
+                    gameInfo["BallerzScore"],
+                    gameInfo["RingersScore"],
+                    gameInfo["ExtraValue1"],
+                    gameInfo["ExtraValue2"],
+                    gameInfo["ExtraValue3"],
+                    gameInfo["ExtraValue4"],
+                    gameInfo["ExtraValue5"],
+                    gameInfo["ExtraValue6"],
+                    gameInfo["ExtraValue7"],
+                    gameInfo["ExtraValue8"],
+                    gameInfo["ExtraValue9"],
+                    gameInfo["ExtraValue10"],
+                    gameId
+                )
+                updateQueries.append((updateGameQuery,gameVals))
+            # Check if the game is marked as new.
+            elif(gameInfo["DataState"] == "New"):
+                # Prepare an INSERT statement for the Games table
+                insertGameQuery = """
+                    INSERT INTO Games (
+                        GameID, LoadedRoster, Mode, PlayDate, GameDuration, BallerzScore, RingersScore,
+                        ExtraValue1, ExtraValue2, ExtraValue3, ExtraValue4, ExtraValue5,
+                        ExtraValue6, ExtraValue7, ExtraValue8, ExtraValue9, ExtraValue10
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """
+                gameVals = (
+                    gameId,
+                    gameInfo["LoadedRoster"],
+                    gameInfo["Mode"],
+                    gameInfo["PlayDate"],
+                    gameInfo["GameDuration"],
+                    gameInfo["BallerzScore"],
+                    gameInfo["RingersScore"],
+                    gameInfo["ExtraValue1"],
+                    gameInfo["ExtraValue2"],
+                    gameInfo["ExtraValue3"],
+                    gameInfo["ExtraValue4"],
+                    gameInfo["ExtraValue5"],
+                    gameInfo["ExtraValue6"],
+                    gameInfo["ExtraValue7"],
+                    gameInfo["ExtraValue8"],
+                    gameInfo["ExtraValue9"],
+                    gameInfo["ExtraValue10"]
+                )
+                insertQueries.append((insertGameQuery, gameVals))
+
+            # Iterate through each player slot in the game
+            for slotId, slotInfo in gameInfo["PlayerSlots"].items():
+                # Check if the player slot is marked as "Dirty"
+                if(slotInfo["DataState"] == "Updated"):
+                    # Prepare an UPDATE statement for the PlayerSlots table
+                    updateSlotQuery = """
+                        UPDATE PlayerSlots SET
+                        IsActive = ?, SpriteID = ?, RosterID = ?, Points = ?,
+                        DefensiveRebounds = ?, OffensiveRebounds = ?, PointsPerAssist = ?,
+                        AssistCount = ?, Steals = ?, Blocks = ?, Turnovers = ?,
+                        InsidesMade = ?, InsidesAttempted = ?, ThreesMade = ?,
+                        ThreesAttempted = ?, Fouls = ?, Dunks = ?, Layups = ?,
+                        Unknown1 = ?, Unknown2 = ?
+                        WHERE GameID = ? AND PlayerSlot = ?
+                    """
+                    slotVals = (
+                        slotInfo["IsActive"],
+                        slotInfo["SpriteID"],
+                        slotInfo["RosterID"],
+                        slotInfo["Points"],
+                        slotInfo["DefensiveRebounds"],
+                        slotInfo["OffensiveRebounds"],
+                        slotInfo["PointsPerAssist"],
+                        slotInfo["AssistCount"],
+                        slotInfo["Steals"],
+                        slotInfo["Blocks"],
+                        slotInfo["Turnovers"],
+                        slotInfo["InsidesMade"],
+                        slotInfo["InsidesAttempted"],
+                        slotInfo["ThreesMade"],
+                        slotInfo["ThreesAttempted"],
+                        slotInfo["Fouls"],
+                        slotInfo["Dunks"],
+                        slotInfo["Layups"],
+                        slotInfo["Unknown1"],
+                        slotInfo["Unknown2"],
+                        gameId,
+                        slotId
+                    )
+                    updateQueries.append((updateSlotQuery,slotVals))
+                elif(slotInfo["DataState"] == "New"):
+                    # Prepare an INSERT statement for the PlayerSlots table
+                    insertSlotQuery = """
+                        INSERT INTO PlayerSlots (
+                            GameID, PlayerSlot, IsActive, SpriteID, RosterID, Points,
+                            DefensiveRebounds, OffensiveRebounds, PointsPerAssist, AssistCount, Steals,
+                            Blocks, Turnovers, InsidesMade, InsidesAttempted, ThreesMade,
+                            ThreesAttempted, Fouls, Dunks, Layups, Unknown1, Unknown2
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """
+                    slotVals = (
+                        gameId,
+                        slotInfo["PlayerSlot"],
+                        slotInfo["IsActive"],
+                        slotInfo["SpriteID"],
+                        slotInfo["RosterID"],
+                        slotInfo["Points"],
+                        slotInfo["DefensiveRebounds"],
+                        slotInfo["OffensiveRebounds"],
+                        slotInfo["PointsPerAssist"],
+                        slotInfo["AssistCount"],
+                        slotInfo["Steals"],
+                        slotInfo["Blocks"],
+                        slotInfo["Turnovers"],
+                        slotInfo["InsidesMade"],
+                        slotInfo["InsidesAttempted"],
+                        slotInfo["ThreesMade"],
+                        slotInfo["ThreesAttempted"],
+                        slotInfo["Fouls"],
+                        slotInfo["Dunks"],
+                        slotInfo["Layups"],
+                        slotInfo["Unknown1"],
+                        slotInfo["Unknown2"]
+                    )
+                    insertQueries.append((insertSlotQuery, slotVals))
+
+        # Finally, we actually execute all statements.
+        for query, vals in updateQueries:
+            cursor.execute(query, vals)
+        for query, vals in insertQueries:
+            cursor.execute(query, vals)
+
+        # Commit the changes
+        conn.commit()
+
+        # Close the database connection
+        conn.close()
+
+        self.statsDB_DownloadRaw()
 
     # This method reads the total (sum) stat for a spriteID or set of spriteIDs. There are also some
     # special statistics that can be queried - check the ADVANCED_STAT_NAMES member for details. It returns an
@@ -2403,7 +2603,7 @@ class DataStorage:
                 query += "AND PlayerSlots.PlayerSlot < 6"
 
         query += " GROUP BY SpriteID ORDER BY SpriteID;"
-        print(query)
+        #print(query)
         self.statsCursor.execute(query)
         simpleResults = self.statsCursor.fetchall()
 
@@ -2435,33 +2635,58 @@ class DataStorage:
 
     # This method uses a stats object, which is assumed to have a full ripped game in it, and adds it as a new game row
     # to the stats.db. It also returns the GameID of the saved game.
-    # TODO Add actual SpriteID referencing
     def statsDB_AddRippedGame(self, statsObject, extraValues=None):
-        findNewGameQuery = "SELECT seq FROM sqlite_sequence WHERE Name='Games';"
-        self.statsCursor.execute(findNewGameQuery)
-        newGameID = int(self.statsCursor.fetchone()[0]) + 1
-
-        writeGamesQuery = "INSERT INTO Games (LoadedRoster,Mode,PlayDate,GameDuration,BallerzScore,RingersScore,ExtraValue1,ExtraValue2,ExtraValue3,ExtraValue4,ExtraValue5,ExtraValue6,ExtraValue7,ExtraValue8,ExtraValue9,ExtraValue10) VALUES ("
-        writeGamesQuery += f"'{statsObject.loadedRoster}',{statsObject.gameMode},'{date.today()}',NULL,{statsObject.ballerzScore},{statsObject.ringersScore},"
-        if (type(extraValues != list)):
+        newGameID = max(self.stats["Raw"].keys()) + 1
+        newGame = {"DataState" : "New",
+                   "GameID" : newGameID,
+                   "LoadedRoster" : statsObject.loadedRoster,
+                   "Mode" : statsObject.gameMode,
+                   "PlayDate" : date.today().strftime("%Y-%m-%d"),
+                   "GameDuration" : None, #TODO
+                   "BallerzScore" : statsObject.ballerzScore,
+                   "RingersScore" : statsObject.ringersScore}
+        if(type(extraValues) is not list): # TODO maybe make these kwargs instead?
             extraValues = []
-        if (len(extraValues) < 10):
-            for i in range(10 - len(extraValues)):
-                extraValues.append("NULL")
-        writeGamesQuery += f"{extraValues[0]},{extraValues[1]},{extraValues[2]},{extraValues[3]},{extraValues[4]},{extraValues[5]},{extraValues[6]},{extraValues[7]},{extraValues[8]},{extraValues[9]});"
 
-        self.statsPendingWriteQueries += writeGamesQuery
-
-        for i in range(1, 11):
-            thisSlotDict = statsObject.slotStats.get("Slot" + str(i))
-            thisSlotQuery = "INSERT INTO PlayerSlots (GameID,PlayerSlot,IsActive,SpriteID,RosterID,Points,DefensiveRebounds,OffensiveRebounds,PointsPerAssist,AssistCount,Steals,Blocks,Turnovers,InsidesMade,InsidesAttempted,ThreesMade,ThreesAttempted,Fouls,Dunks,Layups,Unknown1,Unknown2) VALUES ("
-            if (thisSlotDict["IsActive"] == 1):
-                thisSlotQuery += f"{newGameID},{i},{thisSlotDict['IsActive']},{self.csv_GetSpriteIDFromRosterID(statsObject.loadedRoster, thisSlotDict['RosterID'].split('.ROS')[0])},{thisSlotDict['RosterID']},{thisSlotDict['Points']},{thisSlotDict['DefensiveRebounds']},{thisSlotDict['OffensiveRebounds']},{thisSlotDict['PointsPerAssist']},{thisSlotDict['AssistCount']},{thisSlotDict['Steals']},{thisSlotDict['Blocks']},{thisSlotDict['Turnovers']},{thisSlotDict['InsidesMade']},{thisSlotDict['InsidesAttempted']},{thisSlotDict['ThreesMade']},{thisSlotDict['ThreesAttempted']},{thisSlotDict['Fouls']},{thisSlotDict['Dunks']},{thisSlotDict['Layups']},{thisSlotDict['Unknown1']},{thisSlotDict['Unknown2']});"
+        for i in range(1,11):
+            if(len(extraValues) >= i):
+                newGame[f"ExtraValue{i}"] = extraValues[i-1]
             else:
-                thisSlotQuery += f"{newGameID},{i},{thisSlotDict['IsActive']},{-1},-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);"
-            self.statsPendingWriteQueries += thisSlotQuery
+                newGame[f"ExtraValue{i}"] = None
 
-        self.statsDB_Execute()
+
+        playerSlots = {}
+        for slotName,slotInfo in statsObject.slotStats["slotStats"].items():
+            slotId = int(slotName.split("Slot")[1])
+            thisPlayerSlot = {"DataState" : "New",
+                              "GameID" : newGameID,
+                              "PlayerSlot" : slotId,
+                              "IsActive" : slotInfo["IsActive"],
+                              "SpriteID" : self.csv_GetSpriteIDFromRosterID(statsObject.loadedRoster.split(".ROS")[0], slotInfo['RosterID']),
+                              "RosterID" : slotInfo['RosterID'],
+                              "Points" : slotInfo["Points"],
+                              "DefensiveRebounds" : slotInfo["DefensiveRebounds"],
+                              "OffensiveRebounds" : slotInfo["OffensiveRebounds"],
+                              "PointsPerAssist" : slotInfo["PointsPerAssist"],
+                              "AssistCount" : slotInfo["AssistCount"],
+                              "Steals" : slotInfo["Steals"],
+                              "Blocks" : slotInfo["Blocks"],
+                              "Turnovers" : slotInfo["Turnovers"],
+                              "InsidesMade" : slotInfo["InsidesMade"],
+                              "InsidesAttempted" : slotInfo["InsidesAttempted"],
+                              "ThreesMade" : slotInfo["ThreesMade"],
+                              "ThreesAttempted" : slotInfo["ThreesAttempted"],
+                              "Fouls" : slotInfo["Fouls"],
+                              "Dunks" : slotInfo["Dunks"],
+                              "Layups" : slotInfo["Layups"],
+                              "Unknown1" : slotInfo["Unknown1"],
+                              "Unknown2" : slotInfo["Unknown2"]
+                              }
+            playerSlots[slotId] = thisPlayerSlot
+        newGame["PlayerSlots"] = playerSlots
+
+        self.stats["Raw"][newGameID] = newGame
+
         return newGameID
 
     # endregion === Stats Table Management ===
@@ -2496,11 +2721,230 @@ class WriteElementMismatch(ValueError):
             type(elementName)) + "', while elementText was '" + str(type(elementText)) + "'.")
 
 
+sr = StatsRipper.StatsRipper()
+testRippedGame = {
+    "gameMode": 2,  # Assuming a game mode that allows 5 active players
+    "loadedRoster": "None",  # Assuming no custom roster loaded
+    "slotStats": {
+"Slot1": {
+            "IsActive": 1,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot2": {
+            "IsActive": 1,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot3": {
+            "IsActive": 0,
+            "RosterID": 1,
+            "Points": 14621,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot4": {
+            "IsActive": 0,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot5": {
+            "IsActive": 0,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot6": {
+            "IsActive": 1,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot7": {
+            "IsActive": 1,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot8": {
+            "IsActive": 0,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot9": {
+            "IsActive": 0,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        },
+"Slot10": {
+            "IsActive": 0,
+            "RosterID": 1,
+            "Points": 12,
+            "DefensiveRebounds": 5,
+            "OffensiveRebounds": 3,
+            "PointsPerAssist": 2,
+            "AssistCount": 6,
+            "Steals": 2,
+            "Blocks": 1,
+            "Turnovers": 4,
+            "InsidesMade": 5,
+            "InsidesAttempted": 10,
+            "ThreesMade": 2,
+            "ThreesAttempted": 5,
+            "Fouls": 3,
+            "Dunks": 1,
+            "Layups": 2,
+            "Unknown1": 0,  # Assuming a placeholder value
+            "Unknown2": 1,  # Assuming a placeholder value
+        }
+    }
+}
+sr.slotStats = testRippedGame
+sr.loadedRoster = "NewPremier.ROS"
+sr.gameMode = 2
+sr.ballerzScore = 21
+sr.ringersScore = 19
 
-#d = DataStorage()
-#wambsy = d.playersDB_GetPlayer(spriteID=312)
-#d.csv_UpdatePlayer(rosterName="Premier",rosterID=21,player=wambsy)
-#
-#for i in range(65,1001):
-#    d.csv_UpdatePlayer(rosterName="Premier", rosterID=i)
-#d.csv_ExportCSVs(rosterName="Premier")
+
+d = DataStorage()
+d.statsDB_AddRippedGame(sr)
+d.statsDB_UploadRaw()

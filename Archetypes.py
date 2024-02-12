@@ -1,3 +1,47 @@
+# Helper constants for accessing attribute accessors based on attribute categories.
+OFFENSIVE_ATTRIBUTES = ["SShtCls","SLayUp","SPstFdaway","SPstHook","SOLowPost","SShtMed","SSht3PT","SShtInT","SShtOfD","SConsis"]
+DEFENSIVE_ATTRIBUTES = ["SDLowPost","SStrength","SBlock","SOnBallD","SOReb","SDReb","SDAwar"]
+CONTROL_ATTRIBUTES = ["SOffHDrib","SHands","SOAwar","SBallHndl","SHustle","SBallSec","SPass","SSpeed","SSteal","SQuick"]
+GENERAL_ATTRIBUTES = ["SShtIns","SDunk","SStdDunk","SVertical","SShtFT","SStamina","SDurab","SPOT"]
+
+# Helper map to map attribute accessors to the actual attribute name.
+MAPPED_ATTRIBUTES = {"SShtIns": "Shot Inside",
+                    "SShtCls": "Shot Close",
+                    "SShtMed": "Shot Medium",
+                    "SSht3PT": "Shot 3 PT",
+                    "SShtFT": "Free Throw",
+                    "SLayUp": "Lay Up",
+                    "SDunk": "Dunk",
+                    "SStdDunk": "Standing Dunk",
+                    "SShtInT": "Shoot In Traffic",
+                    "SPstFdaway": "Post Fadeaway",
+                    "SPstHook": "Post Hook",
+                    "SShtOfD": "Shoot Off Dribble",
+                    "SBallHndl": "Ball Handling",
+                    "SOffHDrib": "Off Hand Dribble",
+                    "SBallSec": "Ball Security",
+                    "SPass": "Pass",
+                    "SBlock": "Block",
+                    "SSteal": "Steal",
+                    "SHands": "Hands",
+                    "SOnBallD": "On Ball Defense",
+                    "SOReb": "Offensive Rebound",
+                    "SDReb": "Defensive Rebound",
+                    "SOLowPost": "Low Post Offense",
+                    "SDLowPost": "Low Post Defense",
+                    "SOAwar": "Offensive Awareness",
+                    "SDAwar": "Defensive Awareness",
+                    "SConsis": "Consistency",
+                    "SStamina": "Stamina",
+                    "SSpeed": "Speed",
+                    "SQuick": "Quickness",
+                    "SStrength": "Strength",
+                    "SVertical": "Vertical",
+                    "SHustle": "Hustle",
+                    "SDurab": "Durability",
+                    "SPOT": "Potential",
+                    "SEmotion": "Emotion"}
+
 # This class represents a specific character 'Archetype,' of which
 # there are 6.
 class Archetype:
@@ -18,7 +62,7 @@ class Archetype:
     primaryStats = []
     secondaryStats = []
     tertiaryStats = []
-    generalStats = ["Shot Inside","Dunk","Standing Dunk","Vertical","Free Throw","Stamina","Durability","Potential"]
+    generalStats = GENERAL_ATTRIBUTES
     allStats = ["Off Hand Dribbling","Hands","Offensive Awareness","Ball Handling","Ball Security","Pass","Speed","Quickness","Low Post Defense","Strength","Hustle","Block","Steal","On Ball Defense","Offensive Rebound","Defensive Rebound","Defensive Awareness","Shot Inside","Dunk","Standing Dunk","Vertical","Free Throw","Stamina","Durability","Potential","Shot Close","Layup","Post Fadeaway","Post Hook","Low Post Offense","Shot Medium","Shot Three Point","Shoot In Traffic","Shoot Off Dribble","Consistency"]
 
 
@@ -226,9 +270,9 @@ ARCH_SLAYER.inGamePositionString = "SG"
 ARCH_SLAYER.inGameSecondaryPositionId = 0
 ARCH_SLAYER.inGameSecondaryPositionString = "PG"
 
-ARCH_SLAYER.primaryStats = ["SShtCls","SLayUp","SPstFdaway","SPstHook","SOLowPost","SShtMed","SSht3PT","SShtInT","SShtOfD","SConsis"]
-ARCH_SLAYER.secondaryStats = ["SOffHDrib","SHands","SOAwar","SBallHndl","SHustle","SBallSec","SPass","SSpeed","SSteal","SQuick"]
-ARCH_SLAYER.tertiaryStats = ["SDLowPost","SStrength","SBlock","SOnBallD","SOReb","SDReb","SDAwar"]
+ARCH_SLAYER.primaryStats = OFFENSIVE_ATTRIBUTES
+ARCH_SLAYER.secondaryStats = CONTROL_ATTRIBUTES
+ARCH_SLAYER.tertiaryStats = DEFENSIVE_ATTRIBUTES
 
 ARCH_SLAYER.accentedAttributes = ["SLayUp", "SShtMed","SSht3PT","SShtOfD","SConsis","SOAwar","SPass","SSpeed","SHustle","SQuick","SDLowPost","SStrength","SBlock","SOnBallD"]
 ARCH_SLAYER.attributeRanges["SOffHDrib"] = [45, 65]
@@ -401,9 +445,9 @@ ARCH_VIGILANTE.inGamePositionString = "SF"
 ARCH_VIGILANTE.inGameSecondaryPositionId = 3
 ARCH_VIGILANTE.inGameSecondaryPositionString = "PF"
 
-ARCH_VIGILANTE.primaryStats = ["SShtCls","SLayUp","SPstFdaway","SPstHook","SOLowPost","SShtMed","SSht3PT","SShtInT","SShtOfD","SConsis"]
-ARCH_VIGILANTE.secondaryStats = ["SDLowPost","SStrength","SBlock","SOnBallD","SOReb","SDReb","SDAwar"]
-ARCH_VIGILANTE.tertiaryStats = ["SOffHDrib","SHands","SOAwar","SBallHndl","SHustle","SBallSec","SPass","SSpeed","SSteal","SQuick"]
+ARCH_VIGILANTE.primaryStats = OFFENSIVE_ATTRIBUTES
+ARCH_VIGILANTE.secondaryStats = DEFENSIVE_ATTRIBUTES
+ARCH_VIGILANTE.tertiaryStats = CONTROL_ATTRIBUTES
 
 ARCH_VIGILANTE.accentedAttributes = ["SShtCls","SPstFdaway","SPstHook","SOLowPost","SShtInT","SDLowPost","SStrength","SBlock","SOnBallD","SOAwar","SHustle","SPass","SSpeed","SQuick"]
 ARCH_VIGILANTE.attributeRanges["SOffHDrib"] = [25, 40]
@@ -575,9 +619,9 @@ ARCH_MEDIC.inGamePositionString = "C"
 ARCH_MEDIC.inGameSecondaryPositionId = 0
 ARCH_MEDIC.inGameSecondaryPositionString = "PG"
 
-ARCH_MEDIC.tertiaryStats = ["SShtCls","SLayUp","SPstFdaway","SPstHook","SOLowPost","SShtMed","SSht3PT","SShtInT","SShtOfD","SConsis"]
-ARCH_MEDIC.primaryStats = ["SDLowPost","SStrength","SBlock","SOnBallD","SOReb","SDReb","SDAwar"]
-ARCH_MEDIC.secondaryStats = ["SOffHDrib","SHands","SOAwar","SBallHndl","SHustle","SBallSec","SPass","SSpeed","SSteal","SQuick"]
+ARCH_MEDIC.primaryStats = DEFENSIVE_ATTRIBUTES
+ARCH_MEDIC.secondaryStats = CONTROL_ATTRIBUTES
+ARCH_MEDIC.tertiaryStats = OFFENSIVE_ATTRIBUTES
 
 ARCH_MEDIC.accentedAttributes = ["SShtCls","SOAwar","SPstFdaway","SPstHook","SOLowPost","SShtInT","SOReb", "SDReb", "SDAwar","SOffHDrib","SHands","SBallSec","SBallHndl","SSteal"]
 ARCH_MEDIC.attributeRanges["SOffHDrib"] = [55, 75]
@@ -749,9 +793,9 @@ ARCH_GUARDIAN.inGamePositionString = "PF"
 ARCH_GUARDIAN.inGameSecondaryPositionId = 2
 ARCH_GUARDIAN.inGameSecondaryPositionString = "SF"
 
-ARCH_GUARDIAN.secondaryStats = ["SShtCls","SLayUp","SPstFdaway","SPstHook","SOLowPost","SShtMed","SSht3PT","SShtInT","SShtOfD","SConsis"]
-ARCH_GUARDIAN.primaryStats = ["SDLowPost","SStrength","SBlock","SOnBallD","SOReb","SDReb","SDAwar"]
-ARCH_GUARDIAN.tertiaryStats = ["SOffHDrib","SHands","SOAwar","SBallHndl","SHustle","SBallSec","SPass","SSpeed","SSteal","SQuick"]
+ARCH_GUARDIAN.primaryStats = DEFENSIVE_ATTRIBUTES
+ARCH_GUARDIAN.secondaryStats = OFFENSIVE_ATTRIBUTES
+ARCH_GUARDIAN.tertiaryStats = CONTROL_ATTRIBUTES
 
 ARCH_GUARDIAN.accentedAttributes = ["SShtCls","SPstFdaway","SPstHook","SOLowPost","SShtInT","SDLowPost", "SStrength", "SBlock", "SOnBallD","SOffHDrib","SHands","SBallHndl","SBallSec","SSteal"]
 ARCH_GUARDIAN.attributeRanges["SOffHDrib"] = [35, 50]
@@ -923,9 +967,9 @@ ARCH_ENGINEER.inGamePositionString = "PG"
 ARCH_ENGINEER.inGameSecondaryPositionId = 4
 ARCH_ENGINEER.inGameSecondaryPositionString = "C"
 
-ARCH_ENGINEER.tertiaryStats = ["SShtCls","SLayUp","SPstFdaway","SPstHook","SOLowPost","SShtMed","SSht3PT","SShtInT","SShtOfD","SConsis"]
-ARCH_ENGINEER.secondaryStats = ["SDLowPost","SStrength","SBlock","SOnBallD","SOReb","SDReb","SDAwar"]
-ARCH_ENGINEER.primaryStats = ["SOffHDrib","SHands","SOAwar","SBallHndl","SHustle","SBallSec","SPass","SSpeed","SSteal","SQuick"]
+ARCH_ENGINEER.primaryStats = CONTROL_ATTRIBUTES
+ARCH_ENGINEER.secondaryStats = DEFENSIVE_ATTRIBUTES
+ARCH_ENGINEER.tertiaryStats = OFFENSIVE_ATTRIBUTES
 
 ARCH_ENGINEER.isPlayInitiator = 1
 
@@ -1099,9 +1143,9 @@ ARCH_DIRECTOR.inGamePositionString = "PG"
 ARCH_DIRECTOR.inGameSecondaryPositionId = 1
 ARCH_DIRECTOR.inGameSecondaryPositionString = "SG"
 
-ARCH_DIRECTOR.secondaryStats = ["SShtCls","SLayUp","SPstFdaway","SPstHook","SOLowPost","SShtMed","SSht3PT","SShtInT","SShtOfD","SConsis"]
-ARCH_DIRECTOR.tertiaryStats = ["SDLowPost","SStrength","SBlock","SOnBallD","SOReb","SDReb","SDAwar"]
-ARCH_DIRECTOR.primaryStats = ["SOffHDrib","SHands","SOAwar","SBallHndl","SHustle","SBallSec","SPass","SSpeed","SSteal","SQuick"]
+ARCH_DIRECTOR.primaryStats = CONTROL_ATTRIBUTES
+ARCH_DIRECTOR.secondaryStats = OFFENSIVE_ATTRIBUTES
+ARCH_DIRECTOR.tertiaryStats = DEFENSIVE_ATTRIBUTES
 
 ARCH_DIRECTOR.isPlayInitiator = 1
 

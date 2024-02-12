@@ -1,5 +1,5 @@
 import sqlite3
-import lxml.etree as ET
+#import lxml.etree as ET
 import BaseFunctions as b
 import shutil
 import DataStorage
@@ -1093,7 +1093,7 @@ def genBlankStatsTable(dbPath):
     createStatsTable = "CREATE TABLE 'Games' ('GameID' INTEGER NOT NULL UNIQUE,"
     for key in GLOBAL_STAT_LIST.keys():
         createStatsTable += "'" + key + "'" + " " + GLOBAL_STAT_LIST[key] + ","
-    createStatsTable += "PRIMARY KEY('GameID' AUTOINCREMENT));"
+    createStatsTable += "PRIMARY KEY('GameID'));"
 
     createSlotsTable = "CREATE TABLE 'PlayerSlots' ('GameID' INTEGER NOT NULL,"
     for key in INDIVIDUAL_STAT_LIST:
@@ -1204,6 +1204,8 @@ def trackNewRoster(newRosterName,buildNewRosterFile=False,dataStorageObject=None
     h.exportRedMCCSVs(newRosterName,d)
 
 
+
+#genBlankStatsTable(f"{b.paths.databases}\\Stats.db")
 
 '''
 ----------------------------------------------------------
