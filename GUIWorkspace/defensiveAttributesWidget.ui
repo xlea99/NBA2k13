@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>defensiveAttributesWidget</class>
+ <widget class="QWidget" name="defensiveAttributesWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>271</width>
+    <height>108</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>defensiveAttributesWidget</string>
+  </property>
+  <widget class="QLabel" name="defensiveLabel">
+   <property name="geometry">
+    <rect>
+     <x>5</x>
+     <y>0</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Defensive</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="offensiveReboundLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>20</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>O Rebound</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line">
+   <property name="geometry">
+    <rect>
+     <x>56</x>
+     <y>0</y>
+     <width>206</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="defensiveReboundLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>D Rebound</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="strengthLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>60</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Stength</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="blockLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>80</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Block</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="blockAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>80</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="strengthAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>60</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="defensiveReboundAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>40</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="offensiveReboundAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>20</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>36</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>56</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_4">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>76</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_5">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>100</y>
+     <width>250</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="onBallDefenseLabel">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>20</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>On Ball D</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="defensiveAwarenessLabel">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>60</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>D Aware</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lowPostDefenseAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>40</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_6">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>76</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="defensiveAwarenessAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>60</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="onBallDefenseAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>20</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_7">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>36</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="lowPostDefenseLabel">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>40</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Low Post D</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_8">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>56</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_10">
+   <property name="geometry">
+    <rect>
+     <x>85</x>
+     <y>15</y>
+     <width>20</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_11">
+   <property name="geometry">
+    <rect>
+     <x>175</x>
+     <y>15</y>
+     <width>20</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

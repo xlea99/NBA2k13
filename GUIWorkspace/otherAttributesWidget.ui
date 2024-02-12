@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>otherAttributesWidget</class>
+ <widget class="QWidget" name="otherAttributesWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>271</width>
+    <height>108</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>otherAttributesWidget</string>
+  </property>
+  <widget class="QLabel" name="otherLabel">
+   <property name="geometry">
+    <rect>
+     <x>5</x>
+     <y>0</y>
+     <width>47</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Other</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="heightLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>20</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Height</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="verticalLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Vertical</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="shotInsideLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>60</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Shot Ins</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="dunkLabel">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>80</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Dunk</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="dunkAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>80</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="shotInsideAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>60</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="verticalAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>40</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="heightAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>70</x>
+     <y>20</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>7'1&quot;</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_2">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>36</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_3">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>56</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_4">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>76</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_5">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>100</y>
+     <width>250</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="standingDunkLabel">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>20</y>
+     <width>55</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Stand Dunk</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="standingDunkAttributeLabel">
+   <property name="geometry">
+    <rect>
+     <x>160</x>
+     <y>20</y>
+     <width>20</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>99</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_7">
+   <property name="geometry">
+    <rect>
+     <x>100</x>
+     <y>36</y>
+     <width>80</width>
+     <height>3</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_10">
+   <property name="geometry">
+    <rect>
+     <x>85</x>
+     <y>15</y>
+     <width>20</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_11">
+   <property name="geometry">
+    <rect>
+     <x>175</x>
+     <y>15</y>
+     <width>20</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line">
+   <property name="geometry">
+    <rect>
+     <x>38</x>
+     <y>0</y>
+     <width>221</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

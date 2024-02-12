@@ -1,0 +1,38 @@
+{
+  "event": {
+    "splash": "A Gesture of Good Will",
+    "variables": [{
+      "name": "benefactor",
+      "value": {
+        "type": "function",
+        "name": "random_from_list",
+        "list": [{
+          "type": "accessor_data",
+          "datafile": "gauntlet",
+          "element_path": "PLAYERS:ENTRY",
+          "get": {
+            "attribute": "ID"
+          }
+        }]
+      }
+    },
+    {
+      "name": "beneficiary",
+      "value": {
+        "type": "function",
+        "name": "random_from_list",
+        "list": [{
+          "type": "accessor_data",
+          "datafile": "gauntlet",
+          "element_path": "PLAYERS:ENTRY",
+          "condition": {
+            "AND": [
+
+
+            ]
+          }
+        }]
+      }
+    }]
+  }
+}

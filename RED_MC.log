@@ -1,0 +1,6 @@
+	Thread ID 20800	0	 (i)  Log subsystem started in elapsed time mode.
+	Thread ID 20800	0	 (i)  Logging [debug info (D), info (i), notices (M), warnings (W), errors (Er), fatal errors (!!)]
+	Thread ID 20800	0	 (i)  Buffered mode: 0
+	Thread ID 20800	0	 (M)  Service thread started
+	Thread ID 9644	11688	 (i)  Logged fatal_errors: 0, errors: 0, warnings: 0, notices: 1, info: 3, debug: 0
+	Thread ID 9644	11688	 (i)  Log session shutdown
