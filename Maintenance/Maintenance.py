@@ -12,8 +12,6 @@ import Factions
 # data.
 
 
-
-
 # This function generates a new, empty Players table in the given dbPath.
 def genBlankPlayersTable(dbPath,tableName="Players"):
 
@@ -27,7 +25,7 @@ def genBlankPlayersTable(dbPath,tableName="Players"):
                             "ArtifactDesc": "Text",
                             "ArtifactCode": "Blob",
                             "Hand": "Integer",
-                            "Height": "Real",
+                            "Height": "Integer",
                             "Weight": "Real",
                             "PortrID": "Integer",
                             "GenericF": "Integer",

@@ -762,6 +762,16 @@ class Player:
             returnString += "\n"
         return returnString
 
+    # Simple comparator methods for comparing players by their names.
+    def __lt__(self, other):
+        return f"{self.vals['First_Name']}{self.vals['Last_Name']}" < f"{other.vals['First_Name']}{other.vals['Last_Name']}"
+    def __le__(self, other):
+        return f"{self.vals['First_Name']}{self.vals['Last_Name']}" <= f"{other.vals['First_Name']}{other.vals['Last_Name']}"
+    def __gt__(self, other):
+        return f"{self.vals['First_Name']}{self.vals['Last_Name']}" > f"{other.vals['First_Name']}{other.vals['Last_Name']}"
+    def __ge__(self, other):
+        return f"{self.vals['First_Name']}{self.vals['Last_Name']}" >= f"{other.vals['First_Name']}{other.vals['Last_Name']}"
+
 
     #endregion === Init and Constants ===
 
@@ -777,7 +787,10 @@ class Player:
             return self.vals[self.extraValuesMap[key]]
         # Testing if the key is an ArchetypeName.
         elif(key == "Archetype_Name"):
-            return self.vals["Archetype"].archetypeName
+            if(self.vals["Archetype"] is None):
+                return "None"
+            else:
+                return self.vals["Archetype"].archetypeName
         # Testing if the key is a height represented in some form. (Default form is in inches)
         elif(key.startswith("Height")):
             if(key == "HeightFt"):

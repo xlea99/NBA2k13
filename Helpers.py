@@ -21,7 +21,7 @@ def getFullPlayerName(spriteID,dataStorageObject=None):
     fullNameArray = d.playersDB_ReadElement(spriteID,["First_Name","Last_Name"])
     return f"{fullNameArray[0]} {fullNameArray[1]}"
 
-# TODO FIX IT NOW BITCH
+# TODO THIS FUNCTION NEEDNT EXIST, I DONT THINK. BUH BUYE BITHC
 # This method adds a Player from the Players.db to a specific Roster CSV set.
 def addPlayerToRoster(spriteID,rosterName,dataStorageObject = None,saveFile=True):
     if(dataStorageObject is None):
@@ -44,6 +44,7 @@ def addPlayerObjectToRoster(rosterName,playerObject,dataStorageObject = None):
 
 # This method uses a Player object, as defined in Players.py, to add a single new player
 # to the Players.xml file.
+# TODO AGAIN, THIS JUST WRAPS OTHER FUNCTIONS. BE A MAN.
 def savePlayerObjectToPlayersFile(playerObject,dataStorageObject=None,saveFile=True):
     if(dataStorageObject is None):
         d = DataStorage.DataStorage()
@@ -57,7 +58,7 @@ def savePlayerObjectToPlayersFile(playerObject,dataStorageObject=None,saveFile=T
     return newSpriteID
 
 # This simple helper method returns an array of dicts, containing all player names in the Players.xml file and
-# their associated spriteIDs. If a roster if specified, it will only pull players which exist on the given
+# their associated spriteIDs. If a roster is specified, it will only pull players which exist on the given
 # roster.
 def getDictOfPlayerNames(rosterName=None,dataStorageObject=None):
     if (dataStorageObject is None):
@@ -328,13 +329,7 @@ def generateRosterFromFile(rosterName):
     importRedMCCSVs(rosterName)
 '''
 
-d = DataStorage.DataStorage()
-importRosterData(rosterName="NewPremier",dataStorageObject=d)
-for i in range(64):
-    spriteID = i + 292
-    thisPlayer = d.playersDB_GetPlayer(spriteID=spriteID)
-    d.csv_UpdatePlayer(rosterName="NewPremier",rosterID=i + 1,player=thisPlayer)
-exportRosterData(rosterName="NewPremier",dataStorageObject=d)
+
 
 '''
 d = DataStorage.DataStorage()
