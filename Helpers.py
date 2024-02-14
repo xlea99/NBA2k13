@@ -315,31 +315,30 @@ def saveCAPInfo(rosterName,spriteID,dataStorageObject=None,saveData=True):
 # ====================================MISCELLANEOUS========================================
 # =========================================================================================
 
-# This function simply converts a Roster.xml file into an actual Roster, which it saves to
-# the correct 2k folder.
-'''
-def generateRosterFromFile(rosterName):
-    shutil.copy(DataStorage.SAVE_DATA_PATH + "\\Rosters\\RosterTemplate.ROS",b.PATHS.rostersPath)
-    if(".ROS" in rosterName):
-        os.rename(b.PATHS.rostersPath + "\\RosterTemplate.ROS",rosterName)
-    else:
-        os.rename(b.PATHS.rostersPath + "\\RosterTemplate.ROS",b.PATHS.rostersPath + "\\" + rosterName + ".ROS")
-
-    generateCSVsFromRosterFile(rosterName)
-    importRedMCCSVs(rosterName)
-'''
-
-
 
 '''
 d = DataStorage.DataStorage()
-exportRedMCCSVs(rosterName="FactionTest",dataStorageObject=d)
+importRosterData(rosterName="Premier",dataStorageObject=d)
 
-factionChoices = list(Factions.dbDict["Factions"].keys())
+for i in range(291,355):
+    thisPlayer = d.playersDB_GetPlayer(spriteID=i)
+    addPlayerObjectToRoster(playerObject=thisPlayer,rosterName="Premier",dataStorageObject=d)
+    print(f"Added '{thisPlayer['First_Name']} {thisPlayer['Last_Name']}' to roster.")
+exportRosterData(rosterName="Premier",dataStorageObject=d)
+'''
+
+
+'''
+# Code for generating faction test rosters. Just copy a template named "FactionTest" to 2k
+# directory beforehand
+
+d = DataStorage.DataStorage()
+importRosterData(rosterName="FactionTest",dataStorageObject=d)
+
 newPlayers = []
 for i in range(200):
     newPlayer = Player.Player()
-    thisFaction = random.choice(factionChoices)
+    thisFaction = Factions.getRandomFaction()
     newPlayer = Factions.genFaction(thisFaction,newPlayer)
     newPlayer.genArchetype()
     newPlayer.genRarity()
@@ -357,12 +356,16 @@ for i in range(200):
 
 for newPlayer in newPlayers:
     newPlayer["SpriteID"] = d.playersDB_AddBlankPlayer()
-    d.playersDB_UpdatePlayer(spriteID=newPlayer["SpriteID"],playerDictionary=newPlayer)
+    d.playersDB_UpdatePlayer(spriteID=newPlayer["SpriteID"],player=newPlayer)
     addPlayerObjectToRoster("FactionTest",newPlayer,dataStorageObject=d)
 
 d.csv_ExportCSVs("FactionTest")
-importRedMCCSVs("FactionTest")
+exportRosterData(rosterName="FactionTest",dataStorageObject=d)
 '''
+
+d = DataStorage.DataStorage()
+print(d.playersDB_AddBlankPlayer())
+d.playersDB_Execute()
 
 '''
 d = DataStorage.DataStorage()

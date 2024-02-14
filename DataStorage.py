@@ -6,6 +6,7 @@ import sqlite3 as sql
 from datetime import date
 import random
 import StatsRipper
+from pympler import asizeof
 
 JERSEY_DICT = {
     'SixersHome': ['uh000', 'logo000', '0', 'B7E8E31A', '00000000', '61', '0', '0', '1', '1', '0', '4', '0', '0', '0',
@@ -1844,8 +1845,7 @@ class DataStorage:
 
         self.playersDB = None
         self.playersCursor = None
-        self.playersPendingWriteQueries = ""
-        self.playersPendingWriteQueriesCount = 0
+        self.playersPendingWriteQueries = []
         if (openPlayersTable):
             self.playersDB_Open()
 
@@ -2081,7 +2081,7 @@ class DataStorage:
             if (singlePlayer["IsRegNBA"] == "1"):
                 continue
             else:
-                return singlePlayer[1]
+                return singlePlayer["ID"]
     # This method simply returns a list of all used RosterIDs on the "Players" tab of a CSV dict
     def csv_FindAllUsedPlayerIDs(self, rosterName):
         returnList = []
@@ -2156,110 +2156,31 @@ class DataStorage:
         self.playersCursor = self.playersDB.cursor()
     # This method simply executes all pending changes to the Players database.
     def playersDB_Execute(self):
-        self.playersCursor.executescript(self.playersPendingWriteQueries)
+        for query in self.playersPendingWriteQueries:
+            self.playersCursor.execute(query[0],query[1])
         self.playersDB.commit()
-        self.playersPendingWriteQueries = ""
-        self.playersPendingWriteQueriesCount = 0
-    # Method for executing and clearing changes if pending change list gets too big.
-    def playersDB_SafeExecuteTest(self):
-        if (self.playersPendingWriteQueriesCount > 50):
-            self.playersDB_Execute()
+        self.playersPendingWriteQueries = []
+        self.playersPendingWriteValues = []
 
-    # Read method can take a single elementName as a string, or a list.
-    def playersDB_ReadElement(self, spriteID, elementName):
-        if (type(elementName) == str):
-            query = "SELECT " + elementName + " FROM Players WHERE SpriteID=" + str(spriteID)
-            self.playersCursor.execute(query)
-            return self.playersCursor.fetchone()[0]
-        elif (type(elementName) == list):
-            query = "SELECT "
-            for thisElement in elementName:
-                query += thisElement + ","
-            query = query.rstrip(",") + " FROM Players WHERE SpriteID=" + str(spriteID)
-            #print(f"likc my querying balls: {query}")
-            self.playersCursor.execute(query)
-            return self.playersCursor.fetchall()[0]
-        else:
-            raise InvalidElementNameType(elementName)
-    # Write method can write a single value to a single elementName, or multiple values to
-    # multiple elementNames. If lists are used, the method ASSUMES they are ordered - IE,
-    # elementName = [FirstName,LastName,Age] elementText = ["Judas",45,"Bob"] would set a
-    # Player's name to Judas 45, age Bob.
-    def playersDB_WriteElement(self, spriteID, elementName, elementText, safetyExecute=True):
-        if (type(elementName) != type(elementText)):
-            raise WriteElementMismatch(elementName, elementText)
-
-        if (type(elementName) == str):
-            if ("'" in elementText):
-                newElementText = ""
-                for char in elementText:
-                    if (char == "'"):
-                        newElementText += "''"
-                    else:
-                        newElementText += char
-                elementText = newElementText
-            query = f"UPDATE Players SET {elementName} = '{elementText}' WHERE SpriteID = {spriteID};"
-            self.playersPendingWriteQueries += query
-            self.playersPendingWriteQueriesCount += 1
-        elif (type(elementName) == list):
-            if (len(elementName) != len(elementText)):
-                raise WriteElementLengthError(elementName, elementText)
-            query = "UPDATE Players SET "
-            counter = 0
-            for thisElement in elementName:
-                finalElementText = ""
-                for char in str(elementText[counter]):
-                    if (char == "'"):
-                        finalElementText += "''"
-                    else:
-                        finalElementText += char
-                query += f"{thisElement} = '{finalElementText}',"
-                counter += 1
-            query = query.rstrip(",") + f" WHERE SpriteID = {spriteID};"
-            self.playersPendingWriteQueries += query
-            self.playersPendingWriteQueriesCount += 1
-        else:
-            raise InvalidElementNameType(elementName)
-
-        if (safetyExecute):
-            self.playersDB_SafeExecuteTest()
-
-    # This method simply adds a blank Player entry to the DB, and returns its SpriteID.
-    def playersDB_AddBlankPlayer(self):
-        query = "INSERT INTO Players DEFAULT VALUES;"
-        self.playersPendingWriteQueries += query
-        self.playersPendingWriteQueriesCount += 1
-
-        return self.playersDB_GetPlayerCount()
-    # This function simply returns the number of players in the Players table
+    # This method simply returns the count of Players currently in the players table.
     def playersDB_GetPlayerCount(self):
-        spriteQuery = "SELECT seq FROM sqlite_sequence WHERE name = 'Players'"
+        countQuery = "SELECT COUNT(*) FROM Players;"
+        self.playersCursor.execute(countQuery)
+        rowCount = self.playersCursor.fetchone()[0]
+        return rowCount
+    # This function simply returns the first unused SpriteID from the players table.
+    def playersDB_GetFirstUnusedSpriteID(self):
+        spriteQuery = "SELECT MAX(SpriteID) FROM Players;"
+
         self.playersCursor.execute(spriteQuery)
-        return int(self.playersCursor.fetchone()[0])
-    # This function completely overwrites the given spriteID with the contents of a player object.
-    # By default, values not specified in the PlayerDictionary or set to None will still be
-    # overwritten.
-    def playersDB_UpdatePlayer(self, spriteID, player: Player.Player, overwriteNones: bool = True):
-        elementsToUpdate = []
-        newValues = []
+        maxSpriteID = self.playersCursor.fetchone()[0]
+        if maxSpriteID is not None:
+            return maxSpriteID + 1
+        else:
+            return 0
 
-        for key in player.vals.keys():
-            if (key == "SpriteID"):
-                continue
-            if (overwriteNones and player[key] is None):
-                continue
-            else:
-                elementsToUpdate.append(key)
-                if (key == "Archetype"):
-                    finalVal = player["Archetype_Name"]
-                else:
-                    finalVal = player[key]
-
-                newValues.append(finalVal)
-
-        self.playersDB_WriteElement(spriteID, elementsToUpdate, newValues)
-    # This method returns a Player entry from the Players table as a Player object.
-    def playersDB_GetPlayer(self, spriteID):
+    # This method downloads the player of the given spriteID, and returns it as a Player Object.
+    def playersDB_DownloadPlayer(self, spriteID):
         player = Player.Player()
 
         query = "SELECT "
@@ -2277,6 +2198,50 @@ class DataStorage:
                 player[key] = result[key]
         player["SpriteID"] = spriteID
         return player
+    # This function uploads a player to the given spriteID, overwriting what was there previously. If no SpriteID
+    # is specified, it will default to using the player object's spriteID. If newPlayer is set to True, it will
+    # insert the player as a new player and return their SpriteID.
+    def playersDB_UploadPlayer(self, player: Player.Player, spriteID=None, newPlayer=False, overwriteNones: bool = True):
+        if(newPlayer):
+            spriteID = self.playersDB_GetFirstUnusedSpriteID()
+        elif(spriteID is None):
+            spriteID = player.vals["SpriteID"]
+
+        if(newPlayer):
+            uploadQuery = "INSERT INTO Players ("
+        else:
+            uploadQuery = "UPDATE Players SET "
+        values = []
+        for key in player.vals.keys():
+            if (key == "SpriteID"):
+                continue
+            if (overwriteNones and player[key] is None):
+                continue
+            else:
+                if (key == "Archetype"):
+                    finalVal = player["Archetype_Name"]
+                else:
+                    finalVal = player[key]
+                if(newPlayer):
+                    uploadQuery += f"{key}, "
+                else:
+                    uploadQuery += f"{key} = ?, "
+                values.append(finalVal)
+
+        if(newPlayer):
+            uploadQuery = uploadQuery.rstrip(", ") + ") VALUES ("
+            for i in range(len(values)):
+                uploadQuery += "?, "
+            uploadQuery = uploadQuery.rstrip(", ") + ");"
+        else:
+            uploadQuery += "WHERE SpriteID = ?;"
+            values.append(spriteID)
+
+        player.vals["SpriteID"] = spriteID
+
+        self.playersPendingWriteQueries.append((uploadQuery,values))
+
+        return spriteID
 
     # endregion === Players Table Management ===
 
@@ -2542,97 +2507,6 @@ class DataStorage:
 
         self.statsDB_DownloadRaw()
 
-    # This method reads the total (sum) stat for a spriteID or set of spriteIDs. There are also some
-    # special statistics that can be queried - check the ADVANCED_STAT_NAMES member for details. It returns an
-    # easy-to-use dictionary, where keys are SpriteIDs to smaller dictionaries in which each
-    # statisticName is accessible directly from its name.
-    # EX: {326: {'IsActive': 17, 'OffensiveRebounds': 46, 'Points': 28}, 329: {'IsActive': 5, 'OffensiveRebounds': 51, 'Points': 3}}
-    # Here are the various filters explained:
-    #
-    # gameCutoff: If any number is specified, it will only return a sum from the last n games, regardless of whether this player played or not.
-    # rosterFilter: If a string or array of strings is supplied, it will only return a sum from games in which these rosters were active.
-    # technicianFilter: Can be set to None, Alex, or Danny. Returns games only where that technician played this player.
-    def statsDB_ReadTotalStat(self, spriteID, statisticName, gameCutoff=None, rosterFilter=None, technicianFilter=None):
-        if (type(statisticName) == str):
-            statisticList = [statisticName]
-        elif (type(statisticName) == list):
-            statisticList = statisticName
-        else:
-            raise InvalidElementNameType(statisticName)
-
-        if (type(spriteID) == str):
-            spriteIDList = [spriteID]
-        elif (type(spriteID) == list):
-            spriteIDList = spriteID
-        elif (type(spriteID) == int):
-            spriteIDList = [str(spriteID)]
-        else:
-            raise InvalidElementNameType(spriteID)
-
-        query = "SELECT "
-        for singleStatistic in statisticList:
-            if (singleStatistic in self.GLOBAL_GAME_STAT_NAMES):
-                query += f"SUM(Games.{singleStatistic}),"
-            elif (singleStatistic in self.ADVANCED_STAT_NAMES):
-                if (singleStatistic == "TotalTeamPoints"):
-                    query += "SUM(CASE WHEN PlayerSlots.PlayerSlot <= 5 THEN Games.BallerzScore ELSE Games.RingersScore END),"
-                elif (singleStatistic == "Wins"):
-                    query += "COUNT(CASE WHEN (Games.BallerzScore > Games.RingersScore AND PlayerSlots.PlayerSlot <= 5) OR (Games.BallerzScore < Games.RingersScore AND PlayerSlots.PlayerSlot > 5) THEN 1 END),"
-                else:
-                    input("THIS SHOULD NEVER, EVER HAPPEN")
-            else:
-                query += f"SUM({singleStatistic}),"
-        query = query.rstrip(
-            ",") + f" FROM PlayerSlots INNER JOIN Games ON PlayerSlots.GameID = Games.GameID WHERE SpriteID IN ("
-        for singleSpriteID in spriteIDList:
-            query += f"{singleSpriteID},"
-        query = query.rstrip(",") + ")"
-        if (gameCutoff is not None):
-            query += f"AND PlayerSlots.GameID IN (SELECT GameID FROM Games ORDER BY GameID DESC LIMIT {gameCutoff})"
-        if (rosterFilter is not None):
-            query += "AND Games.LoadedRoster in ("
-            if (rosterFilter is not list):
-                rosterFilter = [rosterFilter]
-            for rosterToFilter in rosterFilter:
-                query += f"'{rosterToFilter}',"
-            query = query.rstrip(",") + ")"
-        if (technicianFilter is not None):
-            if (technicianFilter == "Alex"):
-                query += "AND PlayerSlots.PlayerSlot > 5"
-            else:
-                query += "AND PlayerSlots.PlayerSlot < 6"
-
-        query += " GROUP BY SpriteID ORDER BY SpriteID;"
-        #print(query)
-        self.statsCursor.execute(query)
-        simpleResults = self.statsCursor.fetchall()
-
-        advancedResults = []
-        for simpleResult in simpleResults:
-            thisResultDict = {}
-            counter = 0
-            for singleSimpleStatistic in simpleResult:
-                try:
-                    thisResultDict[statisticList[counter]] = singleSimpleStatistic
-                except IndexError:
-                    continue
-                counter += 1
-            advancedResults.append(thisResultDict)
-
-        returnDict = {}
-        counter = 0
-        spriteIDList.sort()
-        for singlePlayerResult in advancedResults:
-            returnDict[spriteIDList[counter]] = singlePlayerResult
-            counter += 1
-
-        for testExistsSpriteID in spriteIDList:
-            if (returnDict.get(testExistsSpriteID) is None):
-                returnDict[testExistsSpriteID] = {}
-                for emptyStatistic in statisticList:
-                    returnDict[testExistsSpriteID][emptyStatistic] = 0
-        return returnDict
-
     # This method uses a stats object, which is assumed to have a full ripped game in it, and adds it as a new game row
     # to the stats.db. It also returns the GameID of the saved game.
     def statsDB_AddRippedGame(self, statsObject, extraValues=None):
@@ -2720,231 +2594,14 @@ class WriteElementMismatch(ValueError):
         super().__init__("elementName and elementText MUST be the same type. elementName was '" + str(
             type(elementName)) + "', while elementText was '" + str(type(elementText)) + "'.")
 
-
-sr = StatsRipper.StatsRipper()
-testRippedGame = {
-    "gameMode": 2,  # Assuming a game mode that allows 5 active players
-    "loadedRoster": "None",  # Assuming no custom roster loaded
-    "slotStats": {
-"Slot1": {
-            "IsActive": 1,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot2": {
-            "IsActive": 1,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot3": {
-            "IsActive": 0,
-            "RosterID": 1,
-            "Points": 14621,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot4": {
-            "IsActive": 0,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot5": {
-            "IsActive": 0,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot6": {
-            "IsActive": 1,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot7": {
-            "IsActive": 1,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot8": {
-            "IsActive": 0,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot9": {
-            "IsActive": 0,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        },
-"Slot10": {
-            "IsActive": 0,
-            "RosterID": 1,
-            "Points": 12,
-            "DefensiveRebounds": 5,
-            "OffensiveRebounds": 3,
-            "PointsPerAssist": 2,
-            "AssistCount": 6,
-            "Steals": 2,
-            "Blocks": 1,
-            "Turnovers": 4,
-            "InsidesMade": 5,
-            "InsidesAttempted": 10,
-            "ThreesMade": 2,
-            "ThreesAttempted": 5,
-            "Fouls": 3,
-            "Dunks": 1,
-            "Layups": 2,
-            "Unknown1": 0,  # Assuming a placeholder value
-            "Unknown2": 1,  # Assuming a placeholder value
-        }
-    }
-}
-sr.slotStats = testRippedGame
-sr.loadedRoster = "NewPremier.ROS"
-sr.gameMode = 2
-sr.ballerzScore = 21
-sr.ringersScore = 19
-
+#d = DataStorage()
+#allPlayers = {}
+#for i in range(355):
+#    allPlayers[i] = (d.playersDB_GetPlayer(i))
+#
+#beans = asizeof.asizeof(allPlayers) / 1024
 
 d = DataStorage()
-d.statsDB_AddRippedGame(sr)
-d.statsDB_UploadRaw()
+thisPlayer = d.playersDB_DownloadPlayer(61)
+print(d.playersDB_UploadPlayer(player=thisPlayer,newPlayer=True))
+d.playersDB_Execute()
