@@ -504,7 +504,7 @@ def genBlankPlayersTable(dbPath,tableName="Players"):
 
     cursor = conn.cursor()
 
-    cursor.execute("CREATE TABLE '" + tableName + "' ('SpriteID' INTEGER NOT NULL UNIQUE, PRIMARY KEY('SpriteID' AUTOINCREMENT));")
+    cursor.execute("CREATE TABLE '" + tableName + "' ('SpriteID' INTEGER NOT NULL UNIQUE, PRIMARY KEY('SpriteID'));")
     for key in playersXMLList.keys():
         if(playersXMLList[key] in ["Text","Blob"]):
             defaultVal = "NULL"
@@ -1208,27 +1208,24 @@ def trackNewRoster(newRosterName,buildNewRosterFile=False,dataStorageObject=None
 #genBlankStatsTable(f"{b.paths.databases}\\Stats.db")
 
 '''
-----------------------------------------------------------
-This code block generates an entirely new Players.db file, copying over up to maxSpriteID players
-from an old Players.db file.
-----------------------------------------------------------
+#----------------------------------------------------------
+#This code block generates an entirely new Players.db file, copying over up to maxSpriteID players
+#from an old Players.db file.
+#----------------------------------------------------------
 
 maxSpriteID = 355
-oldPlayersFilePath = f"{b.paths.databases}\\PlayersSad.db"
-newPlayersFilePath = f"{b.paths.databases}\\Guppies.db"
+oldPlayersFilePath = f"{b.paths.databases}\\Players.db"
+newPlayersFilePath = f"{b.paths.databases}\\PlayersTest.db"
 
-
-
-genBlankPlayersTable(dbPath="S:\\Coding\\Projects\\NBA2k13\\SaveData\\Data\\Guppies.db")
+genBlankPlayersTable(dbPath=newPlayersFilePath)
 dOld = DataStorage.DataStorage(playersPathOverride=oldPlayersFilePath)
 dNew = DataStorage.DataStorage(playersPathOverride=newPlayersFilePath)
 allPlayers = []
 for i in range(maxSpriteID):
-    thisPlayer = dOld.playersDB_GetPlayer(i)
+    thisPlayer = dOld.playersDB_DownloadPlayer(i)
     allPlayers.append(thisPlayer)
 for thisPlayer in allPlayers:
     print(f"-{thisPlayer['First_Name']} {thisPlayer['Last_Name']}")
-    newID = dNew.playersDB_AddBlankPlayer()
-    dNew.playersDB_UpdatePlayer(spriteID=newID,player=thisPlayer)
+    newID = dNew.playersDB_UploadPlayer(player=thisPlayer,newPlayer=True)
 dNew.playersDB_Execute()
 '''

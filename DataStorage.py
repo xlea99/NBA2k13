@@ -2170,14 +2170,13 @@ class DataStorage:
         return rowCount
     # This function simply returns the first unused SpriteID from the players table.
     def playersDB_GetFirstUnusedSpriteID(self):
-        spriteQuery = "SELECT MAX(SpriteID) FROM Players;"
-
-        self.playersCursor.execute(spriteQuery)
-        maxSpriteID = self.playersCursor.fetchone()[0]
-        if maxSpriteID is not None:
-            return maxSpriteID + 1
-        else:
+        if(self.playersDB_GetPlayerCount() == 0):
             return 0
+        else:
+            spriteQuery = "SELECT MAX(SpriteID) FROM Players;"
+            self.playersCursor.execute(spriteQuery)
+            maxSpriteID = self.playersCursor.fetchone()[0]
+            return maxSpriteID + 1
 
     # This method downloads the player of the given spriteID, and returns it as a Player Object.
     def playersDB_DownloadPlayer(self, spriteID):
@@ -2229,17 +2228,20 @@ class DataStorage:
                 values.append(finalVal)
 
         if(newPlayer):
-            uploadQuery = uploadQuery.rstrip(", ") + ") VALUES ("
+            uploadQuery += "SpriteID) VALUES ("
             for i in range(len(values)):
                 uploadQuery += "?, "
-            uploadQuery = uploadQuery.rstrip(", ") + ");"
+            uploadQuery += "?);"
         else:
             uploadQuery += "WHERE SpriteID = ?;"
-            values.append(spriteID)
+        values.append(spriteID)
 
         player.vals["SpriteID"] = spriteID
 
         self.playersPendingWriteQueries.append((uploadQuery,values))
+        # If this is a new player, we need to execute immediately to account for future SpriteID generation.
+        if(newPlayer):
+            self.playersDB_Execute()
 
         return spriteID
 
@@ -2600,8 +2602,3 @@ class WriteElementMismatch(ValueError):
 #    allPlayers[i] = (d.playersDB_GetPlayer(i))
 #
 #beans = asizeof.asizeof(allPlayers) / 1024
-
-d = DataStorage()
-thisPlayer = d.playersDB_DownloadPlayer(61)
-print(d.playersDB_UploadPlayer(player=thisPlayer,newPlayer=True))
-d.playersDB_Execute()
