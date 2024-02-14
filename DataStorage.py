@@ -5,8 +5,6 @@ import BaseFunctions as b
 import sqlite3 as sql
 from datetime import date
 import random
-import StatsRipper
-from pympler import asizeof
 
 JERSEY_DICT = {
     'SixersHome': ['uh000', 'logo000', '0', 'B7E8E31A', '00000000', '61', '0', '0', '1', '1', '0', '4', '0', '0', '0',
@@ -1907,7 +1905,7 @@ class DataStorage:
             self.csvRosterDict[rosterName]["Players"][rosterID]["Height"] = str(
                 round((realHeight * 2.54) + (thisAdjustment * 0.01), 2))
     # This method uses the RosterVals.db database present alongside each exported Roster csv set to generate
-    # a dictionary that relates each ID of the Players tab of the rosterName roster to a SpriteID.
+    # a dictionary that matches each ID of the Players tab of the rosterName roster to a SpriteID.
     def csv_GenSpriteIDDict(self, rosterName):
         allUsedPlayerIDs = self.csv_FindAllUsedPlayerIDs(rosterName)
         query = f'SELECT SpriteID FROM SpriteIDs WHERE RosterID IN ({str(allUsedPlayerIDs).strip("[]")})'
@@ -1920,11 +1918,27 @@ class DataStorage:
             spriteIDDict[allUsedPlayerIDs[i]] = spriteIDList[i][0]
 
         self.csvRosterDict[rosterName]["SpriteIDs"] = spriteIDDict
+    # This method uses the RosterVals.db database present alongside each exported Roster csv set to generate
+    # a dictionary that matches each RosterID with the player's height adjustment.
+    def csv_GenHeightAdjustmentDict(self,rosterName):
+        allUsedPlayerIDs = self.csv_FindAllUsedPlayerIDs(rosterName)
+        query = f'SELECT * FROM HeightMap WHERE RosterID IN ({str(allUsedPlayerIDs).strip("[]")})'
+
+        self.csvCursorDict[rosterName].execute(query)
+        heightAdjustmentRows = self.csvCursorDict[rosterName].fetchall()
+
+        heightMap = {}
+        for row in heightAdjustmentRows:
+            heightMap[row[0]] = {"RealHeight" : row[1], "HeightAdjustment" : row[2]}
+
+        self.csvRosterDict[rosterName]["HeightMap"] = heightMap
     # This method simply returns the SpriteID of a player on a roster, given RosterID.
     def csv_GetSpriteIDFromRosterID(self, rosterName, rosterID):
-        query = f"SELECT SpriteID FROM SpriteIDs WHERE RosterID = {rosterID}"
-        self.csvCursorDict[rosterName].execute(query)
-        return self.csvCursorDict[rosterName].fetchone()[0]
+        return self.csvRosterDict[rosterName]["SpriteIDs"].get(rosterID,None)
+        # TODO pretty sure this is old and unneeded, but leaving just in case
+        #query = f"SELECT SpriteID FROM SpriteIDs WHERE RosterID = {rosterID}"
+        #self.csvCursorDict[rosterName].execute(query)
+        #return self.csvCursorDict[rosterName].fetchone()[0]
     # This method simply returns the RosterID if a player exists on a roster with given SpriteID.
     def csv_GetRosterIDFromSpriteID(self, rosterName, spriteID):
         for rosterID in self.csvRosterDict[rosterName]["SpriteIDs"]:
@@ -1983,6 +1997,7 @@ class DataStorage:
         genRosterValsDBConnection()
 
         self.csv_GenSpriteIDDict(rosterName)
+        self.csv_GenHeightAdjustmentDict(rosterName)
     # This method turns a CSV dictionary into four files, saves them to the rosterName csv folder for
     # RedMC import, and overwrites any existing files there.
     def csv_ExportCSVs(self, rosterName):
@@ -2021,6 +2036,7 @@ class DataStorage:
             self.__csv_UpdateSpriteID(rosterName, rosterID, -1)
             self.csv_GenSpriteIDDict(rosterName)
             self.__csv_AdjustHeight(rosterName=rosterName, rosterID=rosterID, realHeight=-1)
+            self.csv_GenHeightAdjustmentDict(rosterName)
         else:
             player["HS_ID"] = rosterID
             player["PortrID"] = "9999"
@@ -2052,6 +2068,7 @@ class DataStorage:
             self.__csv_AdjustHeight(rosterName=rosterName, rosterID=rosterID, realHeight=player["HeightIn"])
             self.__csv_UpdateSpriteID(rosterName, rosterID, player["SpriteID"])
             self.csv_GenSpriteIDDict(rosterName)
+            self.csv_GenHeightAdjustmentDict(rosterName)
     # This method uses exported CSVs (specifically, headshapes and players csvs) to generate a Player object.
     # Assumes rosterName CSVs are already exported and up to date. It uses rosterID to target a single player.
     def csv_ExtractPlayer(self, rosterName, rosterID):

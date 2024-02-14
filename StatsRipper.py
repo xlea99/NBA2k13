@@ -1,7 +1,8 @@
 from pymem import *
 from pymem.process import *
 import BaseFunctions as b
-#import time
+import DataStorage
+import time
 
 
 
@@ -30,6 +31,9 @@ class StatsRipper:
 
         self.ringersScore = 0
         self.ballerzScore = 0
+
+        # Stores a generated iMap for determining the current ball holder.
+        self.currentIMap = None
 
     # This needs to run to hook the StatsRipper object to an open 2k game.
     def attachTo2K(self):
@@ -394,13 +398,13 @@ class StatsRipper:
         address = address + addressSet[-1]
         return address
     # Extracts the actual value at a given addressSet.
-    def getAddressValue(self,addressSet,type = 'i',stringLength = 50):
-        if(addressSet != None):
+    def getAddressValue(self,addressSet,_type = 'i',stringLength = 50):
+        if(addressSet is not None):
             try:
                 finalAddress = self.getPointerAddress(addressSet)
-                if(type == 'i'):
+                if(_type == 'i'):
                     return self.mem.read_int(finalAddress)
-                elif(type == 's'):
+                elif(_type == 's'):
                     returnString = ""
                     for i in range(stringLength):
                         try:
@@ -542,3 +546,85 @@ class StatsRipper:
 
     def __str__(self):
         return str([self.gameMode,self.loadedRoster,self.slotStats])
+
+
+    ballHolderAddress = [[0x00550FA0,0x8],[0x017AA6C8,0x7C,0x670,0x24,0x3E8,0x4,0x284,0x730],[0x40,0x48,0x24,0x670,0x2C,0x284,0x730],[0x00D3E51C,0x4,0xC,0x18,0x18,0x1C,0x2A4,0x6B0],[0x01843A14,0x30C,0x304,0x70,0x10,0xE0,0x46C,0x450],[0x00DF05EC,0x3C,0x4C,0x38,0x7C8,0x598],[0x00DF05E4,0x18,0x3C,0x44,0x4,0x44,0x7E8,0x598]]
+    # This function, combined with the above ballHolderAddress, calculates the RosterID of the player currently
+    # holding the ball using the found iMap.
+    def getBallHolder(self):
+        currentIValue = self.getAddressValue(addressSet=self.ballHolderAddress[0])
+        if(currentIValue not in self.currentIMap.keys()):
+            return -1
+        return self.currentIMap[currentIValue]
+
+
+
+
+# This helper method, when given a COMPLETE list of scraped i values (must be complete, otherwise function will map
+# incorrectly), a dictionary of rosterIDs mapped to a specific blacktop slot, a rosterName, and a data
+# storage object, this function returns a mapped list of each rosterID to its corresponding i value.
+def mapIValues(iValues : list, rosterIDs : dict, rosterName : str, dataStorageObject : DataStorage.DataStorage):
+    if(len(iValues) != len(rosterIDs.keys())):
+        return ValueError("ERROR: Can't generate an iValue map if there isn't exactly 1 iValue for each rosterID!")
+
+    mappedIValues = {}
+
+    # Given a dictionary of rosterIDs mapped to a specific blacktop slot, a rosterName,
+    # and a data storage object, will calculate each rosterIDs' a value (the order compared to all other rosterIDs on that
+    # team)
+    def mapAValues():
+        _aValues = {}
+
+        ballerzWeights = {}
+        ringersWeights = {}
+        for rosterID, slot in rosterIDs.items():
+
+            tempWeight = (dataStorageObject.csvRosterDict[rosterName]["HeightMap"][rosterID]["RealHeight"] * 1000) + \
+                         dataStorageObject.csvRosterDict[rosterName]["HeightMap"][rosterID]["HeightAdjustment"]
+            if (slot >= 5):
+                ringersWeights[tempWeight] = rosterID
+            else:
+                ballerzWeights[tempWeight] = rosterID
+
+        for index, weight in enumerate(sorted(ringersWeights.keys(), reverse=True)):
+            _aValues[index] = ringersWeights[weight]
+
+        for index, weight in enumerate(sorted(ballerzWeights.keys(), reverse=True)):
+            _aValues[index + len(ringersWeights)] = ballerzWeights[weight]
+
+        return _aValues
+
+    aValues = mapAValues()
+    print(aValues)
+
+    sortedIValues = sorted(iValues)
+
+    for index,iValue in enumerate(sortedIValues):
+        mappedIValues[iValue] = aValues[index]
+
+    return mappedIValues
+
+'''
+rosterIDsDict = {5:0, 1:1, 3:2, 4:5, 2:6, 8:7}
+iValues = [470629696,470626256,470622816,470615936,470619376,470612496]
+
+d = DataStorage.DataStorage()
+sr = StatsRipper()
+sr.attachTo2K()
+
+flounder = mapIValues(iValues=iValues,rosterIDs=rosterIDsDict,rosterName="Premier",dataStorageObject=d)
+sr.currentIMap = flounder
+
+while True:
+    currentRosterIDBallHolder = sr.getBallHolder()
+    if(currentRosterIDBallHolder != -1):
+        currentSpriteID = d.csv_GetSpriteIDFromRosterID(rosterName="Premier",rosterID=currentRosterIDBallHolder)
+        currentPlayer = d.playersDB_DownloadPlayer(currentSpriteID)
+        print(f"{currentPlayer['First_Name']} {currentPlayer['Last_Name']} | RosterID: {currentRosterIDBallHolder}")
+        time.sleep(1)
+    else:
+        print("Nobody")
+        time.sleep(1)
+
+
+'''
