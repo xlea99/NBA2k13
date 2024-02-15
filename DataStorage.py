@@ -2039,7 +2039,7 @@ class DataStorage:
             self.csv_GenHeightAdjustmentDict(rosterName)
         else:
             player["HS_ID"] = rosterID
-            player["PortrID"] = "9999"
+            player["PortrID"] = str(rosterID + 9999)
             player["NickName"] = ""
             player["ASA_ID"] = "0"
             # Check if this player is not a normal archetype
@@ -2613,9 +2613,5 @@ class WriteElementMismatch(ValueError):
         super().__init__("elementName and elementText MUST be the same type. elementName was '" + str(
             type(elementName)) + "', while elementText was '" + str(type(elementText)) + "'.")
 
-#d = DataStorage()
-#allPlayers = {}
-#for i in range(355):
-#    allPlayers[i] = (d.playersDB_GetPlayer(i))
-#
-#beans = asizeof.asizeof(allPlayers) / 1024
+
+

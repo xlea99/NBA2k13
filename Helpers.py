@@ -321,7 +321,7 @@ d = DataStorage.DataStorage()
 importRosterData(rosterName="Premier",dataStorageObject=d)
 
 for i in range(291,355):
-    thisPlayer = d.playersDB_GetPlayer(spriteID=i)
+    thisPlayer = d.playersDB_DownloadPlayer(spriteID=i)
     addPlayerObjectToRoster(playerObject=thisPlayer,rosterName="Premier",dataStorageObject=d)
     print(f"Added '{thisPlayer['First_Name']} {thisPlayer['Last_Name']}' to roster.")
 exportRosterData(rosterName="Premier",dataStorageObject=d)
@@ -355,17 +355,16 @@ for i in range(200):
     newPlayers.append(newPlayer)
 
 for newPlayer in newPlayers:
-    newPlayer["SpriteID"] = d.playersDB_AddBlankPlayer()
-    d.playersDB_UpdatePlayer(spriteID=newPlayer["SpriteID"],player=newPlayer)
+    newPlayer["SpriteID"] = d.playersDB_UploadPlayer(player=newPlayer,newPlayer=True)
     addPlayerObjectToRoster("FactionTest",newPlayer,dataStorageObject=d)
 
 d.csv_ExportCSVs("FactionTest")
 exportRosterData(rosterName="FactionTest",dataStorageObject=d)
 '''
 
-d = DataStorage.DataStorage()
-print(d.playersDB_AddBlankPlayer())
-d.playersDB_Execute()
+#d = DataStorage.DataStorage()
+#print(d.playersDB_AddBlankPlayer())
+#d.playersDB_Execute()
 
 '''
 d = DataStorage.DataStorage()

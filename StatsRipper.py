@@ -3,37 +3,45 @@ from pymem.process import *
 import BaseFunctions as b
 import DataStorage
 import time
+import threading
 
-
+BEANS = {470568912 : "Peter Lang",
+               470579232 : "Thomas Shelby",
+               470572352 : "Joe Biden",
+               470575792 : "The GeoWizard",
+               470565472 : "Bo Burnham",
+               470558592 : "Arthur Shelby",
+               470555152 : "Wojciech Kois",
+               470562032 : "Scott Brown"}
 
 class StatsRipper:
 
-    def __init__(self):
-        self.isConnected = False
+    #region === Setup and Tools ===
 
+    # Basic init method to initialize member variables.
+    def __init__(self,dataStorageObject : DataStorage.DataStorage):
+        # Members for actually connecting to 2K
+        self.dataStorage = dataStorageObject
+        self.isConnected = False
         self.mem = None
         self.module = None
 
-        self.loadedRoster = None
-        self.gameMode = None
-        self.slotStats = {
-                            "Slot1" : {},
-                            "Slot2" : {},
-                            "Slot3" : {},
-                            "Slot4" : {},
-                            "Slot5" : {},
-                            "Slot6" : {},
-                            "Slot7" : {},
-                            "Slot8" : {},
-                            "Slot9" : {},
-                            "Slot10" : {}
-        }
-
-        self.ringersScore = 0
-        self.ballerzScore = 0
-
         # Stores a generated iMap for determining the current ball holder.
         self.currentIMap = None
+        # Stores the literal "ball held" values mapped to i values.
+        self.ballHeldVals = {}
+        self.currentIVal = 0
+        # Variables for handling ball holder thread checking and calculation.
+        self.lastCheckTime = time.perf_counter()
+        self.lock = threading.Lock()
+        # Flag to handle running stat
+        self.trackerRunning = False
+        # Member to check whether or not the coin has been added or not.
+        self.needsCoin = None
+        self.coinHasBeenAdded = None
+
+        # When a game ends, all ripped stats are temporarily stored here for use elsewhere.
+        self.rippedStats = None
 
     # This needs to run to hook the StatsRipper object to an open 2k game.
     def attachTo2K(self):
@@ -46,30 +54,107 @@ class StatsRipper:
             self.isConnected = False
             return False
 
-    # This addressSet determines whether the blacktop mode is 1v1 (1), 2v2 (2), 3v3 (3), 4v4 (4), or 5v5 (5)
-    blacktopModeAddress = [0x01BFE7C0, 0x634]
-    def getBlacktopMode(self):
-        return self.getAddressValue(self.blacktopModeAddress)
-    # This addressSet stores the string value of the currently loaded Roster. If it is empty (0), no Roster is
-    # currently loaded.
-    loadedRosterAddress = [[0x00028F98,0x8C],[0x000290D8,0x10C],[0x000292E8,0x114],[0x00028F7C,0x118],[0x00640394,0x374],[0x0063B6F0,0x774]]
-    # This returns either the currently loaded Roster, "NONE" if no Roster is currently loaded, and
-    # "UNOPENED" if 2k itself isn't currently open.
-    def getActiveRoster(self):
-        if (not self.isConnected):
-            return "UNOPENED"
+    # This helper method extracts the actual address of an address set by applying offsets
+    def getPointerAddress(self,addressSet):
+        address = self.mem.read_int(self.module + addressSet[0])
+        for offset in addressSet:
+            if (offset != addressSet[-1] and offset != addressSet[0]):
+                address = self.mem.read_int(address + offset)
+        address = address + addressSet[-1]
+        return address
+    # Extracts the actual value at a given addressSet.
+    def getAddressValue(self,addressSet,_type = 'i',stringLength = 50):
+        if(addressSet is not None):
+            try:
+                finalAddress = self.getPointerAddress(addressSet)
+                if(_type == 'i'):
+                    return self.mem.read_int(finalAddress)
+                elif(_type == 's'):
+                    returnString = ""
+                    for i in range(stringLength):
+                        try:
+                            returnString += self.mem.read_string(finalAddress + (i*2))
+                        except:
+                            break
+                    returnString = returnString.split(".ROS",1)[0]
+                    return returnString + ".ROS"
+            except pymem.exception.MemoryReadError:
+                return "ERROR"
         else:
-            rosterAddress = str(self.getAddressValue(self.loadedRosterAddress[0], 's'))
-            if (rosterAddress == ".ROS"):
-                return "NONE"
+            return "None"
+    # This method uses a valueType (RosterID, Rebounds, Dunks) to extract a value directly
+    # from 2K. It also uses getSecondaryValue for values that have two values baked into them.
+    # Read each value for further details.
+    def getStatValue(self,slot,valueType,getSecondaryValue = False):
+        try:
+            if(valueType == "RosterID"):
+                return self.getAddressValue(self.boxScoreSlots[slot].get("RosterID")[0])
+            elif(valueType == "Steals" or valueType == "Blocks"): # Steals and Blocks are stored on the same value.
+                if(getSecondaryValue):
+                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Steals")[0]) / 65536)
+                else:
+                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Steals")[0]) % 65536)
+            elif(valueType == "Turnovers"):
+                if(self.boxScoreSlots[slot].get("Turnovers") == []):
+                    return "None"
+                else:
+                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Turnovers")[0]) % 65536)
+            elif(valueType == "Rebounds"): # Primary is Offensive, secondary is Defensive
+                if(getSecondaryValue):
+                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Rebounds")[0]) / 65536)
+                else:
+                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Rebounds")[0]) % 65536)
+            elif (valueType == "Fouls"):
+                if (self.boxScoreSlots[slot].get("Fouls") == []):
+                    return "None"
+                else:
+                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Fouls")[0]) % 65536)
+            elif(valueType == "Assists"):
+                if (self.boxScoreSlots[slot].get("Assists") == []):
+                    return "None"
+                else:
+                    if(getSecondaryValue):
+                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Assists")[0]) / 65536)
+                    else:
+                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Assists")[0]) % 65536)
+            elif(valueType == "Dunks"):
+                if (self.boxScoreSlots[slot].get("Dunks") == []):
+                    return "None"
+                else:
+                    if(getSecondaryValue):
+                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Dunks")[0]) / 65536)
+                    else:
+                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Dunks")[0]) % 65536)
+            elif(valueType == "FG" or valueType == "3PT"): # FG
+                if(getSecondaryValue):
+                    return int(self.getAddressValue(self.boxScoreSlots[slot].get(valueType)[0]) / 65536)
+                else:
+                    return int(self.getAddressValue(self.boxScoreSlots[slot].get(valueType)[0]) % 65536)
             else:
-                return rosterAddress
+                if(len(self.boxScoreSlots[slot].get(valueType)) != 0):
+                    return self.getAddressValue(self.boxScoreSlots[slot].get(valueType)[0])
+                else:
+                    return "None"
+        except Exception as e:
+            raise e
 
-    # An address to test whether or not 2k is currently in an active game, and a helper method to
+    #endregion === Setup and Tools ===
+
+    #region === Tracking and Operation ===
+
+    # An address to test whether 2k is currently in an active game, and a helper method to
     # return true or false based on this.
-    inGameAddress = [[0x004E5608,0x8],[0x00B06D88,0x60],[0x00B06C30,0xF0],[0x0001F2C8,0x120],[0x009AE494,0x130]]
+    inGameAddress = [[0x004E5608, 0x8], [0x00B06D88, 0x60], [0x00B06C30, 0xF0], [0x0001F2C8, 0x120],[0x009AE494, 0x130]]
     def testInGame(self):
-        if(self.getAddressValue(self.inGameAddress[0]) == 1):
+        if (self.getAddressValue(self.inGameAddress[0]) == 1):
+            return True
+        else:
+            return False
+    # This address seems to be 1 if and only if an unpaused game is currently playing. If the game is Paused, this flips
+    # back to 0.
+    isGamePlayingAddress = [[0x004FBDE0, 0x4], [0x004FB8D4, 0x388], [0x004FB060, 0x0], [0x004FB7C0, 0x394],[0x004FB8C8, 0x398]]
+    def testIsUnpausedGamePlaying(self):
+        if (self.getAddressValue(self.isGamePlayingAddress[0]) == 1):
             return True
         else:
             return False
@@ -79,116 +164,142 @@ class StatsRipper:
     # the score of the game.
     def testIfGameIsWon(self):
         gameIsPlaying = self.testInGame()
+        if (gameIsPlaying):
+            gameMode = self.getBlacktopMode()
 
-        if(gameIsPlaying):
-            self.ripAllStats()
-            self.getScores()
-            if (self.ballerzScore >= 21 or self.ringersScore >= 21):
-                if (abs(self.ballerzScore - self.ringersScore) >= 2):
+            # Here we calculate each team's current score.
+            ringersScore = 0
+            for i in range(0,gameMode):
+                ringersScore += self.getStatValue(i, "Points")
+            ballerzScore = 0
+            for i in range(5,5 + gameMode):
+                ballerzScore += self.getStatValue(i, "Points")
+
+            if (ballerzScore >= 21 or ringersScore >= 21):
+                if (abs(ballerzScore - ringersScore) >= 2):
                     return True
-                else:
-                    return False
+        return False
+    # This method performs the "final rip" of all stats from the game, as well as converts tracking stats,
+    # into a single dictionary which it outputs. It also handles restoring all values to their defaults for
+    # subsequent rips. Use this once a game has been determined to be won.
+    def endGameTracking(self):
+        slotStats = self.ripSlotStats()
+        gameStats = self.ripGameStats(slotStats=slotStats)
+        print("FINAL RESULTS IDIOT: ")
+        print(self.ballHeldVals)
+        ballHeldStats = self.convertIValueTimesToRosterIDs(rosterName=gameStats["LoadedRoster"].split(".ROS")[0],slotStats=slotStats,iValueTimes=self.ballHeldVals,dataStorageObject=self.dataStorage)
+
+        returnStats = {"GameStats" : gameStats,"SlotStats" : slotStats,"BallHeldStats" : ballHeldStats}
+
+        # Set a bunch of values back to defaults.
+        self.currentIMap = None
+        self.ballHeldVals = {}
+        self.currentIVal = 0
+        self.lastCheckTime = time.perf_counter()
+        self.needsCoin = None
+        self.coinHasBeenAdded = None
+
+        self.stopGameTracker()
+        self.rippedStats = returnStats
+
+    # This method updates and stores the ball held time with the current i value.
+    def updateTracking(self):
+        with self.lock:
+            currentTime = time.perf_counter()
+            if(self.currentIVal in self.ballHeldVals.keys()):
+                self.ballHeldVals[self.currentIVal] += currentTime - self.lastCheckTime
             else:
-                return False
-        else:
-            return False
+                self.ballHeldVals[self.currentIVal] = currentTime - self.lastCheckTime
+            self.lastCheckTime = currentTime
+    # Runs the actual check on who's holding the ball and, if that value has changed, updates the times.
+    def run(self):
+        self.trackerRunning = True
+        gameWasPaused = False
+        gameHasStarted = False
+        while self.trackerRunning:
+            if(self.testInGame()):
+                if (self.testIsUnpausedGamePlaying()):
+                    if(not gameHasStarted):
+                        gameHasStarted = True
+                        self.lastCheckTime = time.perf_counter()
+                    if(gameWasPaused):
+                        self.lastCheckTime = time.perf_counter()
+                        gameWasPaused = False
+                    #print("~~Found unpaused game playing! Running!")
+                    if(self.needsCoin):
+                        gameMode = self.getBlacktopMode()
+                        if(gameMode >= 4):
+                            self.addCoin("ringers")
+                        else:
+                            self.addCoin("ballerz")
+                        #self.manuallyUpdatePointDisplay()
+                        self.coinHasBeenAdded = True
+                        self.needsCoin = False
+                        # TODO COIN REMOVAL
+                        print("Just added the coin!")
+
+                    self.updateTracking()
+                    self.currentIVal = self.getBallHolder()
+
+                    if(self.testIfGameIsWon()):
+                        print("Game has ended!!!")
+                        self.endGameTracking()
+                else:
+                    if(not gameWasPaused):
+                        newBallHolder = self.getBallHolder()
+                        self.updateTracking()
+                        self.currentIVal = newBallHolder
+                    gameWasPaused = True
+            #for key,value in self.ballHeldVals.items():
+            #    print(f" || {BEANS.get(key)} - {round(value,1)}",end="")
+            #print("")
+            time.sleep(0.1)
+
+    # This method starts the tracking process.
+    def startGameTracker(self,addCoin=True):
+        self.needsCoin = addCoin
+        if(not self.trackerRunning):
+            trackingThread = threading.Thread(target=self.run)
+            #trackingThread.daemon = True  # This makes sure the thread will not prevent the program from exiting.
+            trackingThread.start()
+    # This method stops the tracking process.
+    def stopGameTracker(self):
+        self.trackerRunning = False
+
+    #endregion === Tracking and Operation ===
+
+    #region === Value Rippers ===
+
     # This addressSet stores the value of the current menu screen 2k is on, as well as a helper method
     # that converts the value to whatever screen it believes it to be on right now in string form.
     # Also uses inGameAddress to test if its in a game.
-    menuScreenAddress = [[0x00BB0A04,0x1C,0x318,0x3C0,0x818]]
+    menuScreenAddress = [[0x00BB0A04, 0x1C, 0x318, 0x3C0, 0x818]]
     def getMenuScreen(self):
         menuScreenVal = self.getAddressValue(self.menuScreenAddress[0])
-        if(menuScreenVal == 342581834):
+        if (menuScreenVal == 342581834):
             return "Home"
-        elif(menuScreenVal == -721351791):
+        elif (menuScreenVal == -721351791):
             return "PickUp"
-        elif(menuScreenVal == 178469820):
+        elif (menuScreenVal == 178469820):
             return "TeamRoster"
-        elif(menuScreenVal == 2051352554):
+        elif (menuScreenVal == 2051352554):
             return "CreatePlayer"
-        elif(menuScreenVal == -1227693132):
+        elif (menuScreenVal == -1227693132):
             return "LoadRoster"
-        elif(menuScreenVal == -996019090):
+        elif (menuScreenVal == -996019090):
             return "SaveRoster"
-        elif(menuScreenVal == 2134613852):
+        elif (menuScreenVal == 2134613852):
             return "MyPlayerAccount"
         else:
-            if(self.testInGame()):
+            if (self.testInGame()):
                 return "InGame"
             return "Unknown"
 
-    # This address seems to be 1 if and only if an unpaused game is currently playing. If the game is Paused, this flips
-    # back to 0.
-    isGamePlayingAddress = [[0x004FBDE0,0x4],[0x004FB8D4,0x388],[0x004FB060,0x0],[0x004FB7C0,0x394],[0x004FB8C8,0x398]]
-    def testIsUnpausedGamePlaying(self):
-        if(self.getAddressValue(self.isGamePlayingAddress[0]) == 1):
-            return True
-        else:
-            return False
-
-    # Here is addresses and methods for manually updating display stats.
-    ballerzPointDisplay = [[0x00DF094C,0x2E8,0x184,0x7C0,0x620,0x578],[0x00D7D47C,0x1C,0x5C,0x340,0x620,0x578],[0x00DF09F0,0x2E8,0x568,0x454,0x640,0x578],[0x009C0BE4,0x104],[0x007184E4,0x0]]
-    ringersPointDisplay = [[0x00DB5FAC,0x38,0x18,0x38,0x640,0x57C],[0x00DB5CBC,0x18,0x58,0x640,0x57C],[0x00DB8D44,0x58,0x18,0x1C,0x620,0x57C],[0x00DB5CBC,0x18,0x5C,0x620,0x57C]]
-    def manuallyUpdatePointDisplay(self):
-        gameMode = self.getBlacktopMode()
-        ballerzPoints = 0
-        slot1Points = self.getStatValue(0,"Points")
-        if(slot1Points is not None):
-            ballerzPoints += slot1Points
-        slot2Points = self.getStatValue(1,"Points")
-        if(slot2Points is not None and gameMode >= 2):
-            ballerzPoints += slot2Points
-        slot3Points = self.getStatValue(2,"Points")
-        if(slot3Points is not None and gameMode >= 3):
-            ballerzPoints += slot3Points
-        slot4Points = self.getStatValue(3,"Points")
-        if(slot4Points is not None and gameMode >= 4):
-            ballerzPoints += slot4Points
-        slot5Points = self.getStatValue(4,"Points")
-        if(slot5Points is not None and gameMode >= 5):
-            ballerzPoints += slot5Points
-
-        ringersPoints = 0
-        slot6Points = self.getStatValue(5,"Points")
-        if(slot6Points is not None):
-            ringersPoints += slot6Points
-        slot7Points = self.getStatValue(6,"Points")
-        if(slot7Points is not None and gameMode >= 2):
-            ringersPoints += slot7Points
-        slot8Points = self.getStatValue(7,"Points")
-        if(slot8Points is not None and gameMode >= 3):
-            ringersPoints += slot8Points
-        slot9Points = self.getStatValue(8,"Points")
-        if(slot9Points is not None and gameMode >= 4):
-            ringersPoints += slot9Points
-        slot10Points = self.getStatValue(9,"Points")
-        if(slot10Points is not None and gameMode >= 5):
-            ringersPoints += slot10Points
-
-
-        try:
-            self.mem.write_int(self.getPointerAddress(self.ballerzPointDisplay[0]),ballerzPoints)
-            self.mem.write_int(self.getPointerAddress(self.ringersPointDisplay[0]),ringersPoints)
-            return True
-        except pymem.exception.MemoryWriteError:
-            return False
-
-    # These two methods deal with distributing the coin. Simply put, they add or remove a single point to
-    # Player 6's FGM and FGA. These points can then be removed before actually ripping stats.
-    def addCoin(self,technician):
-        if(technician.lower() == "alex"):
-            currentVal = self.mem.read_int(self.getPointerAddress(self.boxScoreSlots[5].get("Points")[0]))
-            self.mem.write_int(self.getPointerAddress(self.boxScoreSlots[5].get("Points")[0]),currentVal + 1)
-        elif(technician.lower() == "danny"):
-            currentVal = self.mem.read_int(self.getPointerAddress(self.boxScoreSlots[0].get("Points")[0]))
-            self.mem.write_int(self.getPointerAddress(self.boxScoreSlots[0].get("Points")[0]),currentVal + 1)
-    def removeCoin(self,technician):
-        if(technician.lower() == "alex"):
-            currentVal = self.mem.read_int(self.getPointerAddress(self.boxScoreSlots[5].get("Points")[0]))
-            self.mem.write_int(self.getPointerAddress(self.boxScoreSlots[5].get("Points")[0]),currentVal - 1)
-        elif (technician.lower() == "danny"):
-            currentVal = self.mem.read_int(self.getPointerAddress(self.boxScoreSlots[0].get("Points")[0]))
-            self.mem.write_int(self.getPointerAddress(self.boxScoreSlots[0].get("Points")[0]),currentVal - 1)
+    ballHolderAddress = [[0x00550FA0,0x8],[0x017AA6C8,0x7C,0x670,0x24,0x3E8,0x4,0x284,0x730],[0x40,0x48,0x24,0x670,0x2C,0x284,0x730],[0x00D3E51C,0x4,0xC,0x18,0x18,0x1C,0x2A4,0x6B0],[0x01843A14,0x30C,0x304,0x70,0x10,0xE0,0x46C,0x450],[0x00DF05EC,0x3C,0x4C,0x38,0x7C8,0x598],[0x00DF05E4,0x18,0x3C,0x44,0x4,0x44,0x7E8,0x598]]
+    # This function, returns the iValue of the current player holding the ball.
+    def getBallHolder(self):
+        currentIValue = self.getAddressValue(addressSet=self.ballHolderAddress[0])
+        return currentIValue
 
     # These two addressSets deal with tracking and setting the players in the
     # player select menu for blacktop. PlayerCounterAddress keeps track
@@ -254,7 +365,37 @@ class StatsRipper:
                 self.mem.write_int(self.module + self.slotActivatorAddressDict.get(key),convertedVal)
         self.mem.write_int(self.getPointerAddress(self.playerCounterAddress[0]),playerCount)
 
-    # PlayerID: Stores only the Player's ID value.
+
+    # This addressSet determines whether the blacktop mode is 1v1 (1), 2v2 (2), 3v3 (3), 4v4 (4), or 5v5 (5)
+    blacktopModeAddress = [0x01BFE7C0, 0x634]
+    def getBlacktopMode(self):
+        return self.getAddressValue(self.blacktopModeAddress)
+    # This addressSet stores the string value of the currently loaded Roster. If it is empty (0), no Roster is
+    # currently loaded.
+    loadedRosterAddress = [[0x00028F98, 0x8C], [0x000290D8, 0x10C], [0x000292E8, 0x114], [0x00028F7C, 0x118],[0x00640394, 0x374], [0x0063B6F0, 0x774]]
+    # This returns either the currently loaded Roster, "NONE" if no Roster is currently loaded, and
+    # "UNOPENED" if 2k itself isn't currently open.
+    def getActiveRoster(self):
+        if (not self.isConnected):
+            return None
+        else:
+            rosterAddress = str(self.getAddressValue(self.loadedRosterAddress[0], 's'))
+            if (rosterAddress == ".ROS"):
+                return None
+            else:
+                return rosterAddress
+    # This method rips basic game information from the current blacktop game, returning them as a neatly formatted
+    # dictionary. Assumes 2k is open. If slot stats are provided, it also calculates game scores.
+    def ripGameStats(self,slotStats : dict = None):
+        if(slotStats is not None):
+            newGameStats = self.calculateScores(slotStats=slotStats)
+        else:
+            newGameStats = {}
+        newGameStats["GameMode"] = self.getAddressValue(self.blacktopModeAddress)
+        newGameStats["LoadedRoster"] = self.getActiveRoster()
+        return newGameStats
+
+    # RosterID: Stores only the Player's ID value.
     # Points: Simply stores how many Points the player's earned this game from all sources.
     # Rebounds: Big value is Defensive Rebounds, small value is Offensive Rebounds.
     # Assists: Big value stores points per assist (whether player assisted a 1 or a 3), small value stores Assists
@@ -267,7 +408,7 @@ class StatsRipper:
     # Stores the individual player stats from each player's Slots.
     boxScoreSlots = [
         {  # Slot 1
-            "PlayerID": [[0x00E24EC4, 0x18, 0x38, 0x1C, 0x550, 0x2FC]],  # PlayerID
+            "RosterID": [[0x00E24EC4, 0x18, 0x38, 0x1C, 0x550, 0x2FC]],  # RosterID
             "Points": [[0x00D0F60C, 0x18, 0x18, 0x1C, 0x238, 0x174]],  # Points
             "Rebounds": [[0x004A2CEC, 0xDAC], [0x01805168, 0x6B4, 0x1C, 0x5A4, 0x9E0], [0x017AA980, 0xA4, 0x14, 0x10, 0x170, 0x24, 0x620, 0x5C8], [0x0035FAA0, 0xDAC], [0x00322674, 0xDAC]],  # Rebounds
             "Assists": [[0x017AAA70, 0x254, 0x4, 0x64, 0xF0, 0x544, 0x8D8, 0xB38], [0x00DB4A74, 0x3C, 0x354, 0xA00], [0x00D63F84, 0x1C, 0x354, 0xA00], [0x017AA6C8, 0x30, 0x2E0, 0x24, 0x448, 0x4, 0x1FC, 0x720], [0x017AA6C8, 0x4C, 0x10, 0x24, 0x448, 0x4, 0x1FC, 0x720]],  # Assists
@@ -280,7 +421,7 @@ class StatsRipper:
                       ]
         },
         {  # Slot 2
-            "PlayerID": [[0x00DEFD54, 0x1C, 0x2A0, 0x18, 0x618, 0x4F4]],  # PlayerID
+            "RosterID": [[0x00DEFD54, 0x1C, 0x2A0, 0x18, 0x618, 0x4F4]],  # RosterID
             "Points": [[0x0138DE58, 0x28, 0x124, 0x294, 0x8]],  # Points
             "Rebounds": [[0x017AA6C8, 0x50, 0x20, 0x24, 0x8B0, 0x2C, 0x1FC, 0xDC8], [0x017AA6C8, 0x3C, 0x84, 0x74, 0x5F8, 0x4, 0x1FC, 0xDC8], [0x017AA6C8, 0x30, 0x5F8, 0x3, 0x1FC, 0xDC8], [0x017AA980, 0x124, 0xC, 0x1C8, 0x104, 0x620, 0xC90], [0x017AA980, 0x44, 0x14, 0x20, 0x4, 0x620, 0xC90]],  # Rebounds
             "Assists": [[0x00E1D06C, 0x18, 0x18, 0x38, 0x18, 0x5C, 0x6E0, 0xE58], [0x00D18884, 0x1C, 0x6E0, 0xE58], [0x00E62D88, 0x38, 0x9B4, 0x18, 0x1C, 0x218, 0xE24], [0x00E355EC, 0x5C, 0x99C, 0x48, 0x1C0, 0xF1C], [0x00E05B64, 0x18, 0x18, 0x1C, 0x638, 0xD70]],  # Assists
@@ -292,7 +433,7 @@ class StatsRipper:
             "Dunks": [[0x0138DE50, 0x28, 0x64, 0x38, 0x30, 0x700], [0x00301CE4, 0x7C0], [0x016C16F8, 0x308], [0x016C16FC, 0x2D8], [0x00E1FEAC, 0x38, 0x18, 0x1C, 0x6B4, 0x6B0]]
         },
         {  # Slot 3
-            "PlayerID": [[0x00D54FE4, 0x18, 0x18, 0x1C, 0x1C0, 0xD8]],  # PlayerID
+            "RosterID": [[0x00D54FE4, 0x18, 0x18, 0x1C, 0x1C0, 0xD8]],  # RosterID
             "Points": [[0x00E1376C, 0x38, 0x18, 0x5C, 0x4D4, 0x598]],  # Points
             "Rebounds": [[0x018198A0, 0x2C, 0xC, 0xC, 0x48, 0x70, 0x698, 0xFA8], [0x01819900, 0x58, 0x0, 0xC, 0x48, 0x70, 0x698, 0xFA8], [0x00D0F3F4, 0x58, 0x18, 0x58, 0x18, 0x38, 0x3E8, 0x200], [0x00D1B594, 0x38, 0x3E8, 0x200], [0x00D1F4B4, 0x38, 0x1C, 0x3C8, 0x200]],  # Rebounds
             "Assists": [[0x00D1F71C, 0x18, 0x38, 0x1C, 0x910, 0x58, 0x808, 0x944], [0x00D1F494, 0x58, 0x18, 0x1C, 0x7E8, 0x944], [0x017AAA70, 0x34, 0xC, 0xB4, 0xD0, 0x964, 0x3E8, 0x220], [0x01819888, 0x58, 0x4C, 0x34, 0x48, 0x70, 0x698, 0xFC8], [0x00E0A754, 0x18, 0x1C, 0x924, 0x900]],  # Assists
@@ -304,7 +445,7 @@ class StatsRipper:
             "Dunks": [[0x00D1B7A4, 0x38, 0x18, 0x38, 0x808, 0x744], [0x00D1B7A4, 0x58, 0x808, 0x744], [0x016C1C34, 0x338], [0x00E1722C, 0x38, 0x18, 0x58, 0x4F4, 0x5C8], [0x00DFFE9C, 0x38, 0x18, 0x5C, 0x4D4, 0x5C8]]
         },
         {  # Slot 4
-            "PlayerID": [[0x010729A0, 0x240, 0xC0, 0x1F8, 0x1C, 0x2B0]],  # PlayerID
+            "RosterID": [[0x010729A0, 0x240, 0xC0, 0x1F8, 0x1C, 0x2B0]],  # RosterID
             "Points": [[0x0138DE58, 0x28, 0x2BC, 0x44, 0x30, 0x8]],  # Points
             "Rebounds": [[0x00D1B7A4, 0x18, 0x18, 0x5C, 0x7E8, 0xFEC], [0x016C1B40, 0x5C4], [0x00DB2A94, 0x44, 0x38, 0x5C, 0x1C, 0x964, 0xDFC], [0x0110A4F0, 0x4, 0xC, 0x48, 0x70, 0x8, 0x30, 0x8E0], [0x0059D6A0, 0x314]],  # Rebounds
             "Assists": [[0x0110A5B4, 0x8, 0x4, 0xC, 0x48, 0x250, 0x30, 0xFC8], [0x007618C4, 0x33C], [0x016C232C, 0x4A8], [0x00DB2A94, 0x44, 0x38, 0x5C, 0x18, 0x1C, 0x964, 0xE1C], [0x0138DE6C, 0xC, 0x8, 0x48, 0x258, 0x30, 0x238]],  # Assists
@@ -316,7 +457,7 @@ class StatsRipper:
             "Dunks": [[0x0138DE58, 0x28, 0x64, 0x3C, 0x214, 0x700], [0x0138DE50, 0x28, 0x64, 0x38, 0x3F8, 0x700], [0x00165D88, 0x144], [0x00019614, 0x15C], [0x016C23BC, 0x218]]
         },
         {  # Slot 5
-            "PlayerID": [[0x00E6C43C, 0x38, 0x18, 0x1C, 0xCC, 0x240]],  # PlayerID
+            "RosterID": [[0x00E6C43C, 0x38, 0x18, 0x1C, 0xCC, 0x240]],  # RosterID
             "Points": [[0x0138DE50, 0x28, 0x64, 0x40, 0x214, 0x6D0]],  # Points
             "Rebounds": [[0x018198A0, 0x10, 0x14, 0x48, 0x64, 0x48, 0x30, 0x218], [0x00D1F4B4, 0x3C, 0x3C8, 0xF90], [0x00D1F4B4, 0x18, 0x18, 0x38, 0x3E8, 0xF90], [0x00D1B594, 0x38, 0x3E8, 0xF90], [0x017AAA70, 0xC4, 0x4, 0xDC, 0x30, 0x3A4, 0x3E8, 0xF90]],  # Rebounds
             "Assists": [[0x0138DE58, 0x28, 0x70, 0xC, 0x214, 0x238], [0x016C2934, 0x5C8], [0x016C29C4, 0x538], [0x016C2B54, 0x4D8], [0x016C2AE4, 0x3B8]],  # Assists
@@ -328,7 +469,7 @@ class StatsRipper:
             "Dunks": [[0x0138DE58, 0x28, 0x70, 0x8, 0x214, 0x700], [0x007618C4, 0x804], [0x01850218, 0x700], [0x016C2208, 0x3E4], [0x0138DE50, 0x28, 0x70, 0x10, 0x30, 0x38]]
         },
         {  # Slot 6
-            "PlayerID": [[0x00E35864, 0x18, 0x38, 0x1C, 0x4AC, 0x454]],  # PlayerID
+            "RosterID": [[0x00E35864, 0x18, 0x38, 0x1C, 0x4AC, 0x454]],  # RosterID
             "Points": [[0x0138DE58, 0x28, 0x70, 0x2F4, 0x30, 0x8]],  # Points
             "Rebounds": [[0x018198A0, 0x10, 0x14, 0x48, 0x70, 0x2F4, 0x30, 0x218], [0x0138DE6C, 0x4, 0x0, 0x48, 0x70, 0x2F4, 0x30, 0x218], [0x0138DE58, 0x28, 0x70, 0x70, 0x32C, 0x30, 0x218], [0x010DFAF4, 0xC, 0x10, 0x48, 0x64, 0x32C, 0x30, 0x218], [0x0138DE6C, 0xC, 0x10, 0x48, 0x64, 0x32C, 0x30, 0x218]],  # Rebounds
             "Assists": [[0x01851970, 0x238], [0x0138DE50, 0x28, 0x70, 0x2F4, 0x30, 0x238], [0x0138DE58, 0x28, 0x70, 0x2F4, 0x30, 0x238]],  # Assists
@@ -340,7 +481,7 @@ class StatsRipper:
             "Dunks": [[0x01819870, 0x184, 0x48, 0x540, 0x30, 0x38]]
         },
         {  # Slot 7
-            "PlayerID": [[0x017D751C, 0x68C, 0x1C, 0x1B4, 0x15C]],  # PlayerID
+            "RosterID": [[0x017D751C, 0x68C, 0x1C, 0x1B4, 0x15C]],  # RosterID
             "Points": [[0x0138DE58, 0x28, 0x70, 0x70, 0x32C, 0x30, 0x6D0]],  # Points
             "Rebounds": [[0x0138DE58, 0x28, 0x70, 0x70, 0x32C, 0x214, 0x218], [0x0138DE50, 0x28, 0x540, 0x30, 0x8E0], [0x0138DE50, 0x28, 0x70, 0x2F8, 0x30, 0x218], [0x0138DE50, 0x28, 0x544, 0x30, 0x218], [0x0138DE58, 0x28, 0x544, 0x30, 0x218]],  # Rebounds
             "Assists": [[0x0138DE50, 0x28, 0x70, 0x2F4, 0x214, 0x238], [0x01851C08, 0x238], [0x0138DE50, 0x28, 0x64, 0x32C, 0x214, 0x238], [0x0138DE50, 0x28, 0x2BC, 0x32C, 0x214, 0x238], [0x0138DE50, 0x28, 0x64, 0x330, 0x30, 0x238]],  # Assists
@@ -352,7 +493,7 @@ class StatsRipper:
             "Dunks": [[0x01851970, 0x700], [0x01819870, 0x184, 0x48, 0x540, 0x30, 0x700], [0x018198A0, 0x54, 0x48, 0x540, 0x214, 0x38], [0x0138DE58, 0x28, 0x2BC, 0x330, 0x30, 0x38], [0x01819930, 0x1B4, 0x48, 0x544, 0x30, 0x38]]
         },
         {  # Slot 8
-            "PlayerID": [[0x184F2FC, 0x678]],  # PlayerID
+            "RosterID": [[0x184F2FC, 0x678]],  # RosterID
             "Points": [[0x018198A0, 0x10, 0x14, 0x48, 0x70, 0x2F8, 0x30, 0x6D0]],  # Points
             "Rebounds": [[0x018198A0, 0x2C, 0x4, 0x48, 0x70, 0x2F4, 0x30, 0xFA8], [0x0138DE50, 0x28, 0x70, 0x2F4, 0x30, 0xFA8], [0x0138DE50, 0x28, 0x2BC, 0x330, 0x214, 0x218], [0x01851C08, 0x8E0], [0x0138DE50, 0x28, 0x64, 0x334, 0x30, 0x218]],  # Rebounds
             "Assists": [[0x01851EA0, 0x238], [0x0138DE50, 0x28, 0x70, 0x2FC, 0x30, 0x238], [0x0138DE50, 0x28, 0x64, 0x334, 0x30, 0x238], [0x0138DE58, 0x28, 0x64, 0x334, 0x30, 0x238], [0x0138DE50, 0x28, 0x2BC, 0x334, 0x30, 0x238]],  # Assists
@@ -364,7 +505,7 @@ class StatsRipper:
             "Dunks": [[0x0181987C, 0x114, 0x48, 0x544, 0x30, 0x700], [0x01819870, 0x184, 0x48, 0x540, 0x3F8, 0x38], [0x0138DE58, 0x28, 0x64, 0x32C, 0x3F8, 0x38], [0x01851C08, 0x700], [0x0138DE50, 0x28, 0x64, 0x334, 0x30, 0x38]]
         },
         {  # Slot 9
-            "PlayerID": [[0x0184F300, 0x678]],  # PlayerID
+            "RosterID": [[0x0184F300, 0x678]],  # RosterID
             "Points": [[0x010DFAF4, 0xC, 0x8, 0x48, 0x70, 0x2F4, 0x214, 0xD98]],  # Points
             "Rebounds": [[0x01843AD4, 0x28, 0x0, 0xC, 0x48, 0x548, 0x214, 0x218], [0x0138DE50, 0x28, 0x544, 0x214, 0x8E0], [0x0138DE5C, 0xC, 0x8, 0x48, 0x54C, 0x30, 0x218], [0x010DFAF4, 0xC, 0x10, 0x48, 0x70, 0x300, 0x30, 0x218], [0x0138DE58, 0x28, 0x70, 0x300, 0x30, 0x218]],  # Rebounds
             "Assists": [[0x0138DE50, 0x28, 0x70, 0x2FC, 0x214, 0x238], [0x016C3FAC, 0x4D8], [0x016C3F3C, 0x3B8], [0x0138DE50, 0x28, 0x2BC, 0x338, 0x30, 0x238], [0x0138DE58, 0x28, 0x64, 0x338, 0x30, 0x238]],  # Assists
@@ -376,7 +517,7 @@ class StatsRipper:
             "Dunks": [[0x0138DE50, 0x28, 0x2BC, 0x32C, 0x3F8, 0x700], [0x0138DE58, 0x28, 0x64, 0x32C, 0x5DC, 0x38], [0x01819870, 0x184, 0x48, 0x54C, 0x30, 0x38], [0x0181987C, 0x114, 0x48, 0x544, 0x214, 0x700], [0x01851EA0, 0x700]]
         },
         {  # Slot 10
-            "PlayerID": [[0x0184F304, 0x678]],  # PlayerID
+            "RosterID": [[0x0184F304, 0x678]],  # RosterID
             "Points": [[0x01843B94, 0x8C, 0x0, 0xC, 0x48, 0x54C, 0x30, 0x6D0]],  # Points
             "Rebounds": [[0x018523D0, 0x218], [0x016C4C3C, 0x428], [0x01852138, 0x8E0], [0x016C4544, 0xB20], [0x016C4AB4, 0xC8C]],  # Rebounds
             "Assists": [[0x0138DE58, 0x28, 0x70, 0x300, 0x214, 0x238], [0x016C4BAC, 0x538], [0x016C4C3C, 0x448], [0x018523D0, 0x238], [0x0138DE50, 0x28, 0x64, 0x33C, 0x30, 0x238]],  # Assists
@@ -388,243 +529,208 @@ class StatsRipper:
             "Dunks": [[0x01819870, 0x184, 0x48, 0x540, 0x5DC, 0x700], [0x018198A0, 0x54, 0x48, 0x544, 0x5DC, 0x38], [0x0138DE58, 0x28, 0x64, 0x48, 0x7C0, 0x700], [0x0138DE58, 0x28, 0x70, 0x2F8, 0x3F8, 0x700], [0x016C4C9C, 0x1E8]]
         }
     ]
+    # This method rips slot stats from the current blacktop game, returning them as a neatly
+    # formatted dictionary. Assumes 2k is open.
+    def ripSlotStats(self):
+        newSlotStats = {0 : {},1 : {},2 : {},3 : {},4 : {},5 : {},6 : {},7 : {},8 : {},9 : {}}
 
-    # This helper method extracts the actual address of an address set by applying offsets
-    def getPointerAddress(self,addressSet):
-        address = self.mem.read_int(self.module + addressSet[0])
-        for offset in addressSet:
-            if (offset != addressSet[-1] and offset != addressSet[0]):
-                address = self.mem.read_int(address + offset)
-        address = address + addressSet[-1]
-        return address
-    # Extracts the actual value at a given addressSet.
-    def getAddressValue(self,addressSet,_type = 'i',stringLength = 50):
-        if(addressSet is not None):
-            try:
-                finalAddress = self.getPointerAddress(addressSet)
-                if(_type == 'i'):
-                    return self.mem.read_int(finalAddress)
-                elif(_type == 's'):
-                    returnString = ""
-                    for i in range(stringLength):
-                        try:
-                            returnString += self.mem.read_string(finalAddress + (i*2))
-                        except:
-                            break
-                    returnString = returnString.split(".ROS",1)[0]
-                    return returnString + ".ROS"
-            except pymem.exception.MemoryReadError:
-                return "ERROR"
-        else:
-            return "None"
-    # This method uses a valueType (PlayerID, Rebounds, Dunks) to extract a value directly
-    # from 2K. It also uses getSecondaryValue for values that have two values baked into them.
-    # Read each value for further details.
-    def getStatValue(self,slot,valueType,getSecondaryValue = False,convertNames = True):
+        gameMode = self.getBlacktopMode()
+        for i in range(10):
+            if((i % 5)+1 > gameMode):
+                newSlotStats[i]["IsActive"] = 0
+            else:
+                newSlotStats[i]["IsActive"] = 1
+                newSlotStats[i]["RosterID"] = self.getStatValue(i,"RosterID",False)
+                newSlotStats[i]["Points"] = self.getStatValue(i,"Points")
+                newSlotStats[i]["DefensiveRebounds"] = self.getStatValue(i,"Rebounds")
+                newSlotStats[i]["OffensiveRebounds"] = self.getStatValue(i,"Rebounds",True)
+                newSlotStats[i]["PointsPerAssist"] = self.getStatValue(i,"Assists",True)
+                newSlotStats[i]["AssistCount"] = self.getStatValue(i,"Assists")
+                newSlotStats[i]["Steals"] = self.getStatValue(i,"Steals")
+                newSlotStats[i]["Blocks"] = self.getStatValue(i,"Blocks",True)
+                newSlotStats[i]["Turnovers"] = self.getStatValue(i,"Turnovers")
+                newSlotStats[i]["InsidesMade"] = self.getStatValue(i,"FG")
+                newSlotStats[i]["InsidesAttempted"] = self.getStatValue(i,"FG",True)
+                newSlotStats[i]["ThreesMade"] = self.getStatValue(i,"3PT")
+                newSlotStats[i]["ThreesAttempted"] = self.getStatValue(i,"3PT",True)
+                newSlotStats[i]["Fouls"] = self.getStatValue(i,"Fouls")
+                newSlotStats[i]["Dunks"] = self.getStatValue(i,"Dunks",)
+                newSlotStats[i]["Layups"] = self.getStatValue(i,"Dunks",True)
+                newSlotStats[i]["Unknown1"] = self.getStatValue(i,"Turnovers",True)
+                newSlotStats[i]["Unknown2"] = self.getStatValue(i,"Fouls",True)
+        return newSlotStats
+
+    #endregion === Value Rippers ===
+
+    #region === Value Manipulation ===
+
+    # Here is addresses and methods for manually updating display stats.
+    ballerzPointDisplay = [[0x00DF094C,0x2E8,0x184,0x7C0,0x620,0x578],[0x00D7D47C,0x1C,0x5C,0x340,0x620,0x578],[0x00DF09F0,0x2E8,0x568,0x454,0x640,0x578],[0x009C0BE4,0x104],[0x007184E4,0x0]]
+    ringersPointDisplay = [[0x00DB5FAC,0x38,0x18,0x38,0x640,0x57C],[0x00DB5CBC,0x18,0x58,0x640,0x57C],[0x00DB8D44,0x58,0x18,0x1C,0x620,0x57C],[0x00DB5CBC,0x18,0x5C,0x620,0x57C]]
+    def manuallyUpdatePointDisplay(self):
+        gameMode = self.getBlacktopMode()
+        ballerzPoints = 0
+        slot1Points = self.getStatValue(0,"Points")
+        if(slot1Points is not None):
+            ballerzPoints += slot1Points
+        slot2Points = self.getStatValue(1,"Points")
+        if(slot2Points is not None and gameMode >= 2):
+            ballerzPoints += slot2Points
+        slot3Points = self.getStatValue(2,"Points")
+        if(slot3Points is not None and gameMode >= 3):
+            ballerzPoints += slot3Points
+        slot4Points = self.getStatValue(3,"Points")
+        if(slot4Points is not None and gameMode >= 4):
+            ballerzPoints += slot4Points
+        slot5Points = self.getStatValue(4,"Points")
+        if(slot5Points is not None and gameMode >= 5):
+            ballerzPoints += slot5Points
+
+        ringersPoints = 0
+        slot6Points = self.getStatValue(5,"Points")
+        if(slot6Points is not None):
+            ringersPoints += slot6Points
+        slot7Points = self.getStatValue(6,"Points")
+        if(slot7Points is not None and gameMode >= 2):
+            ringersPoints += slot7Points
+        slot8Points = self.getStatValue(7,"Points")
+        if(slot8Points is not None and gameMode >= 3):
+            ringersPoints += slot8Points
+        slot9Points = self.getStatValue(8,"Points")
+        if(slot9Points is not None and gameMode >= 4):
+            ringersPoints += slot9Points
+        slot10Points = self.getStatValue(9,"Points")
+        if(slot10Points is not None and gameMode >= 5):
+            ringersPoints += slot10Points
+
+
         try:
-            if(valueType == "PlayerID"):
-                if(convertNames == True):
-                    return b.postDELFunGuide.get(self.getAddressValue(self.boxScoreSlots[slot].get(valueType)[0]))
-                else:
-                    return self.getAddressValue(self.boxScoreSlots[slot].get("PlayerID")[0])
-            elif(valueType == "Steals" or valueType == "Blocks"): # Steals and Blocks are stored on the same value.
-                    if(getSecondaryValue == True):
-                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Steals")[0]) / 65536)
-                    else:
-                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Steals")[0]) % 65536)
-            elif(valueType == "Turnovers"):
-                if(self.boxScoreSlots[slot].get("Turnovers") == []):
-                    return "None"
-                else:
-                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Turnovers")[0]) % 65536)
-            elif(valueType == "Rebounds"): # Primary is Offensive, secondary is Defensive
-                if(getSecondaryValue == True):
-                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Rebounds")[0]) / 65536)
-                else:
-                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Rebounds")[0]) % 65536)
-            elif (valueType == "Fouls"):
-                if (self.boxScoreSlots[slot].get("Fouls") == []):
-                    return "None"
-                else:
-                    return int(self.getAddressValue(self.boxScoreSlots[slot].get("Fouls")[0]) % 65536)
-            elif(valueType == "Assists"):
-                if (self.boxScoreSlots[slot].get("Assists") == []):
-                    return "None"
-                else:
-                    if(getSecondaryValue == True):
-                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Assists")[0]) / 65536)
-                    else:
-                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Assists")[0]) % 65536)
-            elif(valueType == "Dunks"):
-                if (self.boxScoreSlots[slot].get("Dunks") == []):
-                    return "None"
-                else:
-                    if(getSecondaryValue == True):
-                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Dunks")[0]) / 65536)
-                    else:
-                        return int(self.getAddressValue(self.boxScoreSlots[slot].get("Dunks")[0]) % 65536)
-            elif(valueType == "FG" or valueType == "3PT"): # FG
-                if(getSecondaryValue == True):
-                    return int(self.getAddressValue(self.boxScoreSlots[slot].get(valueType)[0]) / 65536)
-                else:
-                    return int(self.getAddressValue(self.boxScoreSlots[slot].get(valueType)[0]) % 65536)
-            else:
-                if(len(self.boxScoreSlots[slot].get(valueType)) != 0):
-                    return self.getAddressValue(self.boxScoreSlots[slot].get(valueType)[0])
-                else:
-                    return "None"
-        except:
-            return None
-    # Method for easily printing all current boxscore stats from 2k.
+            self.mem.write_int(self.getPointerAddress(self.ballerzPointDisplay[0]),ballerzPoints)
+            self.mem.write_int(self.getPointerAddress(self.ringersPointDisplay[0]),ringersPoints)
+            return True
+        except pymem.exception.MemoryWriteError:
+            return False
 
-    # This simple method rips all stats from the current blacktop game, overwriting previous
-    # values stored within this object. Assumes 2k is open.
-    def ripAllStats(self):
-        self.gameMode = self.getAddressValue(self.blacktopModeAddress)
-        self.loadedRoster = self.getAddressValue(self.loadedRosterAddress[0],'s')
-        if(self.loadedRoster == ".ROS"):
-            self.loadedRoster = "None"
-        for i in range(10):
-            if((i % 5)+1 > self.gameMode):
-                self.slotStats.get("Slot"+str(i+1))["IsActive"] = 0
-            else:
-                self.slotStats.get("Slot"+str(i+1))["IsActive"] = 1
-                self.slotStats.get("Slot"+str(i+1))["RosterID"] = self.getStatValue(i,"PlayerID",False,False)
-                self.slotStats.get("Slot"+str(i+1))["Points"] = self.getStatValue(i,"Points")
-                self.slotStats.get("Slot"+str(i+1))["DefensiveRebounds"] = self.getStatValue(i,"Rebounds")
-                self.slotStats.get("Slot"+str(i+1))["OffensiveRebounds"] = self.getStatValue(i,"Rebounds",True)
-                self.slotStats.get("Slot"+str(i+1))["PointsPerAssist"] = self.getStatValue(i,"Assists",True)
-                self.slotStats.get("Slot"+str(i+1))["AssistCount"] = self.getStatValue(i,"Assists")
-                self.slotStats.get("Slot"+str(i+1))["Steals"] = self.getStatValue(i,"Steals")
-                self.slotStats.get("Slot"+str(i+1))["Blocks"] = self.getStatValue(i,"Blocks",True)
-                self.slotStats.get("Slot"+str(i+1))["Turnovers"] = self.getStatValue(i,"Turnovers")
-                self.slotStats.get("Slot"+str(i+1))["InsidesMade"] = self.getStatValue(i,"FG")
-                self.slotStats.get("Slot"+str(i+1))["InsidesAttempted"] = self.getStatValue(i,"FG",True)
-                self.slotStats.get("Slot"+str(i+1))["ThreesMade"] = self.getStatValue(i,"3PT")
-                self.slotStats.get("Slot"+str(i+1))["ThreesAttempted"] = self.getStatValue(i,"3PT",True)
-                self.slotStats.get("Slot"+str(i+1))["Fouls"] = self.getStatValue(i,"Fouls")
-                self.slotStats.get("Slot"+str(i+1))["Dunks"] = self.getStatValue(i,"Dunks",)
-                self.slotStats.get("Slot"+str(i+1))["Layups"] = self.getStatValue(i,"Dunks",True)
-                self.slotStats.get("Slot"+str(i+1))["Unknown1"] = self.getStatValue(i,"Turnovers",True)
-                self.slotStats.get("Slot"+str(i+1))["Unknown2"] = self.getStatValue(i,"Fouls",True)
-        self.getScores()
-    def printBoxScore(self):
-        for i in range(10):
-            if(i == 0):
-                counter = self.mem.read_int(self.getPointerAddress(self.blacktopModeAddress))
-                print(f"{'BALLERZ' : <16}{'Points' : ^12}{'Rebounds (O/D)' : ^14}{'Assists' : ^12}{'Steals' : ^12}{'Blocks' : ^12}{'Turnovers' : ^12}{'FG' : ^12}{'3PT' : ^12}{'PRF' : ^12}{'Fouls' : ^12}{'Dunks/Layups' : ^15}")
-            if(i == 5):
-                counter = self.mem.read_int(self.getPointerAddress(self.blacktopModeAddress))
-                print("")
-                print(f"{'RINGERS' : <16}{'Points' : ^12}{'Rebounds (O/D)' : ^14}{'Assists' : ^12}{'Steals' : ^12}{'Blocks' : ^12}{'Turnovers' : ^12}{'FG' : ^12}{'3PT' : ^12}{'PRF' : ^12}{'Fouls' : ^12}{'Dunks/Layups' : ^15}")
-            if (counter > 0):
-                counter += -1
-                print(f"{self.getStatValue(i,'PlayerID') : <16}{self.getStatValue(i,'Points') : ^12}{self.getStatValue(i,'Rebounds') + '-' + self.getStatValue(i,'Rebounds',True) : ^14}{self.getStatValue(i,'Assists') : ^12}{self.getStatValue(i,'Steals') : ^12}{self.getStatValue(i,'Steals',True) : ^12}{self.getStatValue(i,'Turnovers') : ^12}{self.getStatValue(i,'FG') : ^12}{self.getStatValue(i,'3PT') : ^12}{str(int(self.getStatValue(i,'Assists',True)) + int(self.getStatValue(i,'Points'))) : ^12}{self.getStatValue(i,'Fouls') : ^12}{self.getStatValue(i,'Dunks') + '-' + self.getStatValue(i,'Dunks',True) : ^15}")
+    # These two methods deal with distributing the coin. Simply put, they add or remove a single point to
+    # Player 1 or 6's FGM and FGA. These points can then be removed before actually ripping stats.
+    def addCoin(self,team):
+        if(team.lower() == "ringers"):
+            currentVal = self.mem.read_int(self.getPointerAddress(self.boxScoreSlots[5].get("Points")[0]))
+            self.mem.write_int(self.getPointerAddress(self.boxScoreSlots[5].get("Points")[0]),currentVal + 1)
+        elif(team.lower() == "ballerz"):
+            currentVal = self.mem.read_int(self.getPointerAddress(self.boxScoreSlots[0].get("Points")[0]))
+            self.mem.write_int(self.getPointerAddress(self.boxScoreSlots[0].get("Points")[0]),currentVal + 1)
+    def removeCoin(self,team):
+        if(team.lower() == "ringers"):
+            currentVal = self.mem.read_int(self.getPointerAddress(self.boxScoreSlots[5].get("Points")[0]))
+            self.mem.write_int(self.getPointerAddress(self.boxScoreSlots[5].get("Points")[0]),currentVal - 1)
+        elif (team.lower() == "ballerz"):
+            currentVal = self.mem.read_int(self.getPointerAddress(self.boxScoreSlots[0].get("Points")[0]))
+            self.mem.write_int(self.getPointerAddress(self.boxScoreSlots[0].get("Points")[0]),currentVal - 1)
 
-    # Assumes that this object has up-to-date ripped stats, this simple helper method totals points
-    # into usable ballerzScore and ringersScore
-    def getScores(self):
+    #endregion === Value Manipulation ===
+
+    #region === Helpers ===
+
+    # Given a set of slot stats, this  helper method totals points into usable ballerzScore and ringersScore
+    def calculateScores(self,slotStats):
+        scoresDict = {"BallerzScore" : 0, "RingerScore" : 0}
         blacktopMode = self.getBlacktopMode()
         if(blacktopMode == 1):
-            self.ballerzScore = self.slotStats["Slot1"]["Points"]
-            self.ringersScore = self.slotStats["Slot6"]["Points"]
+            scoresDict["BallerzScore"] = slotStats[0]["Points"]
+            scoresDict["RingersScore"] = slotStats[5]["Points"]
         elif(blacktopMode == 2):
-            self.ballerzScore = self.slotStats["Slot1"]["Points"] + self.slotStats["Slot2"]["Points"]
-            self.ringersScore = self.slotStats["Slot6"]["Points"] + self.slotStats["Slot7"]["Points"]
+            scoresDict["BallerzScore"] = slotStats[0]["Points"] + slotStats[1]["Points"]
+            scoresDict["RingersScore"] = slotStats[5]["Points"] + slotStats[6]["Points"]
         elif(blacktopMode == 3):
-            self.ballerzScore = self.slotStats["Slot1"]["Points"] + self.slotStats["Slot2"]["Points"] + self.slotStats["Slot3"]["Points"]
-            self.ringersScore = self.slotStats["Slot6"]["Points"] + self.slotStats["Slot7"]["Points"] + self.slotStats["Slot8"]["Points"]
+            scoresDict["BallerzScore"] = slotStats[0]["Points"] + slotStats[1]["Points"] + slotStats[2]["Points"]
+            scoresDict["RingersScore"] = slotStats[5]["Points"] + slotStats[6]["Points"] + slotStats[7]["Points"]
         elif(blacktopMode == 4):
-            self.ballerzScore = self.slotStats["Slot1"]["Points"] + self.slotStats["Slot2"]["Points"] + self.slotStats["Slot3"]["Points"] + self.slotStats["Slot4"]["Points"]
-            self.ringersScore = self.slotStats["Slot6"]["Points"] + self.slotStats["Slot7"]["Points"] + self.slotStats["Slot8"]["Points"] + self.slotStats["Slot9"]["Points"]
+            scoresDict["BallerzScore"] = slotStats[0]["Points"] + slotStats[1]["Points"] + slotStats[2]["Points"] + slotStats[3]["Points"]
+            scoresDict["RingersScore"] = slotStats[5]["Points"] + slotStats[6]["Points"] + slotStats[7]["Points"] + slotStats[8]["Points"]
         elif(blacktopMode == 5):
-            self.ballerzScore = self.slotStats["Slot1"]["Points"] + self.slotStats["Slot2"]["Points"] + self.slotStats["Slot3"]["Points"] + self.slotStats["Slot4"]["Points"] + self.slotStats["Slot5"]["Points"]
-            self.ringersScore = self.slotStats["Slot6"]["Points"] + self.slotStats["Slot7"]["Points"] + self.slotStats["Slot8"]["Points"] + self.slotStats["Slot9"]["Points"] + self.slotStats["Slot10"]["Points"]
-        else:
-            self.ballerzScore = 0
-            self.ringersScore = 0
+            scoresDict["BallerzScore"] = slotStats[0]["Points"] + slotStats[1]["Points"] + slotStats[2]["Points"] + slotStats[3]["Points"] + slotStats[4]["Points"]
+            scoresDict["RingersScore"] = slotStats[5]["Points"] + slotStats[6]["Points"] + slotStats[7]["Points"] + slotStats[8]["Points"] + slotStats[9]["Points"]
+        return scoresDict
 
-    def __str__(self):
-        return str([self.gameMode,self.loadedRoster,self.slotStats])
+    # This helper method, when given a COMPLETE list of scraped i values (must be complete,
+    # otherwise function will map incorrectly), a dictionary of rosterIDs mapped to a specific blacktop slot, a
+    # rosterName, and a data storage object, this function returns a mapped list of each rosterID to its corresponding
+    # i value.
+    @staticmethod
+    def mapIValues(iValues: list, rosterIDs: dict, rosterName: str, dataStorageObject: DataStorage.DataStorage):
+        if (len(iValues) != len(rosterIDs.keys())):
+            return ValueError(
+                f"ERROR: Can't generate an iValue map; there are {len(iValues)} iValues and {len(rosterIDs.keys())} rosterIDs!")
+
+        mappedIValues = {}
+
+        # Given a dictionary of rosterIDs mapped to a specific blacktop slot, a rosterName,
+        # and a data storage object, will calculate each rosterIDs' a value (the order compared to all other rosterIDs on that
+        # team)
+        def mapAValues():
+            _aValues = {}
+
+            ballerzWeights = {}
+            ringersWeights = {}
+            for rosterID, slot in rosterIDs.items():
+
+                tempWeight = (dataStorageObject.csvRosterDict[rosterName]["HeightMap"][rosterID][
+                                  "RealHeight"] * 1000) + \
+                             dataStorageObject.csvRosterDict[rosterName]["HeightMap"][rosterID]["HeightAdjustment"]
+                if (slot >= 5):
+                    ringersWeights[tempWeight] = rosterID
+                else:
+                    ballerzWeights[tempWeight] = rosterID
+
+            for index, weight in enumerate(sorted(ringersWeights.keys(), reverse=True)):
+                _aValues[index] = ringersWeights[weight]
+
+            for index, weight in enumerate(sorted(ballerzWeights.keys(), reverse=True)):
+                _aValues[index + len(ringersWeights)] = ballerzWeights[weight]
+
+            return _aValues
+
+        aValues = mapAValues()
+
+        sortedIValues = sorted(list(iValues))
+
+        for index, iValue in enumerate(sortedIValues):
+            mappedIValues[iValue] = aValues[index]
+
+        return mappedIValues
+
+    # This method accepts a set of slot stats, a rosterName, and a iValue times dictionary, and converts it
+    # into a dictionary of ball held times to RosterID.
+    def convertIValueTimesToRosterIDs(self,rosterName : str, slotStats : dict,iValueTimes : dict,dataStorageObject : DataStorage.DataStorage):
+        # Build iValues list
+        allIValues = set(iValueTimes.keys())
+        allIValues.discard(0)
+        allIValues = list(allIValues)
+
+        # Build RosterID list
+        rosterIDSlotDict = {}
+        for slot,slotInfo in slotStats.items():
+            if(slotInfo["IsActive"] == 1):
+                rosterIDSlotDict[slotInfo["RosterID"]] = slot
+
+        # Generate iValueMap
+        iValueMap = self.mapIValues(iValues=allIValues,rosterIDs=rosterIDSlotDict,rosterName=rosterName,dataStorageObject=dataStorageObject)
+
+        ballHeldDict = {}
+        for iValue,rosterID in iValueMap.items():
+            ballHeldDict[rosterID] = iValueTimes[iValue]
+
+        return ballHeldDict
 
 
-    ballHolderAddress = [[0x00550FA0,0x8],[0x017AA6C8,0x7C,0x670,0x24,0x3E8,0x4,0x284,0x730],[0x40,0x48,0x24,0x670,0x2C,0x284,0x730],[0x00D3E51C,0x4,0xC,0x18,0x18,0x1C,0x2A4,0x6B0],[0x01843A14,0x30C,0x304,0x70,0x10,0xE0,0x46C,0x450],[0x00DF05EC,0x3C,0x4C,0x38,0x7C8,0x598],[0x00DF05E4,0x18,0x3C,0x44,0x4,0x44,0x7E8,0x598]]
-    # This function, combined with the above ballHolderAddress, calculates the RosterID of the player currently
-    # holding the ball using the found iMap.
-    def getBallHolder(self):
-        currentIValue = self.getAddressValue(addressSet=self.ballHolderAddress[0])
-        if(currentIValue not in self.currentIMap.keys()):
-            return -1
-        return self.currentIMap[currentIValue]
 
-
-
-
-# This helper method, when given a COMPLETE list of scraped i values (must be complete, otherwise function will map
-# incorrectly), a dictionary of rosterIDs mapped to a specific blacktop slot, a rosterName, and a data
-# storage object, this function returns a mapped list of each rosterID to its corresponding i value.
-def mapIValues(iValues : list, rosterIDs : dict, rosterName : str, dataStorageObject : DataStorage.DataStorage):
-    if(len(iValues) != len(rosterIDs.keys())):
-        return ValueError("ERROR: Can't generate an iValue map if there isn't exactly 1 iValue for each rosterID!")
-
-    mappedIValues = {}
-
-    # Given a dictionary of rosterIDs mapped to a specific blacktop slot, a rosterName,
-    # and a data storage object, will calculate each rosterIDs' a value (the order compared to all other rosterIDs on that
-    # team)
-    def mapAValues():
-        _aValues = {}
-
-        ballerzWeights = {}
-        ringersWeights = {}
-        for rosterID, slot in rosterIDs.items():
-
-            tempWeight = (dataStorageObject.csvRosterDict[rosterName]["HeightMap"][rosterID]["RealHeight"] * 1000) + \
-                         dataStorageObject.csvRosterDict[rosterName]["HeightMap"][rosterID]["HeightAdjustment"]
-            if (slot >= 5):
-                ringersWeights[tempWeight] = rosterID
-            else:
-                ballerzWeights[tempWeight] = rosterID
-
-        for index, weight in enumerate(sorted(ringersWeights.keys(), reverse=True)):
-            _aValues[index] = ringersWeights[weight]
-
-        for index, weight in enumerate(sorted(ballerzWeights.keys(), reverse=True)):
-            _aValues[index + len(ringersWeights)] = ballerzWeights[weight]
-
-        return _aValues
-
-    aValues = mapAValues()
-    print(aValues)
-
-    sortedIValues = sorted(iValues)
-
-    for index,iValue in enumerate(sortedIValues):
-        mappedIValues[iValue] = aValues[index]
-
-    return mappedIValues
-
-'''
-rosterIDsDict = {5:0, 1:1, 3:2, 4:5, 2:6, 8:7}
-iValues = [470629696,470626256,470622816,470615936,470619376,470612496]
+    #endregion === Helpers ===
 
 d = DataStorage.DataStorage()
-sr = StatsRipper()
+sr = StatsRipper(dataStorageObject=d)
 sr.attachTo2K()
-
-flounder = mapIValues(iValues=iValues,rosterIDs=rosterIDsDict,rosterName="Premier",dataStorageObject=d)
-sr.currentIMap = flounder
-
-while True:
-    currentRosterIDBallHolder = sr.getBallHolder()
-    if(currentRosterIDBallHolder != -1):
-        currentSpriteID = d.csv_GetSpriteIDFromRosterID(rosterName="Premier",rosterID=currentRosterIDBallHolder)
-        currentPlayer = d.playersDB_DownloadPlayer(currentSpriteID)
-        print(f"{currentPlayer['First_Name']} {currentPlayer['Last_Name']} | RosterID: {currentRosterIDBallHolder}")
-        time.sleep(1)
-    else:
-        print("Nobody")
-        time.sleep(1)
+sr.startGameTracker()
 
 
-'''
+
