@@ -317,6 +317,29 @@ def saveCAPInfo(rosterName,spriteID,dataStorageObject=None,saveData=True):
 
 
 '''
+# Sets the Jerseys to their defaults for the given roster.
+
+thisRoster = "Premier"
+d = DataStorage.DataStorage()
+importRosterData(rosterName=thisRoster,dataStorageObject=d)
+d.rosters[thisRoster]["JerseyConfig"]["BallerzSlayer"] = "TimberwolvesAlternate"
+d.rosters[thisRoster]["JerseyConfig"]["BallerzVigilante"] = "RaptorsMilitaryNight"
+d.rosters[thisRoster]["JerseyConfig"]["BallerzMedic"] = "RocketsClassicAwayI"
+d.rosters[thisRoster]["JerseyConfig"]["BallerzGuardian"] = "WizardsClassicAwayIVAlt"
+d.rosters[thisRoster]["JerseyConfig"]["BallerzEngineer"] = "WarriorsClassicAwayIVAlt"
+d.rosters[thisRoster]["JerseyConfig"]["BallerzDirector"] = "KingsClassicAwayV"
+d.rosters[thisRoster]["JerseyConfig"]["RingersSlayer"] = "TrailblazersClassicAwayI"
+d.rosters[thisRoster]["JerseyConfig"]["RingersVigilante"] = "CelticsAlternate"
+d.rosters[thisRoster]["JerseyConfig"]["RingersMedic"] = "HeatAlternate"
+d.rosters[thisRoster]["JerseyConfig"]["RingersGuardian"] = "WizardsClassicHomeIII"
+d.rosters[thisRoster]["JerseyConfig"]["RingersEngineer"] = "SunsLatinNights"
+d.rosters[thisRoster]["JerseyConfig"]["RingersDirector"] = "HornetsClassicAwayIAlt"
+d.csv_UpdateAllJerseys(rosterName=thisRoster)
+exportRosterData(rosterName=thisRoster,dataStorageObject=d)
+'''
+
+
+'''
 d = DataStorage.DataStorage()
 importRosterData(rosterName="Premier",dataStorageObject=d)
 
@@ -362,9 +385,6 @@ d.csv_ExportCSVs("FactionTest")
 exportRosterData(rosterName="FactionTest",dataStorageObject=d)
 '''
 
-#d = DataStorage.DataStorage()
-#print(d.playersDB_AddBlankPlayer())
-#d.playersDB_Execute()
 
 '''
 d = DataStorage.DataStorage()

@@ -11,6 +11,7 @@ from pathlib import Path
 import glob
 import WeightedDict
 from tkinter import simpledialog, filedialog
+from pympler import asizeof
 
 
 # region === Config and Pathing Setup ===
@@ -312,7 +313,7 @@ def rStringProcess(rString,recursiveProcessing : bool = True):
 
 
     # Locate all occurrences of [path/to/file] in the string
-    options = re.findall('\[([^]]*)]', rString)
+    options = re.findall(r'\[([^]]*)]', rString)
     # Assume each option is a file path to a wordlist, recursively gen from that list
     for option in options:
         pickedOption = selectRandomFromList(filePath = f"{paths.randGen}\\{option}",rStringProcessing=recursiveProcessing)[0]
@@ -338,5 +339,24 @@ def alphaBase26(decimalNumber : int,maxPlaces : int):
     for letter in letterList:
         returnString += letter
     return returnString
+
+
+# This method accepts any python object, and returns a neat, formatted string displaying its size.
+def getMemorySizeOf(thisObject):
+    byteSize = asizeof.asizeof(thisObject)
+
+    if(byteSize > 1000):
+        kilobyteSize = byteSize / 1024
+        if(kilobyteSize > 1000):
+            megabyteSize = kilobyteSize / 1024
+            if(megabyteSize > 1000):
+                gigabyteSize = megabyteSize / 1024
+                return f"{round(gigabyteSize,2)} GB"
+            else:
+                return f"{round(megabyteSize,2)} MB"
+        else:
+            return f"{round(kilobyteSize,2)} KB"
+    else:
+        return f"{round(byteSize,2)} bytes"
 
 #endregion === Miscellaneous Functions ===
