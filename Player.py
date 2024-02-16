@@ -263,8 +263,11 @@ class Player:
 
     # Init method for initializing the value dictionary to default values.
     def __init__(self):
-        self.vals = {"SpriteID" : -1, # -1 Means spriteID has not yet been set, and must be set immediately.
-                    "First_Name": "",
+        # SpriteID, the unique ID value used to distinguish between all Players.
+        self.__spriteID = -1  # -1 Means spriteID has not yet been set, and must be set immediately.
+
+        # Holder for all values in this Player object.
+        self.vals = {"First_Name": "",
                     "Last_Name": "",
                     "NickName": "",
                     "Archetype": None, # Default to none - archetype MUST be set.
@@ -749,9 +752,13 @@ class Player:
                     "ExtraValue49": None,
                     "ExtraValue50": None}
 
+        # This helper member tracks whether changes have been made to this Player object,
+        # with the intent to organically detect necessary updates.
+        self.hasPendingUpdates = False
+
     # Simple string method for quickly displaying the full object.
     def __str__(self):
-        returnString = ""
+        returnString = f"SpriteID: {self.__spriteID}"
         for key,value in self.vals.items():
             if(key in self.extraValuesMap.values()):
                 returnString += f"{b.getKeyFromValue(dictionary=self.extraValuesMap,targetValue=key)}: {value}"
@@ -781,6 +788,9 @@ class Player:
         # Done first to avoid conflicts later with _Name specifier. Damn RedMC
         if(key == "First_Name" or key == "Last_Name"):
             return self.vals[key]
+        # Testing if the key is for SpriteID.
+        elif(key == "SpriteID"):
+            return self.__spriteID
         # Testing if the key is an ExtraValue.
         elif(key in self.extraValuesMap.keys()):
             return self.vals[self.extraValuesMap[key]]
@@ -821,6 +831,13 @@ class Player:
         # Done first to avoid conflicts later with _Name specifier. Damn RedMC
         if(key == "First_Name" or key == "Last_Name"):
             self.vals[key] = value
+        # Testing if the key is SpriteID, and if so, applying special logic. SpriteID can only be set
+        # if the current SpriteID is unset (a negative number), because once set, it should NEVER EVER be changed.
+        elif(key == "SpriteID"):
+            if(self.__spriteID < 0):
+                self.__spriteID = int(value)
+            else:
+                raise ValueError("ERROR: Can not attempt to change SpriteID of an existing player!!")
         # Testing if the key is an ExtraValue.
         elif(key in self.extraValuesMap.keys()):
             self.vals[self.extraValuesMap[key]] = value
@@ -905,6 +922,8 @@ class Player:
             else:
                 raise ValueError(f"Key does not exist in player object: '{key}'")
 
+        self.hasPendingUpdates = True
+
     #endregion === Getter and Setter ===
 
     #region === Generators ===
@@ -922,6 +941,7 @@ class Player:
         rarityWeightedDict.add("Legendary", int(b.config["rarities"]["legendaryChance"] * 100))
         rarityWeightedDict.add("Godlike", int(b.config["rarities"]["godlikeChance"] * 100))
         self.vals["Rarity"] = rarityWeightedDict.pull()
+        self.hasPendingUpdates = True
     # Generates all attributes based on the given archetype.
     def genAttributes(self,archetype = None):
         if(archetype is None):
@@ -965,6 +985,8 @@ class Player:
         self.vals["SShtInT"] = random.randrange(archetype.attributeRanges.get("SShtInT")[0], archetype.attributeRanges.get("SShtInT")[1] + 1)
         self.vals["SShtOfD"] = random.randrange(archetype.attributeRanges.get("SShtOfD")[0], archetype.attributeRanges.get("SShtOfD")[1] + 1)
         self.vals["SConsis"] = random.randrange(archetype.attributeRanges.get("SConsis")[0], archetype.attributeRanges.get("SConsis")[1] + 1)
+
+        self.hasPendingUpdates = True
     # Generates all tendencies based on the given archetype.
     def genTendencies(self,archetype = None):
         if(archetype is None):
@@ -1042,6 +1064,8 @@ class Player:
         self.vals["TStpThrgh"] = random.randrange(archetype.t_StepThrough[0], archetype.t_StepThrough[1] + 1)
         self.vals["TAlleyOop"] = random.randrange(archetype.t_ThrowAlleyOop[0], archetype.t_ThrowAlleyOop[1] + 1)
         self.vals["TGiveGo"] = random.randrange(archetype.t_GiveNGo[0], archetype.t_GiveNGo[1] + 1)
+
+        self.hasPendingUpdates = True
     # Generates all hotspots based on the given archetype.
     def genHotspots(self,archetype = None):
         if(archetype is None):
@@ -1144,6 +1168,8 @@ class Player:
                 self.vals["HPstLHigh"] += 1
             elif (pull == "HPstLLow"):
                 self.vals["HPstLLow"] += 1
+
+        self.hasPendingUpdates = True
     # Generates height based on either a given or, if not provided, the Player's default archetype height range.
     def genHeight(self,archetype = None):
         if(archetype is None):
@@ -1152,6 +1178,8 @@ class Player:
             else:
                 archetype = self.vals["Archetype"]
         self.vals["Height"] = random.randrange(archetype.heightRange[0],archetype.heightRange[1])
+
+        self.hasPendingUpdates = True
     # Rolls all animations.
     def genAnimations(self,archetype = None,dunkCount : int = None):
         if(archetype is None):
@@ -1242,6 +1270,8 @@ class Player:
         self.vals["AIntPreG2"] = random.randrange(0, len(self.idMap["AIntPreG2"]))
         self.vals["AIntPreT1"] = random.randrange(0, len(self.idMap["AIntPreT1"]))
         self.vals["AIntPreT2"] = random.randrange(0, len(self.idMap["AIntPreT2"]))
+
+        self.hasPendingUpdates = True
     # Generates and selects a play style based on archetype and attributes.
     def genPlayStyle(self,archetype = None):
         if(archetype is None):
@@ -1317,6 +1347,8 @@ class Player:
                 potentialStyles.append(1)
 
         self.vals["PlayStyle"] = random.choice(potentialStyles)
+
+        self.hasPendingUpdates = True
     # Generates a few play types if and only if the archetype is Engineer or Director.
     def genPlayTypes(self, archetype = None):
         if(archetype is None):
@@ -1335,6 +1367,8 @@ class Player:
             self.vals["PlayType2"] = "0"
         self.vals["PlayType3"] = "0"
         self.vals["PlayType4"] = "0"
+
+        self.hasPendingUpdates = True
     # This method  randomly selects and generates an artifact based on rarity and archetype..
     def generateArtifact(self,archetype = None,rarity = None):
         if(archetype is None):
@@ -1384,8 +1418,13 @@ class Player:
                         self.vals[parameter] += int(value)
                     elif(value.startswith("=")):
                         self.vals[parameter] = value.lstrip("=")
+
+        self.hasPendingUpdates = True
     # Generates a few random, miscellaneous, inconsequential values.
     def genMisc(self):
         self.vals["Personality"] = random.randrange(0,len(self.idMap["Personality"]))
 
+        self.hasPendingUpdates = True
+
     #endregion === Generators ===
+

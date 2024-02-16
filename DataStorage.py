@@ -1846,6 +1846,7 @@ class DataStorage:
         self.playersPendingWriteQueries = []
         if (openPlayersTable):
             self.playersDB_Open()
+        self.players = {}
 
         self.stats = {}
         self.statsDB_DownloadRaw()
@@ -2195,72 +2196,66 @@ class DataStorage:
             maxSpriteID = self.playersCursor.fetchone()[0]
             return maxSpriteID + 1
 
-    # This method downloads the player of the given spriteID, and returns it as a Player Object.
-    def playersDB_DownloadPlayer(self, spriteID):
-        player = Player.Player()
-
-        query = "SELECT "
-        for key in player.vals.keys():
-            if (key == "SpriteID"):
-                continue
-            else:
-                query += f"{key},"
-        query = f"{query.rstrip(',')} FROM Players WHERE SpriteID = {spriteID};"
+    # This method downloads the full Players.db into this object's self.players member.
+    def playersDB_DownloadPlayers(self):
+        query = "SELECT * FROM Players;"
         self.playersCursor.execute(query)
-        result = self.playersCursor.fetchone()
+        results = self.playersCursor.fetchall()
 
-        for key in player.vals.keys():
-            if (key != "SpriteID"):
-                player[key] = result[key]
-        player["SpriteID"] = spriteID
-        return player
-    # This function uploads a player to the given spriteID, overwriting what was there previously. If no SpriteID
-    # is specified, it will default to using the player object's spriteID. If newPlayer is set to True, it will
-    # insert the player as a new player and return their SpriteID.
-    def playersDB_UploadPlayer(self, player: Player.Player, spriteID=None, newPlayer=False, overwriteNones: bool = True):
-        if(newPlayer):
-            spriteID = self.playersDB_GetFirstUnusedSpriteID()
-        elif(spriteID is None):
-            spriteID = player.vals["SpriteID"]
+        allPlayers = {}
+        for row in results:
+            thisPlayer = Player.Player()
+            for key in thisPlayer.vals.keys():
+                thisPlayer[key] = row[key]
+            allPlayers[thisPlayer["SpriteID"]] = thisPlayer
 
-        if(newPlayer):
-            uploadQuery = "INSERT INTO Players ("
-        else:
-            uploadQuery = "UPDATE Players SET "
-        values = []
-        for key in player.vals.keys():
-            if (key == "SpriteID"):
-                continue
-            if (overwriteNones and player[key] is None):
-                continue
-            else:
-                if (key == "Archetype"):
-                    finalVal = player["Archetype_Name"]
-                else:
-                    finalVal = player[key]
-                if(newPlayer):
-                    uploadQuery += f"{key}, "
-                else:
-                    uploadQuery += f"{key} = ?, "
-                values.append(finalVal)
+        self.players = allPlayers
+    # This method uploads any changed Players in the self.players dict to the Players.db file.
+    # It also handles insertion of new Players as well as SpriteID assignment.
+    def playersDB_UploadPlayers(self):
+        nextNewSpriteID = self.playersDB_GetFirstUnusedSpriteID()
 
-        if(newPlayer):
-            uploadQuery += "SpriteID) VALUES ("
-            for i in range(len(values)):
-                uploadQuery += "?, "
-            uploadQuery += "?);"
-        else:
-            uploadQuery += "WHERE SpriteID = ?;"
-        values.append(spriteID)
+        for spriteID,thisPlayer in self.players.items():
+            # We only want to update/insert this Player if its marked as updated.
+            if(thisPlayer.hasPendingUpdates):
+                # Declare initial values for queries/value tuple
+                columnNameQuery = "INSERT OR REPLACE INTO Players ("
+                valuesQuery = "VALUES ("
+                values = []
 
-        player.vals["SpriteID"] = spriteID
+                # First we build the info part of the query
+                for key in thisPlayer.vals.keys():
+                    columnNameQuery += f"{key}, "
+                    valuesQuery += "?, "
+                    if (key == "Archetype"):
+                        finalVal = thisPlayer["Archetype_Name"]
+                    else:
+                        finalVal = thisPlayer[key]
+                    values.append(finalVal)
+                # Now, we append the SpriteID to actually replace/insert into the
+                # correct SpriteID.
+                columnNameQuery += "SpriteID)"
+                valuesQuery += "?)"
+                # A negative SpriteID means this Player object hasn't yet been assigned
+                # an actual SpriteID, and needs one.
+                if(spriteID < 0):
+                    thisPlayer["SpriteID"] = nextNewSpriteID
+                    values.append(nextNewSpriteID)
+                    nextNewSpriteID += 1
+                # Now we append the actual query for eventual execution.
+                self.playersPendingWriteQueries.append((f"{columnNameQuery} {valuesQuery}",values))
 
-        self.playersPendingWriteQueries.append((uploadQuery,values))
-        # If this is a new player, we need to execute immediately to account for future SpriteID generation.
-        if(newPlayer):
-            self.playersDB_Execute()
+                # We finally mark this Player object as no longer having pending updates.
+                thisPlayer.hasPendingUpdates = False
 
-        return spriteID
+        self.playersDB_Execute()
+
+    # Helper method for adding a new player to the self.players dict. To save this player,
+    # UploadPlayers MUST BE RUN or the player will be lost after program closes.
+    def playersDB_AddPlayer(self,player : Player.Player):
+        tempSpriteID = min(self.players.keys()) - 1
+        player["SpriteID"] = tempSpriteID
+        self.players[tempSpriteID] = player
 
     # endregion === Players Table Management ===
 
@@ -2615,3 +2610,5 @@ class WriteElementMismatch(ValueError):
 
 
 
+d = DataStorage()
+d.playersDB_DownloadPlayers()
