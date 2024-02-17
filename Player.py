@@ -856,6 +856,8 @@ class Player:
                     self["Archetype"] = Archetypes.ARCH_ENGINEER
                 elif(value.lower() == "director"):
                     self["Archetype"] = Archetypes.ARCH_DIRECTOR
+                elif(value.lower() == "none" or value is None):
+                    self["Archetype"] = None
                 else:
                     raise ValueError(f"Invalid archetype name: '{value}'")
             elif(type(value) is Archetypes.Archetype):
@@ -923,6 +925,11 @@ class Player:
                 raise ValueError(f"Key does not exist in player object: '{key}'")
 
         self.hasPendingUpdates = True
+
+    # Special override function to set SpriteID manually. Should only be used
+    # in extremely specific circumstances.
+    def overrideSpriteID(self,newSpriteID):
+        self.__spriteID = newSpriteID
 
     #endregion === Getter and Setter ===
 

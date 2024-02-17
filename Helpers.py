@@ -11,176 +11,12 @@ import Player
 # ==============================INTERNAL DATA MANAGEMENT===================================
 # =========================================================================================
 
-# Given a spriteID, this method simply returns a Player's full name.
-def getFullPlayerName(spriteID,dataStorageObject=None):
-    if(dataStorageObject is not None):
-        d = dataStorageObject
-    else:
-        d = DataStorage.DataStorage()
-
-    fullNameArray = d.playersDB_ReadElement(spriteID,["First_Name","Last_Name"])
-    return f"{fullNameArray[0]} {fullNameArray[1]}"
-
-# TODO THIS FUNCTION NEEDNT EXIST, I DONT THINK. BUH BUYE BITHC
 # This method adds a Player from the Players.db to a specific Roster CSV set.
-def addPlayerToRoster(spriteID,rosterName,dataStorageObject = None,saveFile=True):
-    if(dataStorageObject is None):
-        d = DataStorage.DataStorage()
-    else:
-        d = dataStorageObject
-    playerDict = d.playersDB_GetPlayer(spriteID)
-    newRosterID = d.csv_FindFirstUnusedRosterID(rosterName)
-    d.csv_UpdatePlayer(rosterName,newRosterID,playerDict)
-
-    if(saveFile):
-        d.csv_ExportCSVs(rosterName)
-
-# This method adds a Player from the Players.db to a specific Roster CSV set.
-def addPlayerObjectToRoster(rosterName,playerObject,dataStorageObject = None):
+def addPlayerToRoster(rosterName,playerObject,dataStorageObject = None):
     if(dataStorageObject is None):
         dataStorageObject = DataStorage.DataStorage()
     newRosterID = dataStorageObject.csv_FindFirstUnusedRosterID(rosterName)
     dataStorageObject.csv_UpdatePlayer(rosterName,newRosterID,playerObject)
-
-# This method uses a Player object, as defined in Players.py, to add a single new player
-# to the Players.xml file.
-# TODO AGAIN, THIS JUST WRAPS OTHER FUNCTIONS. BE A MAN.
-def savePlayerObjectToPlayersFile(playerObject,dataStorageObject=None,saveFile=True):
-    if(dataStorageObject is None):
-        d = DataStorage.DataStorage()
-    else:
-        d = dataStorageObject
-    playerDict = playerObject.convertToPlayerDict()
-    newSpriteID = d.playersDB_AddBlankPlayer()
-    d.playersDB_UpdatePlayer(spriteID=newSpriteID,playerDictionary=playerDict)
-    if(saveFile):
-        d.playersDB_Execute()
-    return newSpriteID
-
-# This simple helper method returns an array of dicts, containing all player names in the Players.xml file and
-# their associated spriteIDs. If a roster is specified, it will only pull players which exist on the given
-# roster.
-def getDictOfPlayerNames(rosterName=None,dataStorageObject=None):
-    if (dataStorageObject is None):
-        d = DataStorage.DataStorage()
-    else:
-        d = dataStorageObject
-
-
-    if(rosterName is None):
-        returnDict = {}
-        for i in range(d.playersDB_GetPlayerCount()):
-            returnDict[i] = getFullPlayerName(i,d)
-    else:
-        returnDict = {}
-        for spriteID in d.csvRosterDict[rosterName]["SpriteIDs"].values():
-            if(spriteID >= 0):
-                returnDict[spriteID] = getFullPlayerName(spriteID,d)
-
-    return returnDict
-
-# This method rips all CAP information from a Roster CSV set, to overwrite the Players.db
-# with. This method assumes that the roster set is already exported and up to date. Should
-# be used after we make changes to Player's faces in game to save them permanently on Players.db.
-def updateCAPInfoFromRosterSet(rosterName,spriteID,dataStorageObject=None,saveData=True):
-    if(dataStorageObject is None):
-        d = DataStorage.DataStorage()
-    else:
-        d = dataStorageObject
-
-    rosterID = d.csv_GetRosterIDFromSpriteID(rosterName,spriteID)
-    rosterPDict = d.csv_GetSinglePlayerDict(rosterName,rosterID)
-    playersPDict = d.playersDB_GetPlayer(spriteID)
-    finalPDict = playersPDict
-
-    capValues = ["CAP_FaceT",
-                      "CAP_Hstl",
-                      "CAP_Hcol",
-                      "CAP_Hlen",
-                      "CAP_BStyle",
-                      "CAP_Moust",
-                      "CAP_Goatee",
-                      "CAP_Fhcol",
-                      "CAP_Eyebr",
-                      "CAP_T_LftN",
-                      "CAP_T_LftS",
-                      "CAP_T_RgtS",
-                      "CAP_T_LftB",
-                      "CAP_T_RgtB",
-                      "CAP_T_LftF",
-                      "CAP_T_RgtF"]
-    gearValues = ["GHeadband",
-                      "GHdbndLg",
-                      "GUndrshrt",
-                      "GUndrsCol",
-                      "GLeftArm",
-                      "GLArmCol",
-                      "GLeftElb",
-                      "GLElbCol",
-                      "GLeftWrst",
-                      "GLWrstC1",
-                      "GLWrstC2",
-                      "GLeftFngr",
-                      "GLFngrCol",
-                      "GRghtArm",
-                      "GRArmCol",
-                      "GRghtElb",
-                      "GRElbCol",
-                      "GRghtWrst",
-                      "GRWrstC1",
-                      "GRWrstC2",
-                      "GRghtFngr",
-                      "GRFngrCol",
-                      "GPresShrt",
-                      "GPrsShCol",
-                      "GLeftLeg",
-                      "GLLegCol",
-                      "GLeftKnee",
-                      "GLKneeCol",
-                      "GLeftAnkl",
-                      "GLAnklCol",
-                      "GRghtLeg",
-                      "GRLegCol",
-                      "GRghtKnee",
-                      "GRKneeCol",
-                      "GRghtAnkl",
-                      "GRAnklCol",
-                      "GSockLngh",
-                      "GShsBrLck",
-                      "GShsBrand",
-                      "GShsModel",
-                      "GShsUCusC",
-                      "GShsTHC1",
-                      "GShsTHC2",
-                      "GShsTAC1",
-                      "GShsTAC2",
-                      "GShsHCol1",
-                      "GShsHCol2",
-                      "GShsHCol3",
-                      "GShsACol1",
-                      "GShsACol2",
-                      "GShsACol3"]
-    missingVals = ["Weight",
-                   "SkinTone",
-                   "Muscles",
-                   "EyeColor",
-                   "Bodytype",
-                   "Clothes",
-                   "Number"]
-    allCAPVals = capValues + gearValues + missingVals
-
-    for elementName in rosterPDict:
-        if(elementName in allCAPVals):
-            finalPDict[elementName] = rosterPDict[elementName]
-
-    d.playersDB_UpdatePlayer(spriteID,finalPDict)
-    if(saveData):
-        d.playersDB_Execute()
-
-
-# This function simply returns a list of all SpriteIDs associated with a certain archetype. If a
-# rosterName is specified, it only returns SpriteIDs that exist on that roster.
-#def getListOfArchetypeSpriteIDs()
 
 # =========================================================================================
 # ============================RED MC <-> PROGRAM FUNCTIONS=================================
@@ -212,109 +48,26 @@ def exportRosterData(rosterName,dataStorageObject):
     r.closeRedMC()
     return r.testIfRedMCClosed()
 
-# PROGRAM (CAP info) -> Players.db
-# This method rips all CAP information from a Roster CSV set, to overwrite the Players.db
-# with. This method assumes that the roster set is already exported and up to date. Should
-# be used after we make changes to Player's faces in game to save them permanently on Players.db.
-def saveCAPInfo(rosterName,spriteID,dataStorageObject=None,saveData=True):
-    if(dataStorageObject is None):
-        d = DataStorage.DataStorage()
-    else:
-        d = dataStorageObject
-
-    rosterID = d.csv_GetRosterIDFromSpriteID(rosterName,spriteID)
-    rosterPlayer = d.csv_ExtractPlayer(rosterName,rosterID)
-    playersPlayer = d.playersDB_GetPlayer(spriteID)
-    finalPDict = playersPlayer
-
-    capValues = ["CAP_FaceT",
-                      "CAP_Hstl",
-                      "CAP_Hcol",
-                      "CAP_Hlen",
-                      "CAP_BStyle",
-                      "CAP_Moust",
-                      "CAP_Goatee",
-                      "CAP_Fhcol",
-                      "CAP_Eyebr",
-                      "CAP_T_LftN",
-                      "CAP_T_LftS",
-                      "CAP_T_RgtS",
-                      "CAP_T_LftB",
-                      "CAP_T_RgtB",
-                      "CAP_T_LftF",
-                      "CAP_T_RgtF"]
-    gearValues = ["GHeadband",
-                      "GHdbndLg",
-                      "GUndrshrt",
-                      "GUndrsCol",
-                      "GLeftArm",
-                      "GLArmCol",
-                      "GLeftElb",
-                      "GLElbCol",
-                      "GLeftWrst",
-                      "GLWrstC1",
-                      "GLWrstC2",
-                      "GLeftFngr",
-                      "GLFngrCol",
-                      "GRghtArm",
-                      "GRArmCol",
-                      "GRghtElb",
-                      "GRElbCol",
-                      "GRghtWrst",
-                      "GRWrstC1",
-                      "GRWrstC2",
-                      "GRghtFngr",
-                      "GRFngrCol",
-                      "GPresShrt",
-                      "GPrsShCol",
-                      "GLeftLeg",
-                      "GLLegCol",
-                      "GLeftKnee",
-                      "GLKneeCol",
-                      "GLeftAnkl",
-                      "GLAnklCol",
-                      "GRghtLeg",
-                      "GRLegCol",
-                      "GRghtKnee",
-                      "GRKneeCol",
-                      "GRghtAnkl",
-                      "GRAnklCol",
-                      "GSockLngh",
-                      "GShsBrLck",
-                      "GShsBrand",
-                      "GShsModel",
-                      "GShsUCusC",
-                      "GShsTHC1",
-                      "GShsTHC2",
-                      "GShsTAC1",
-                      "GShsTAC2",
-                      "GShsHCol1",
-                      "GShsHCol2",
-                      "GShsHCol3",
-                      "GShsACol1",
-                      "GShsACol2",
-                      "GShsACol3"]
-    missingVals = ["Weight",
-                   "SkinTone",
-                   "Muscles",
-                   "EyeColor",
-                   "Bodytype",
-                   "Clothes",
-                   "Number"]
-    allCAPVals = capValues + gearValues + missingVals
-
-    for elementName in rosterPlayer:
-        if(elementName in allCAPVals):
-            finalPDict[elementName] = rosterPlayer[elementName]
-
-    d.playersDB_UpdatePlayer(spriteID,finalPDict)
-    if(saveData):
-        d.playersDB_Execute()
-
 # =========================================================================================
 # ====================================MISCELLANEOUS========================================
 # =========================================================================================
 
+
+d = DataStorage.DataStorage(playersPathOverride=f"{b.paths.databases}\\PlayersTest.db")
+fuckeryRoster = "PremierFuckery"
+#for i in range(100):
+#    d.csv_UpdatePlayer(rosterName=fuckeryRoster,rosterID=i)
+#for i in range(291,355):
+#    addPlayerObjectToRoster(rosterName=fuckeryRoster,playerObject=d.players[i],dataStorageObject=d)
+#d.csv_ExportCSVs(rosterName=fuckeryRoster)
+
+importRosterData(rosterName=fuckeryRoster,dataStorageObject=d)
+d.updatePlayerCAPInfoFromRoster(rosterName=fuckeryRoster,spriteID=297)
+d.playersDB_UploadPlayers()
+
+for i in range(5):
+    addPlayerToRoster(rosterName=fuckeryRoster,playerObject=d.players[297],dataStorageObject=d)
+exportRosterData(rosterName=fuckeryRoster,dataStorageObject=d)
 
 '''
 # Sets the Jerseys to their defaults for the given roster.

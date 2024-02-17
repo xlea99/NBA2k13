@@ -303,7 +303,7 @@ class DataStorage:
             self.statsDB_Open()
             self.statsDB_DownloadRaw()
 
-    # region === CSV File Management ===
+    # region === CSV/Roster Management ===
 
     # This method simply returns an array of all managed and saved roster directories.
     @staticmethod
@@ -624,7 +624,7 @@ class DataStorage:
             self.__csvCursorDict[rosterName].execute(updateJerseyConfigQuery,(jerseyValue,jerseyOption))
         self.__csvDBDict[rosterName].commit()
 
-    # endregion === CSV File Management ===
+    # endregion === CSV/Roster Management ===
 
     # region === Players Table Management ===
 
@@ -659,6 +659,7 @@ class DataStorage:
         allPlayers = {}
         for row in results:
             thisPlayer = Player.Player()
+            thisPlayer["SpriteID"] = row["SpriteID"]
             for key in thisPlayer.vals.keys():
                 thisPlayer[key] = row[key]
             allPlayers[thisPlayer["SpriteID"]] = thisPlayer
@@ -697,6 +698,8 @@ class DataStorage:
                     thisPlayer["SpriteID"] = nextNewSpriteID
                     values.append(nextNewSpriteID)
                     nextNewSpriteID += 1
+                else:
+                    values.append(spriteID)
                 # Now we append the actual query for eventual execution.
                 pendingQueries.append((f"{columnNameQuery} {valuesQuery}",values))
 
@@ -710,7 +713,7 @@ class DataStorage:
     # Helper method for adding a new player to the self.players dict. To save this player,
     # UploadPlayers MUST BE RUN or the player will be lost after program closes.
     def playersDB_AddPlayer(self,player : Player.Player):
-        tempSpriteID = min(self.players.keys()) - 1
+        tempSpriteID = min(self.players.keys()) - 1 if len(self.players.keys()) > 0 else -1
         player["SpriteID"] = tempSpriteID
         self.players[tempSpriteID] = player
 
@@ -969,6 +972,147 @@ class DataStorage:
         return newGameID
 
     # endregion === Stats Table Management ===
+
+    #region === Helpers ===
+
+    # This method uses CAP information from a Roster CSV set to overwrite the given Player with.
+    # with. This method assumes that the roster set is already exported and up to date. Should
+    # be used after we make changes to Player's faces in game to save them permanently on Players.db.
+    def updatePlayerCAPInfoFromRoster(self,rosterName,spriteID):
+        rosterID = self.csv_GetRosterIDFromSpriteID(rosterName, spriteID)
+
+        capVals = ["CAP_FaceT",
+                     "CAP_Hstl",
+                     "CAP_Hcol",
+                     "CAP_Hlen",
+                     "CAP_BStyle",
+                     "CAP_Moust",
+                     "CAP_Goatee",
+                     "CAP_Fhcol",
+                     "CAP_Eyebr",
+                     "CAP_T_LftN",
+                     "CAP_T_LftS",
+                     "CAP_T_RgtS",
+                     "CAP_T_LftB",
+                     "CAP_T_RgtB",
+                     "CAP_T_LftF",
+                     "CAP_T_RgtF",
+                     "GHeadband",
+                    "GHdbndLg",
+                    "GUndrshrt",
+                    "GUndrsCol",
+                    "GLeftArm",
+                    "GLArmCol",
+                    "GLeftElb",
+                    "GLElbCol",
+                    "GLeftWrst",
+                    "GLWrstC1",
+                    "GLWrstC2",
+                    "GLeftFngr",
+                    "GLFngrCol",
+                    "GRghtArm",
+                    "GRArmCol",
+                    "GRghtElb",
+                    "GRElbCol",
+                    "GRghtWrst",
+                    "GRWrstC1",
+                    "GRWrstC2",
+                    "GRghtFngr",
+                    "GRFngrCol",
+                    "GPresShrt",
+                    "GPrsShCol",
+                    "GLeftLeg",
+                    "GLLegCol",
+                    "GLeftKnee",
+                    "GLKneeCol",
+                    "GLeftAnkl",
+                    "GLAnklCol",
+                    "GRghtLeg",
+                    "GRLegCol",
+                    "GRghtKnee",
+                    "GRKneeCol",
+                    "GRghtAnkl",
+                    "GRAnklCol",
+                    "GSockLngh",
+                    "GShsBrLck",
+                    "GShsBrand",
+                    "GShsModel",
+                    "GShsUCusC",
+                    "GShsTHC1",
+                    "GShsTHC2",
+                    "GShsTAC1",
+                    "GShsTAC2",
+                    "GShsHCol1",
+                    "GShsHCol2",
+                    "GShsHCol3",
+                    "GShsACol1",
+                    "GShsACol2",
+                    "GShsACol3",
+                    "Weight",
+                    "SkinTone",
+                    "Muscles",
+                    "EyeColor",
+                    "Bodytype",
+                    "Clothes",
+                    "Number"]
+        headshapeVals = ["HParam1",
+                         "HParam2",
+                         "HdBrwHght",
+                         "HdBrwWdth",
+                         "HdBrwSlpd",
+                         "HdNkThck",
+                         "HdNkFat",
+                         "HdChnLen",
+                         "HdChnWdth",
+                         "HdChnProt",
+                         "HdJawSqr",
+                         "HdJawWdth",
+                         "HdChkHght",
+                         "HdChkWdth",
+                         "HdChkFull",
+                         "HdDefinit",
+                         "MtULCurve",
+                         "MtULThick",
+                         "MtULProtr",
+                         "MtLLCurve",
+                         "MtLLThick",
+                         "MtLLProtr",
+                         "MtSzHght",
+                         "MtSzWdth",
+                         "MtCrvCorn",
+                         "ErHeight",
+                         "ErWidth",
+                         "ErEarLobe",
+                         "ErTilt",
+                         "NsNsHght",
+                         "NsNsWdth",
+                         "NsNsProtr",
+                         "NsBnBridge",
+                         "NsBnDefin",
+                         "NsBnWdth",
+                         "NsTipHght",
+                         "NsTipWdth",
+                         "NsTipTip",
+                         "NsTipBnd",
+                         "NsNtHght",
+                         "NsNtWdth",
+                         "EsFrmOpen",
+                         "EsFrmSpac",
+                         "EsFrmLwEl",
+                         "EsFrmUpEl",
+                         "EsPlcHght",
+                         "EsPlcWdth",
+                         "EsPlcRot",
+                         "EsPlcProt",
+                         "EsShpOtEl",
+                         "EsShpInEl"]
+
+        for capVal in capVals:
+            self.players[spriteID][capVal] = self.rosters[rosterName]["Players"][rosterID][capVal]
+        for headshapeVal in headshapeVals:
+            self.players[spriteID][headshapeVal] = self.rosters[rosterName]["Headshapes"][rosterID][headshapeVal]
+
+    #endregion === Helpers ===
 
 
 

@@ -1222,10 +1222,11 @@ dOld = DataStorage.DataStorage(playersPathOverride=oldPlayersFilePath)
 dNew = DataStorage.DataStorage(playersPathOverride=newPlayersFilePath)
 allPlayers = []
 for i in range(maxSpriteID):
-    thisPlayer = dOld.playersDB_DownloadPlayer(i)
+    thisPlayer = dOld.players[i]
     allPlayers.append(thisPlayer)
 for thisPlayer in allPlayers:
+    thisPlayer.overrideSpriteID(-1)
     print(f"-{thisPlayer['First_Name']} {thisPlayer['Last_Name']}")
-    newID = dNew.playersDB_UploadPlayer(player=thisPlayer,newPlayer=True)
-dNew.playersDB_Execute()
+    newID = dNew.playersDB_AddPlayer(player=thisPlayer)
+dNew.playersDB_UploadPlayers()
 '''
