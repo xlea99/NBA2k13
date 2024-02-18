@@ -1,7 +1,7 @@
 import BaseFunctions as b
 import time
 import csv
-import StatsRipper
+import Tracker
 import Player
 import xml.etree.ElementTree as ET
 

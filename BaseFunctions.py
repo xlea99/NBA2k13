@@ -12,7 +12,7 @@ import glob
 import WeightedDict
 from tkinter import simpledialog, filedialog
 from pympler import asizeof
-
+import psutil
 
 # region === Config and Pathing Setup ===
 
@@ -249,7 +249,6 @@ def getKeyFromValue(dictionary, targetValue):
             return key
     raise ValueError(f"Value does not exist in the dictionary: '{targetValue}'")
 
-
 # This method simply selects a value or values randomly from a given file of words.
 # Each word in this file should be separated by newlines - one selection per line.
 # -filePath can be a string containing a single file path, or an array of file paths.
@@ -340,7 +339,6 @@ def alphaBase26(decimalNumber : int,maxPlaces : int):
         returnString += letter
     return returnString
 
-
 # This method accepts any python object, and returns a neat, formatted string displaying its size.
 def getMemorySizeOf(thisObject):
     byteSize = asizeof.asizeof(thisObject)
@@ -359,4 +357,16 @@ def getMemorySizeOf(thisObject):
     else:
         return f"{round(byteSize,2)} bytes"
 
+# This method quickly tests whether or not a process exists, by its name.
+def testIfProcessExists(processName : str):
+    matchingProcesses = []
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            if processName.lower() == proc.info['name'].lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return False
+
 #endregion === Miscellaneous Functions ===
+

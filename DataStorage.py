@@ -6,6 +6,7 @@ import sqlite3 as sql
 from datetime import date
 import random
 
+
 # This dictionary stores relevant values for each possible Jersey that can be selected.
 JERSEY_DICT = {
 "SixersHome" : {'Texture': 'uh000', 'Logo': 'logo000', 'Name': 'B7E8E31A', 'CATTmplNm': '00000000', 'ShortsStl': '0', 'JModel': '4', 'SocksCol': '0', 'UseCusClrs': '0', 'CusClrs4Nm': '0', 'TColor1': 'EBEBEB', 'TColor2': '0068B3', 'TColor3': 'DE2739', 'TColor4': 'DE2739', 'TColor5': 'FFFFFF', 'TColor6': '323232', 'JColor1': '0', 'JColor2': '0', 'JColor3': '0', 'LColor1': '0', 'LColor2': '0', 'LColor3': '0', 'NameColor': '0', 'FrNumCol1': '0', 'FrNumCol2': '0', 'BkNumCol1': '0', 'BkNumCol2': '0', 'ShsColor1': '0', 'ShsColor2': '1', 'ShsColor3': '2'},
