@@ -12,9 +12,8 @@ class Tracker:
     #region === Setup and Tools ===
 
     # Basic init method to initialize member variables.
-    def __init__(self,dataStorageObject : DataStorage.DataStorage):
+    def __init__(self):
         # Members for actually connecting to 2K
-        self.dataStorage = dataStorageObject
         self.mem = None
         self.module = None
 
@@ -800,13 +799,3 @@ class Tracker:
                 self.mem.write_int(self.module + self.slotActivatorAddressDict.get(key),convertedVal)
         self.mem.write_int(self.getPointerAddress(self.playerCounterAddress[0]),playerCount)
 
-
-#d = DataStorage.DataStorage()
-#sr = StatsRipper(dataStorageObject=d)
-#sr.attachTo2K()
-#sr.startGameTracker()
-
-
-d = DataStorage.DataStorage()
-t = Tracker(d)
-t.startTracker(runAsDaemon=False)

@@ -9,7 +9,7 @@ os.add_dll_directory(r'C:\Program Files\VideoLAN\VLC')
 import pygame
 import Archetypes
 import Player
-import StatsRipper
+import Tracker
 import DataStorage
 import BaseFunctions as b
 import Helpers as h

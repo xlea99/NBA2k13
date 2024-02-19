@@ -8,11 +8,11 @@ import Helpers
 import sys
 
 
-guiDataStorage = DataStorage.DataStorage()
-
 class MainPlayerViewerWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self,dataStorageObject : DataStorage.DataStorage):
         super().__init__()
+        self.dataStorageObject = dataStorageObject
+
         self.setWindowTitle("Spritopia Presents")
         self.setGeometry(100, 100, 400, 800)  # Window size
 
@@ -24,11 +24,8 @@ class MainPlayerViewerWindow(QMainWindow):
         # Holder member for the currently selected player.
         self.currentPlayer = None
 
-        # Dictionary of players (example data)
-        playersDict = Helpers.getDictOfPlayerNames(rosterName="NewPremier",dataStorageObject=guiDataStorage)
-
         # Initialize the PlayerComboBox
-        self.playerComboBox = PlayerSelectionBox(playersDict, self)
+        self.playerComboBox = PlayerSelectionBox(dataStorageObject=self.dataStorageObject, parent=self)
         self.layout.addWidget(self.playerComboBox)  # Add to layout
 
         # Initialize the PlayerBio
@@ -52,25 +49,25 @@ class MainPlayerViewerWindow(QMainWindow):
 
     def onPlayerSelected(self, index):
         spriteID = self.playerComboBox.getCurrentSpriteID()
-        self.currentPlayer = guiDataStorage.playersDB_GetPlayer(spriteID=spriteID)
+        self.currentPlayer = self.dataStorageObject.players[spriteID]
         self.playerBio.update_player_bio(self.currentPlayer)
-        self.attributeDisplay.reorder_attributes(self.currentPlayer["Archetype"].archetypeName)
+        self.attributeDisplay.reorder_attributes(self.currentPlayer["Archetype_Name"])
         self.attributeDisplay.update_attributes(self.currentPlayer)
 
 # This combo box provides a simple player selection menu, with the SpriteID of the given player accessible
 # using the getCurrentSpriteID method.
 class PlayerSelectionBox(QComboBox):
-    def __init__(self, playersDict, parent=None):
+    def __init__(self, dataStorageObject : DataStorage.DataStorage, parent=None):
         super().__init__(parent)
-        self.playersDict = playersDict
+        self.dataStorageObject = dataStorageObject
         self.populate()
         self.currentIndexChanged.connect(self.onPlayerSelected)
         self.spriteID = self.currentData()
 
     def populate(self):
         # Populate with players' names and spriteIDs.
-        for id, name in self.playersDict.items():
-            self.addItem(name, id)
+        for spriteID, player in self.dataStorageObject.players.items():
+            self.addItem(f"{player['First_Name']} {player['Last_Name']}", spriteID)
 
     def getCurrentSpriteID(self):
         return self.currentData()
@@ -145,7 +142,7 @@ class PlayerBio(QWidget):
             self.artifactImage.clear()
 
         # Update Archetype with coloring based on value
-        archetype = playerObj["Archetype"].archetypeName
+        archetype = playerObj["Archetype_Name"]
         self.archetypeLabel.setText(f"<i>{archetype}</i>")
         # Example to set color, adjust as necessary
         self.archetypeLabel.setStyleSheet(f"color: {self.get_archetype_color(archetype)};")
@@ -296,6 +293,7 @@ class PlayerAttributeDisplay(QWidget):
         self.layout.addWidget(self.generalFrame)
 
     def reorder_attributes(self, archetype):
+
         # Define the order of attributes for each archetype
         archetypeOrders = {
             "Slayer": [self.offensiveFrame, self.controlFrame, self.defensiveFrame, self.generalFrame],
@@ -304,6 +302,7 @@ class PlayerAttributeDisplay(QWidget):
             "Guardian": [self.defensiveFrame, self.offensiveFrame, self.controlFrame, self.generalFrame],
             "Engineer": [self.controlFrame, self.defensiveFrame, self.offensiveFrame, self.generalFrame],
             "Director": [self.controlFrame, self.offensiveFrame, self.defensiveFrame, self.generalFrame],
+            "None" : [self.offensiveFrame, self.defensiveFrame, self.controlFrame, self.generalFrame]
         }
 
         # Clear the layout
@@ -333,10 +332,8 @@ class PlayerAttributeDisplay(QWidget):
             label.setText(f"{Archetypes.MAPPED_ATTRIBUTES[attribute]}: {playerObj[attribute]}")
 
 
-def main():
-    app = QApplication()
-    window = MainPlayerViewerWindow()
-    window.show()
-    sys.exit(app.exec())
 
-main()
+app = QApplication()
+window = MainPlayerViewerWindow(DataStorage.dataStorage)
+window.show()
+sys.exit(app.exec())

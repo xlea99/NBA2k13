@@ -12,7 +12,7 @@ import pygame
 from PIL import ImageTk,Image
 import Archetypes
 import Player
-import StatsRipper
+import Tracker
 import DataStorage
 import BaseFunctions as b
 import Helpers as h

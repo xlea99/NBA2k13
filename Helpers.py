@@ -52,7 +52,7 @@ def exportRosterData(rosterName,dataStorageObject):
 # ====================================MISCELLANEOUS========================================
 # =========================================================================================
 
-
+'''
 d = DataStorage.DataStorage(playersPathOverride=f"{b.paths.databases}\\PlayersTest.db")
 fuckeryRoster = "PremierFuckery"
 #for i in range(100):
@@ -68,6 +68,9 @@ d.playersDB_UploadPlayers()
 for i in range(5):
     addPlayerToRoster(rosterName=fuckeryRoster,playerObject=d.players[297],dataStorageObject=d)
 exportRosterData(rosterName=fuckeryRoster,dataStorageObject=d)
+'''
+
+
 
 '''
 # Sets the Jerseys to their defaults for the given roster.

@@ -357,7 +357,7 @@ def getMemorySizeOf(thisObject):
     else:
         return f"{round(byteSize,2)} bytes"
 
-# This method quickly tests whether or not a process exists, by its name.
+# This method quickly tests whether a process exists, by its name.
 def testIfProcessExists(processName : str):
     matchingProcesses = []
     for proc in psutil.process_iter(['pid', 'name']):

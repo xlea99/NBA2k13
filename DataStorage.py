@@ -1115,7 +1115,8 @@ class DataStorage:
 
     #endregion === Helpers ===
 
-
+# The actual, global DataStorage object used.
+dataStorage = DataStorage()
 
 
 '''
