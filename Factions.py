@@ -366,7 +366,11 @@ def updateFactions():
             holders += ", ?"
 
             if(attr in ["Basic Gearset Chance","Facial Hair Probability","Hair Color Match Prob","FN Ratio","LN Ratio","Symmetrical Name Chance","Tattoo Probability"]):
-                finalVal = round(float(entry[attr].split("%")[0])/100,2)
+                numValOnly = entry[attr].split("%")[0]
+                if(numValOnly == ""):
+                    finalVal = 0.0
+                else:
+                    finalVal = round(float(numValOnly)/100,2)
             elif(attr in ["Tattoo Symmetry","Generatable"]):
                 if(entry[attr] == "checked"):
                     finalVal = 1
@@ -980,7 +984,7 @@ def genFaction(faction : str,player : Player.Player = None):
     if(0.20 > random.random()):
         player["CAP_Eyebr"] = 1
     else:
-        player["CAP_Eyebr"] = random.randrange(0,16)
+        player["CAP_Eyebr"] = random.randrange(0,11)
 
     # TATTOOS
     if(thisFactionDict["Tattoo Probability"] > random.random()):
@@ -1043,6 +1047,17 @@ def genFaction(faction : str,player : Player.Player = None):
 
     player["Faction"] = faction
     return player
+
+
+# Helper method for randomly choosing a faction to generate based on all generatable factions.
+def getRandomFaction():
+    allGeneratableFactions = []
+
+    for factionName,factionInfo in dbDict["Factions"].items():
+        if(factionInfo["Generatable"] == 1):
+            allGeneratableFactions.append(factionName)
+
+    return random.choice(allGeneratableFactions)
 
 
 # TODO FIX YOUR RSTRING IDIOT
