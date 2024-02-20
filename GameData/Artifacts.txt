@@ -757,6 +757,7 @@ pmod{
 @({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 10
 @SDunk += 40
 @SigSkill1 = 3
+
 @AFadeaway = 21
 @AContestd = 0
 @AEscDrPlU = 0

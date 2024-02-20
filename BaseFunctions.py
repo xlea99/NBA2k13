@@ -370,3 +370,17 @@ def testIfProcessExists(processName : str):
 
 #endregion === Miscellaneous Functions ===
 
+#region === Templates ===
+
+# Helper method to return a PMod template dictionary.
+def getPModTemplate():
+    return {
+        "Name": None,
+        "Type": {},
+        "Description" : None,
+        "Modifications": [],
+        "Compiled": False,
+        "PrevValues": {}
+    }
+
+#endregion === Templates ===

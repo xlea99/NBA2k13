@@ -3,7 +3,7 @@ import BaseFunctions as b
 import Archetypes
 import math
 import WeightedDict
-import PModOLD
+import Artifacts
 
 
 # EXTRA VALUES:
@@ -1381,7 +1381,7 @@ class Player:
 
         self.hasPendingUpdates = True
     # This method  randomly selects and generates an artifact based on rarity and archetype.
-    def generateArtifact(self,archetype = None,rarity = None):
+    def genArtifact(self,archetype = None,rarity = None):
         if(archetype is None):
             if(self.vals["Archetype"] is None):
                 raise ValueError("Must specify an archetype if the Player's default archetype is None.")
@@ -1395,40 +1395,16 @@ class Player:
                 rarity = self.vals["Rarity"]
 
         if(rarity != "Common"):
-            artGen = PModOLD.PModCompiler(f"{b.paths.programData}\\Artifacts.txt",self)
-            validNeutralArtifactIndexes = []
-            validArchetypalArtifactIndexes = []
-            counter = 0
-            for artifactDict in artGen.listOfAllPMods:
-                if(artifactDict.get("PMOD_RARITY") == rarity):
-                    if(artifactDict.get("PMOD_ARCHETYPE_LOCK") == archetype.archetypeName):
-                        validArchetypalArtifactIndexes.append(counter)
-                    elif(artifactDict.get("PMOD_ARCHETYPE_LOCK") == "Neutral"):
-                        validNeutralArtifactIndexes.append(counter)
-                counter += 1
-
-
-            # We decide if the artifact will be archetype based...
-            if(random.random() > b.config["rarities"]["archetypeBasedArtifactChance"] and len(validArchetypalArtifactIndexes) > 0):
-                artGen.compilePMod(validArchetypalArtifactIndexes[random.randrange(0, len(validArchetypalArtifactIndexes))])
-            # Or neutral.
+            if(rarity == "Godlike"):
+                isArchetypeArtifact = False
             else:
-                artGen.compilePMod(validNeutralArtifactIndexes[random.randrange(0, len(validNeutralArtifactIndexes))])
-
-            self.vals["Artifact"] = artGen.parameters
-            del artGen
-
-            for parameter in self.vals["Artifact"].keys():
-                if(parameter == "PMOD_NAME" or parameter == "PMOD_DESCRIPTION" or parameter == "PMOD_RARITY" or parameter == "PMOD_ARCHETYPE_LOCK"):
-                    continue
-                else:
-                    value = self.vals["Artifact"].get(parameter)
-                    if(value.startswith("-")):
-                        self.vals[parameter] -= (int(value) * -1)
-                    elif(value.startswith("+")):
-                        self.vals[parameter] += int(value)
-                    elif(value.startswith("=")):
-                        self.vals[parameter] = value.lstrip("=")
+                isArchetypeArtifact = b.config["rarities"]["archetypeBasedArtifactChance"] > random.random()
+            if(isArchetypeArtifact):
+                targetArtifact = random.choice(Artifacts.ARTIFACTS[self["Archetype_Name"]][rarity])
+            else:
+                targetArtifact = random.choice(Artifacts.ARTIFACTS["Neutral"][rarity])
+            pmod = targetArtifact(self)
+            self.compilePMod(pmod=pmod)
 
         self.hasPendingUpdates = True
     # Generates a few random, miscellaneous, inconsequential values.
@@ -1473,13 +1449,21 @@ class Player:
     #endregion === PMod ===
 
 
-# Helper method to return a PMod template dictionary.
-def getPModTemplate():
-    return {
-        "Name": None,
-        "Type": {},
-        "Description" : None,
-        "Modifications": [],
-        "Compiled": False,
-        "PrevValues": {}
-    }
+allThePlayers = []
+for i in range(500):
+    testPlayer = Player()
+    testPlayer.genArchetype()
+    testPlayer.genRarity()
+    testPlayer.genAttributes()
+    testPlayer.genTendencies()
+    testPlayer.genHotspots()
+    testPlayer.genHeight()
+    testPlayer.genAnimations()
+    testPlayer.genPlayStyle()
+    testPlayer.genPlayTypes()
+    testPlayer.genMisc()
+    testPlayer.genArtifact()
+    allThePlayers.append(testPlayer)
+
+
+

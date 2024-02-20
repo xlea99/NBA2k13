@@ -1,5 +1,5 @@
 import Archetypes
-import Player
+import BaseFunctions as b
 import random
 
 
@@ -35,10 +35,1231 @@ LEGENDARY_SPECIAL_SHOTS = {
 
 #endregion === Globals ===
 
+#region === Neutrals ===
+
+def Neutral_Rare_GaryGloves(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Gary's Enchanted Gloves'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Adds Pickpocket, Active Hands, and Interceptor. Remove 40 attribute points randomly across all primary stats.'''
+
+    # Implementation
+    pointsToSpend = 40
+    adjustedAttributes = {}
+    while pointsToSpend > 0:
+        randomAttribute = random.choice(player["Archetype"].primaryAttributes)
+        adjustedAttributes[randomAttribute] = adjustedAttributes.get(randomAttribute,0) + 1
+        pointsToSpend -= 1
+    for adjustedAttribute,value in adjustedAttributes.items():
+        pmod["Modifications"].append({"Operation": "Subtract", "Key": adjustedAttribute, "Value": value})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Pick Pocketer"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Active Hands"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill3", "Value": "Interceptor"})
+
+
+    # Return
+    return pmod
+def Neutral_Rare_CalebLemonade(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Glass of Caleb's Lemonade'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''-5 to all attributes. Add 5 inches to height.'''
+
+    # Implementation
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": 5})
+
+    pmod["Modifications"].append({"Operation": "Add", "Key": "HeightIn", "Value": 5})
+
+
+    # Return
+    return pmod
+def Neutral_Rare_PesticideJuice(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Happy Happy Pesticide Juice 4 Kids'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Add Antifreeze. -25 a random, unaccented Primary Stat.'''
+
+    # Implementation
+    possibleAttributes = []
+    for attribute in player["Archetype"].primaryAttributes:
+        if(attribute in player["Archetype"].unaccentedAttributes):
+            possibleAttributes.append(attribute)
+
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": random.choice(possibleAttributes), "Value": 25})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Anti-Freeze"})
+
+
+    # Return
+    return pmod
+def Neutral_Rare_BuffetSneakers(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Sneakers that Mike Buffett Sabotaged with Glue'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Player must have a set shot.  Set Vertical to 25.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": random.randrange(41,59)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SVertical", "Value": 25})
+
+
+    # Return
+    return pmod
+def Neutral_Rare_RomeSandals(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Sandals Dipped in Rome's Finest Slime Cauldron'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Add 25 to Vertical. -30 to a random, accented Primary Stat.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SVertical", "Value": 25})
+
+    possibleAttributes = []
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        if(primaryAttribute in player["Archetype"].accentedAttributes):
+            possibleAttributes.append(primaryAttribute)
+
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": random.choice(possibleAttributes), "Value": 30})
+
+
+    # Return
+    return pmod
+def Neutral_Rare_ScooterLoops(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Bowl of Scooter Loops'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''A random, accented secondary skill is set to 25. All points lost in the category are randomly distributed across other secondary skills.'''
+
+    # Implementation
+    possibleAttributes = []
+    for secondaryAttribute in player["Archetype"].secondaryAttributes:
+        if(secondaryAttribute in player["Archetype"].accentedAttributes):
+            possibleAttributes.append(secondaryAttribute)
+
+    targetAttribute = random.choice(possibleAttributes)
+    previousTargetAttributeValue = player[targetAttribute]
+    pmod["Modifications"].append({"Operation": "Set", "Key": targetAttribute, "Value": 25})
+
+    pointsToDistribute = previousTargetAttributeValue - 25
+    adjustedAttributes = {}
+    while pointsToDistribute > 0:
+        randomAttribute = random.choice(player["Archetype"].secondaryAttributes)
+        adjustedAttributes[randomAttribute] = adjustedAttributes.get(randomAttribute,0) + 1
+        pointsToDistribute -= 1
+    for adjustedAttribute,value in adjustedAttributes.items():
+        pmod["Modifications"].append({"Operation": "Add", "Key": adjustedAttribute, "Value": value})
+
+
+    # Return
+    return pmod
+def Neutral_Rare_CornerClub(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Corner Guy's Famous Subway Club'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''-5 inches to height. +5 to all unaccented primary stats. Adds Corner Specialist.'''
+
+    # Implementation
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        if(primaryAttribute in player["Archetype"].unaccentedAttributes):
+            pmod["Modifications"].append({"Operation": "Add", "Key": primaryAttribute, "Value": 5})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Corner Specialist"})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "HeightIn", "Value": 5})
+
+
+
+
+
+    # Return
+    return pmod
+def Neutral_Rare_PilatesCourse(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Warren the Undying's Intense Pilates Crash Course'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Add +5-7 to all accented Primary stats. -5 to all other stats.'''
+
+    # Implementation
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        if(attribute in player["Archetype"].primaryAttributes and attribute in player["Archetype"].accentedAttributes):
+            pmod["Modifications"].append({"Operation": "Add", "Key": attribute, "Value": random.randrange(5,8)})
+        else:
+            pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": 5})
+
+
+
+
+
+
+    # Return
+    return pmod
+neutral_rare = [Neutral_Rare_GaryGloves,Neutral_Rare_CalebLemonade,Neutral_Rare_PesticideJuice,
+                Neutral_Rare_BuffetSneakers,Neutral_Rare_RomeSandals,Neutral_Rare_ScooterLoops,
+                Neutral_Rare_CornerClub,Neutral_Rare_PilatesCourse]
+def Neutral_Epic_LincolnOs(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Bowl of Lincoln-O's'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''A random, accented primary skill is set to 25. All points lost in the category are randomly distributed across secondary skills.'''
+
+    # Implementation
+    possibleAttributes = []
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        if(primaryAttribute in player["Archetype"].accentedAttributes):
+            possibleAttributes.append(primaryAttribute)
+    targetAttribute = random.choice(possibleAttributes)
+    previousTargetAttributeValue = player[targetAttribute]
+    pmod["Modifications"].append({"Operation": "Set", "Key": targetAttribute, "Value": 25})
+
+    pointsToSpend = previousTargetAttributeValue - 25
+    adjustedAttributes = {}
+    while pointsToSpend > 0:
+        randomAttribute = random.choice(player["Archetype"].secondaryAttributes)
+        adjustedAttributes[randomAttribute] = adjustedAttributes.get(randomAttribute,0) + 1
+        pointsToSpend -= 1
+    for adjustedAttribute,value in adjustedAttributes.items():
+        pmod["Modifications"].append({"Operation": "Add", "Key": adjustedAttribute, "Value": value})
+
+
+    # Return
+    return pmod
+def Neutral_Epic_BlueMeth(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Blue Crystal Meth'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''Subtract -40 from both Offensive and Defensive Awareness.  Adds Microwave.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SOAwar", "Value": 40})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SDAwar", "Value": 40})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Microwave"})
+
+
+    # Return
+    return pmod
+def Neutral_Epic_PowerWordBo(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Scroll of Power Word: Bo'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''Shot Inside is set to 99. Shot Close, Shot Medium, and Shot 3pt are set to 25.  Add 6 inches to Height.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SShtIns", "Value": 99})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SShtCls", "Value": 25})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SShtMed", "Value": 25})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SSht3PT", "Value": 25})
+
+    pmod["Modifications"].append({"Operation": "Add", "Key": "HeightIn", "Value": 6})
+
+
+    # Return
+    return pmod
+def Neutral_Epic_PowerWordConfuse(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Scroll of Power Word: Confuse'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''Swap 2 primary and 2 tertiary stats. -3 to all secondary stats.'''
+
+    # Implementation
+    for secondaryAttribute in player["Archetype"].secondaryAttributes:
+        pmod["Modifications"].append({"Operation": "Subtract", "Key": secondaryAttribute, "Value": 3})
+
+    possiblePrimaryAttributes = player["Archetype"].primaryAttributes.copy()
+    primaryAttribute1 = random.choice(possiblePrimaryAttributes)
+    possiblePrimaryAttributes.remove(primaryAttribute1)
+    primaryAttribute2 = random.choice(possiblePrimaryAttributes)
+
+    possibleTertiaryAttributes = player["Archetype"].tertiaryAttributes.copy()
+    tertiaryAttribute1 = random.choice(possibleTertiaryAttributes)
+    possibleTertiaryAttributes.remove(tertiaryAttribute1)
+    tertiaryAttribute2 = random.choice(possibleTertiaryAttributes)
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": primaryAttribute1, "Value": player[tertiaryAttribute1]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": primaryAttribute2, "Value": player[tertiaryAttribute2]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute1, "Value": player[primaryAttribute1]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute2, "Value": player[primaryAttribute2]})
+
+
+    # Return
+    return pmod
+def Neutral_Epic_PowerWordBluegill(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Scroll of Power Word: Bluegill'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''Set Dunk, Standing Dunk, and Vertical to 99. Add 3 cool dunk packages. Add Posterizer and Highlight Film. -5-10 to all other stats.'''
+
+    # Implementation
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        if(attribute in ["SDunk","SStdDunk","SVertical"]):
+            pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 99})
+        else:
+            pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": random.randrange(5,11)})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Posterizer"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Highlight Film"})
+
+    coolDunks = [23,24,25,26,27,28,35,51,55,63,64,65]
+    dunk1 = random.choice(coolDunks)
+    coolDunks.remove(dunk1)
+    dunk2 = random.choice(coolDunks)
+    coolDunks.remove(dunk2)
+    dunk3 = random.choice(coolDunks)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AGoToDunk", "Value": dunk1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk2", "Value": dunk2})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk3", "Value": dunk3})
+
+
+
+
+
+
+    # Return
+    return pmod
+def Neutral_Epic_PowerWordSiamese(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Scroll of Power Word: Siamese'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''Both Shot Form and Shot Base are set to the same random ID. Select one primary stat and have it copy the stat of another random primary stat. Add 2 random skill cards.  Set spot-up and post-up tendencies to 50 each.'''
+
+    # Implementation
+    shotBaseAndFormChoice = random.randrange(1,125)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtForm", "Value": shotBaseAndFormChoice})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": shotBaseAndFormChoice})
+
+    possiblePrimaryAttributes = player["Archetype"].primaryAttributes.copy()
+    attributeToReceiveCopy = random.choice(possiblePrimaryAttributes)
+    possiblePrimaryAttributes.remove(attributeToReceiveCopy)
+    attributeToGiveCopy = random.choice(possiblePrimaryAttributes)
+    pmod["Modifications"].append({"Operation": "Set", "Key": attributeToReceiveCopy, "Value": player[attributeToGiveCopy]})
+
+
+    sigSkillValues = list(range(1,32))
+    random.shuffle(sigSkillValues)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": sigSkillValues[0]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": sigSkillValues[1]})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TSpotUp", "Value": 50})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TPostUp", "Value": 50})
+
+
+
+
+
+
+
+    # Return
+    return pmod
+neutral_epic = [Neutral_Epic_LincolnOs,Neutral_Epic_BlueMeth,Neutral_Epic_PowerWordBo,Neutral_Epic_PowerWordConfuse,
+                Neutral_Epic_PowerWordBluegill,Neutral_Epic_PowerWordSiamese]
+def Neutral_Legendary_LaatzCrunch(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Bowl of Honey Laatz Crunch'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Legendary"
+    # Description
+    pmod["Description"] = '''Three random, accented tertiary skills are set to 80. All points gained are randomly removed from other primary skills.'''
+
+    # Implementation
+    possibleTeritaryAttributes = []
+    for tertiaryAttribute in player["Archetype"].tertiaryAttributes:
+        if(tertiaryAttribute in player["Archetype"].accentedAttributes):
+            possibleTeritaryAttributes.append(tertiaryAttribute)
+
+    tertiaryAttribute1 = random.choice(possibleTeritaryAttributes)
+    possibleTeritaryAttributes.remove(tertiaryAttribute1)
+    tertiaryAttribute2 = random.choice(possibleTeritaryAttributes)
+    possibleTeritaryAttributes.remove(tertiaryAttribute2)
+    tertiaryAttribute3 = random.choice(possibleTeritaryAttributes)
+
+    pointsToDistribute = (80 - player[tertiaryAttribute1]) + (80 - player[tertiaryAttribute2]) + (80 - player[tertiaryAttribute3])
+    pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute1, "Value": 80})
+    pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute2, "Value": 80})
+    pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute3, "Value": 80})
+
+    adjustedAttributes = {}
+    while pointsToDistribute > 0:
+        randomAttribute = random.choice(player["Archetype"].primaryAttributes)
+        adjustedAttributes[randomAttribute] = adjustedAttributes.get(randomAttribute,0) + 1
+        pointsToDistribute -= 1
+    for adjustedAttribute,value in adjustedAttributes.items():
+        pmod["Modifications"].append({"Operation": "Subtract", "Key": adjustedAttribute, "Value": value})
+
+
+
+
+
+
+
+    # Return
+    return pmod
+def Neutral_Legendary_PowerWordRickMorty(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Scrolls of Power Words: Rick and Morty'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Legendary"
+    # Description
+    pmod["Description"] = '''Randomly add 50 to Speed or Quickness. Subtract 50 from the other. Randomly add 25 to Vertical or both Rebounds. Subtract 25 from the other. Randomly add 10 to Shot 3pt or 4 inches to Height. Do the reverse for the other.'''
+
+    # Implementation
+    speedQuickGain = random.choice([1,-1])
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SSpeed", "Value": 50 * speedQuickGain})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SQuick", "Value": -50 * speedQuickGain})
+
+    reboundVerticalGain = random.choice([1,-1])
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SVertical", "Value": 25 * reboundVerticalGain})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SOReb", "Value": -25 * reboundVerticalGain})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SDReb", "Value": -25 * reboundVerticalGain})
+
+    heightThreeGain = random.choice([1,-1])
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SSht3PT", "Value": 10 * heightThreeGain})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "HeightIn", "Value": -4 * heightThreeGain})
+
+
+
+
+
+    # Return
+    return pmod
+def Neutral_Legendary_PrimaryCertificate(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''A Certification, Declaring: 'Ah yes, you know your Primary well!\''''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Legendary"
+    # Description
+    pmod["Description"] = '''Secondary stats are rerolled 25-45. +15 to all unaccented primary stats, +10 to all accented primary stats. Add 2 random skill cards.'''
+
+    # Implementation
+    for secondaryAttribute in player["Archetype"].secondaryAttributes:
+        pmod["Modifications"].append({"Operation": "Set", "Key": secondaryAttribute, "Value": random.randrange(25,46)})
+
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        if(primaryAttribute in player["Archetype"].accentedAttributes):
+            pmod["Modifications"].append({"Operation": "Add", "Key": primaryAttribute, "Value": 10})
+        else:
+            pmod["Modifications"].append({"Operation": "Add", "Key": primaryAttribute, "Value": 15})
+
+
+    sigSkillValues = list(range(1,32))
+    random.shuffle(sigSkillValues)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": sigSkillValues[0]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": sigSkillValues[1]})
+
+
+
+
+
+    # Return
+    return pmod
+def Neutral_Legendary_YesCindy(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Yes Cindy, I'm sure they're the right ones...'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Legendary"
+    # Description
+    pmod["Description"] = '''Add 20 to all tertiary stats, remove 20 from all primary stats. Add a fully random special shot:\n\n'''
+
+    # Implementation
+    for tertiaryAttribute in player["Archetype"].tertiaryAttributes:
+        pmod["Modifications"].append({"Operation": "Add", "Key": tertiaryAttribute, "Value": 20})
+
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        pmod["Modifications"].append({"Operation": "Subtract", "Key": primaryAttribute, "Value": 20})
+
+    potentialSpecialShots = []
+    for shotList in RARE_SPECIAL_SHOTS.values():
+        potentialSpecialShots += shotList
+    for shotList in EPIC_SPECIAL_SHOTS.values():
+        potentialSpecialShots += shotList
+    for shotList in LEGENDARY_SPECIAL_SHOTS.values():
+        potentialSpecialShots += shotList
+    specialShotChoice = random.choice(potentialSpecialShots)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtForm", "Value": specialShotChoice["Shot Form"]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": specialShotChoice["Shot Base"]})
+    pmod["Description"] += f"**{specialShotChoice['Name']}** - {specialShotChoice['Description']}"
+
+
+
+    # Return
+    return pmod
+neutral_legendary = [Neutral_Legendary_LaatzCrunch,Neutral_Legendary_PowerWordRickMorty,
+                     Neutral_Legendary_PrimaryCertificate,Neutral_Legendary_YesCindy]
+def Neutral_Godlike_PhysicalizedBiases(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Physicalized Biases of a Less Refined Time'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Set 3pt between 80-100. -25 to all other stats'''
+
+    # Implementation
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        if(attribute == "SSht3PT"):
+            pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": random.randrange(80, 100)})
+        else:
+            pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": 25})
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_ConcoctionJOE(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Concoction J.O.E. #30330'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Set all attributes to 30. Add Microwave, War General, Defensive Anchor, Lockdown Defender, and Acrobat. All zones are Burning Zones.'''
+
+    # Implementation
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 30})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Microwave"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Floor General"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill3", "Value": "Defensive Anchor"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill4", "Value": "Lockdown Defender"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill5", "Value": "Acrobat"})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ1", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ2", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ3", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ4", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ5", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ6", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ7", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ8", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ9", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ10", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ11", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ12", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ13", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ14", "Value": 3})
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_RickAshes(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''The Electrified Ashes of Simple Rick'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Set all attributes to 70.'''
+
+    # Implementation
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 70})
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_BrokenPromise(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''The Broken Promise of Fitzgerald Kambavolo's Last Words: 'No One Else\''''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Height is set to 8'0. All abilities except for one random primary and one random secondary are set to 25. Give the player Brick Wall.'''
+
+    # Implementation
+    randomPrimaryAttribute = random.choice(player["Archetype"].primaryAttributes)
+    randomSecondaryAttribute = random.choice(player["Archetype"].secondaryAttributes)
+
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        if(attribute not in [randomPrimaryAttribute,randomSecondaryAttribute]):
+            pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 25})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": 96})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Brick Wall"})
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_RussianRoulette(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Russian Roulette, A Fuzion Frenzy Special Event!'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Set all stats to 99. Play 1-6 rounds of Russian Roulette, for each round subtract 10-15 from each stat.\n\n'''
+
+    # Implementation
+    currentAttributeVals = {}
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        currentAttributeVals[attribute] = 99
+
+    roundsOfRussianRoulette = random.randrange(1,7)
+    for roundOfRussianRoulette in range(roundsOfRussianRoulette):
+        for attribute in currentAttributeVals.keys():
+            currentAttributeVals[attribute] -= random.randrange(10,16)
+
+    for attribute,value in currentAttributeVals.items():
+        pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": value})
+
+    if(roundsOfRussianRoulette > 0):
+        pmod["Description"] += f"This player played {roundsOfRussianRoulette} rounds of Russian Roulette."
+    else:
+        pmod["Description"] += f"This player played {roundsOfRussianRoulette} round of Russian Roulette."
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_PesticideBeer(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Home Brewed Insecticide Lite Beer by HHP Inc'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Take 100 swigs of the addictive brew. This causes severe alcohol poisoning and sends him into court-mandated rehab. He becomes a new, better person - randomly select a new Primary, Secondary, and Tertiary set, as well as new accents for each stat. Important tendencies are randomized. Add 2 random skill cards.\n\n'''
+
+    # Implementation
+    possibleAttributeSets = {"Offensive" : Archetypes.OFFENSIVE_ATTRIBUTES,"Control" : Archetypes.CONTROL_ATTRIBUTES,"Defensive" : Archetypes.DEFENSIVE_ATTRIBUTES}
+    allSets = list(possibleAttributeSets.keys())
+    random.shuffle(allSets)
+    newPrimary,newSecondary,newTertiary = allSets[0],allSets[1],allSets[2]
+
+    newPrimaryAccents = []
+    for primaryAttribute in possibleAttributeSets[newPrimary]:
+        if(random.randrange(1,6) <= 2):
+            newPrimaryAccents.append(primaryAttribute)
+    newSecondaryAccents = []
+    for secondaryAttribute in possibleAttributeSets[newSecondary]:
+        if(random.randrange(1,6) <= 2):
+            newSecondaryAccents.append(secondaryAttribute)
+    newTertiaryAccents = []
+    for tertiaryAttribute in possibleAttributeSets[newTertiary]:
+        if(random.randrange(1,6) <= 2):
+            newTertiaryAccents.append(tertiaryAttribute)
+
+
+    for primaryAttribute in possibleAttributeSets[newPrimary]:
+        if(primaryAttribute in newPrimaryAccents):
+            pmod["Modifications"].append({"Operation": "Set", "Key": primaryAttribute, "Value": random.randrange(70, 91)})
+        else:
+            pmod["Modifications"].append({"Operation": "Set", "Key": primaryAttribute, "Value": random.randrange(65,84)})
+    for secondaryAttribute in possibleAttributeSets[newSecondary]:
+        if(secondaryAttribute in newSecondaryAccents):
+            pmod["Modifications"].append({"Operation": "Set", "Key": secondaryAttribute, "Value": random.randrange(55, 71)})
+        else:
+            pmod["Modifications"].append({"Operation": "Set", "Key": secondaryAttribute, "Value": random.randrange(45,66)})
+    for tertiaryAttribute in possibleAttributeSets[newTertiary]:
+        if(tertiaryAttribute in newTertiaryAccents):
+            pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute, "Value": random.randrange(35, 51)})
+        else:
+            pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute, "Value": random.randrange(25,46)})
+
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TSpotUp", "Value": random.randrange(1, 101)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TPostUp", "Value": random.randrange(1, 101)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TDunkvLU", "Value": random.randrange(1, 101)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TPostFaceU", "Value": random.randrange(1, 101)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TPostBDown", "Value": random.randrange(1, 101)})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": random.randrange(1, 32)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": random.randrange(1, 32)})
+
+
+    pmod["Description"] += f"{newPrimary} Primary --- Accents ("
+    for accent in newPrimaryAccents:
+        pmod["Description"] += f"{Archetypes.MAPPED_ATTRIBUTES[accent]}, "
+    pmod["Description"] = pmod["Description"].rstrip(", ")
+    pmod["Description"] += ")\n"
+
+    pmod["Description"] += f"{newSecondary} Secondary --- Accents ("
+    for accent in newSecondaryAccents:
+        pmod["Description"] += f"{Archetypes.MAPPED_ATTRIBUTES[accent]}, "
+    pmod["Description"] = pmod["Description"].rstrip(", ")
+    pmod["Description"] += ")\n"
+
+    pmod["Description"] += f"{newTertiary} Tertiary --- Accents ("
+    for accent in newTertiaryAccents:
+        pmod["Description"] += f"{Archetypes.MAPPED_ATTRIBUTES[accent]}, "
+    pmod["Description"] = pmod["Description"].rstrip(", ")
+    pmod["Description"] += ")"
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_ArcaneRemnants(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Remnants of an Arcane Explosion Caused by the Dark Magic of Matt Bleakstar.'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Randomly assign a stat the value of 30. Randomly assign another stat the value of 32. Randomly assign another stat the value of 34. Keep going until you hit 98, this should cover all stats.'''
+
+    # Implementation
+    currentValue = 30
+    allAttributes = Archetypes.ALL_ATTRIBUTES.copy()
+    random.shuffle(allAttributes)
+    for attribute in allAttributes:
+        pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": currentValue})
+        currentValue += 2
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_SnehGambling(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Sneh's Crippling Gambling Addiction'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Set all stats to 25. 5 random stats are set to 99. Add 5 random Skill Cards. Add 5 inches to Height.'''
+
+    # Implementation
+    possibleAttributes = Archetypes.ALL_ATTRIBUTES.copy()
+    attribute1 = random.choice(possibleAttributes)
+    possibleAttributes.remove(attribute1)
+    attribute2 = random.choice(possibleAttributes)
+    possibleAttributes.remove(attribute2)
+    attribute3 = random.choice(possibleAttributes)
+    possibleAttributes.remove(attribute3)
+    attribute4 = random.choice(possibleAttributes)
+    possibleAttributes.remove(attribute4)
+    attribute5 = random.choice(possibleAttributes)
+
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        if(attribute in [attribute1,attribute2,attribute3,attribute4,attribute5]):
+            pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 99})
+        else:
+            pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 25})
+
+
+    sigSkillValues = list(range(1,32))
+    random.shuffle(sigSkillValues)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": sigSkillValues[0]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": sigSkillValues[1]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill3", "Value": sigSkillValues[2]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill4", "Value": sigSkillValues[3]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill5", "Value": sigSkillValues[4]})
+
+    pmod["Modifications"].append({"Operation": "Add", "Key": "HeightIn", "Value": 5})
+
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_SHRINKRay(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Fredwardo's Magnificent S.H.R.I.N.K Ray (Something to Help Reduce Inconsistencies in NBA Knowledge)'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''As a big fan of Fredwardo's past work, the Player points the Ray at his head and hopes for the best. Set height to 1'0. Set all attributes to 90-99.'''
+
+    # Implementation
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": random.randrange(90,100)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": 12})
+
+
+    # Return
+    return pmod
+def Neutral_Godlike_JuicerBlacklist(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Jared Juicer's Blacklist'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Neutral"
+    pmod["Type"]["Rarity"] = "Godlike"
+    # Description
+    pmod["Description"] = '''Amazed that almost every single person he knows is on this blacklist, the player decides to totally rethink his in game strategy. Add 3 random skill cards, randomly set all stats to 25-90. Add any special shot:\n\n'''
+
+    # Implementation
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": random.randrange(25,100)})
+
+    sigSkillValues = list(range(1,32))
+    random.shuffle(sigSkillValues)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": sigSkillValues[0]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": sigSkillValues[1]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill3", "Value": sigSkillValues[2]})
+
+    potentialSpecialShots = []
+    for shotList in RARE_SPECIAL_SHOTS.values():
+        potentialSpecialShots += shotList
+    for shotList in EPIC_SPECIAL_SHOTS.values():
+        potentialSpecialShots += shotList
+    for shotList in LEGENDARY_SPECIAL_SHOTS.values():
+        potentialSpecialShots += shotList
+    specialShotChoice = random.choice(potentialSpecialShots)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtForm", "Value": specialShotChoice["Shot Form"]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": specialShotChoice["Shot Base"]})
+    pmod["Description"] += f"**{specialShotChoice['Name']}** - {specialShotChoice['Description']}"
+
+
+    # Return
+    return pmod
+neutral_godlike = [Neutral_Godlike_PhysicalizedBiases,Neutral_Godlike_ConcoctionJOE,Neutral_Godlike_RickAshes,
+                   Neutral_Godlike_BrokenPromise,Neutral_Godlike_RussianRoulette,Neutral_Godlike_PesticideBeer,
+                   Neutral_Godlike_ArcaneRemnants,Neutral_Godlike_SnehGambling,Neutral_Godlike_SHRINKRay,
+                   Neutral_Godlike_JuicerBlacklist]
+
+#endregion === Neutrals ===
+#region === Slayers ===
+
+def Slayer_Rare_CornbreadRapier(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Ancient Rapier, Once Wielded by Sir Alfred Cornbread'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Delicate and light, this blade helped a legendary general cut down his enemies in the war of 1812. Add +30 to Vertical and Dunk. Subtract -5 from 3pt Shot.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SVertical", "Value": 30})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SDunk", "Value": 30})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SSht3PT", "Value": 5})
+
+
+    # Return
+    return pmod
+def Slayer_Rare_WojciechMouse(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Ancient Wired Mouse, Once Wielded by Wojciech Kois'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Gaining a vision of a young man watching a very lethargic wizard of ancient times teach his craft, the player is inspired and changes:  Subtract -30 from Speed and Consistency. Add Microwave, Heat Retention, and Antifreeze.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SSpeed", "Value": 30})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SConsis", "Value": 30})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Microwave"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Heat Retention"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill3", "Value": "Anti-Freeze"})
+
+    # Return
+    return pmod
+def Slayer_Rare_TimLaser(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Ancient  Military-Grade Laser Pointer, Once Wielded by Tim Molkowski'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Absolutely bewildered by the idea that a teenager once shined this light of lethal caliber directly into their eye, the player changes as follows: Add 3 inches to Height. -25 subtracted randomly across all accented primary stats.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Add", "Key": "HeightIn", "Value": 3})
+
+    accentedPrimaryAttributes = []
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        if(primaryAttribute in player["Archetype"].accentedAttributes):
+            accentedPrimaryAttributes.append(primaryAttribute)
+
+    pointsToSpend = 25
+    adjustedAttributes = {}
+    while pointsToSpend > 0:
+        randomAttribute = random.choice(accentedPrimaryAttributes)
+        adjustedAttributes[randomAttribute] = adjustedAttributes.get(randomAttribute,0) + 1
+        pointsToSpend -= 1
+
+    for adjustedAttribute,adjustedValue in adjustedAttributes.items():
+        pmod["Modifications"].append({"Operation": "Subtract", "Key": adjustedAttribute, "Value": adjustedValue})
+
+
+    # Return
+    return pmod
+def Slayer_Rare_BartenderSword(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Ancient All-Powerful-Immortality-Bringing Sword, Once Wielded by a 17 Year Old Bartender.'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Rare"
+    # Description
+    pmod["Description"] = '''Besides gaining the psychotic 3 consciences of Algemi and the disembodied voice of Christian Shearcliff all screaming at each other in their mind, the player also loses 3 inches in Height.  Add Spot up Shooter.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "HeightIn", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Spot Up Shooter"})
+
+
+    # Return
+    return pmod
+slayer_rare = [Slayer_Rare_CornbreadRapier,Slayer_Rare_WojciechMouse,Slayer_Rare_TimLaser,Slayer_Rare_BartenderSword]
+def Slayer_Epic_SidCharger(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Ancient iPhone Outlet Adapter, Used by Sidhant Mehta to Flirt with Women'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''While being entirely unsuccessful in the romance game, this artifact does add a rare or epic Engineer special shot:\n\n'''
+
+    # Implementation
+    potentialSpecialShots = RARE_SPECIAL_SHOTS["Slayer"] + EPIC_SPECIAL_SHOTS["Slayer"]
+    specialShotChoice = random.choice(potentialSpecialShots)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtForm", "Value": specialShotChoice["Shot Form"]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": specialShotChoice["Shot Base"]})
+    pmod["Description"] += f"**{specialShotChoice['Name']}** - {specialShotChoice['Description']}"
+
+
+    # Return
+    return pmod
+def Slayer_Epic_DiamondBoots(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Ancient Pair of Diamond Boots, Summoned from the Heavens by a Member of the Illuminati'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''Knowing full and well that Danny cheated, the player feels justified that they have these boots of retribution. Add +7 to non-accented Primary Skills. Spot up tendencies will be set to almost always have the player post up in the paint.'''
+
+    # Implementation
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        if(primaryAttribute in player["Archetype"].unaccentedAttributes):
+            pmod["Modifications"].append({"Operation": "Add", "Key": primaryAttribute, "Value": 7})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TSpotUp", "Value": 10})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "TPostUp", "Value": 90})
+
+
+    # Return
+    return pmod
+def Slayer_Epic_BidenCoffee(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Ancient Cup of Coffee, Once Wielded by Joe Biden 5 Minutes Ago'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod["Description"] = '''Feeling a bit concerned that Joe Biden just referred to his steaming cup of coffee as an ancient mayan artifact, the player changes as follows: Add 30 to Dunk, Standing Dunk, and Vertical. Subtract 5 from all accented primary stats. Add Posterizer and Finisher. Add 3 cool dunk packages.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SDunk", "Value": 30})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SStdDunk", "Value": 30})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SVertical", "Value": 30})
+    
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Posterizer"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Finisher"})
+
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        if(primaryAttribute in player["Archetype"].accentedAttributes):
+            pmod["Modifications"].append({"Operation": "Subtract", "Key": primaryAttribute, "Value": 5})
+
+    coolDunks = [23,24,25,26,27,28,35,51,55,63,64,65]
+    dunk1 = random.choice(coolDunks)
+    coolDunks.remove(dunk1)
+    dunk2 = random.choice(coolDunks)
+    coolDunks.remove(dunk2)
+    dunk3 = random.choice(coolDunks)
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AGoToDunk", "Value": dunk1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk2", "Value": dunk2})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk3", "Value": dunk3})
+
+
+
+    # Return
+    return pmod
+def Slayer_Epic_IlluminatiPizza(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''Ancient Slice of Pizza, Once Widely Considered a Token of  Illuminati Membership.'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Epic"
+    # Description
+    pmod[
+        "Description"] = '''Ah, a member I see. The player joins the illuminati and changes in the following fashion: Set Offensive and Defensive awareness to 99. Add 20 to Pass. Add Dimer, Post Playmaker, Alley-ooper, and Ankle Breaker. -12 to 3Pt.'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SOAwar", "Value": 99})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SDAwar", "Value": 99})
+
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SPass", "Value": 20})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Dimer"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Post Playmaker"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill3", "Value": "Alley Oopers"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill4", "Value": "Ankle Breaker"})
+
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SSht3PT", "Value": 12})
+
+
+    # Return
+    return pmod
+slayer_epic = [Slayer_Epic_SidCharger,Slayer_Epic_DiamondBoots,Slayer_Epic_BidenCoffee,Slayer_Epic_IlluminatiPizza]
+def Slayer_Legendary_RuizAspirations(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''A Bottle of David Ruiz's Aspirations'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Legendary"
+    # Description
+    pmod[
+        "Description"] = '''David always wanted to be Kobe Bryant, and the player makes the leap where David could not and turns from a soft-spoken Mexican man to a basketball overlord. Set all Signature Skills to Kobe Bryant's.  Add Acrobat. Set all tertiary stats to 25. -30 to passing.'''
+
+    # Implementation
+    for tertiaryAttribute in player["Archetype"].tertiaryAttributes:
+        pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute, "Value": 25})
+
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SPass", "Value": 30})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Acrobat"})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtForm", "Value": 93})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": 71})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AFadeaway", "Value": 19})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AContestd", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AEscDrPlU", "Value": 1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ARunner", "Value": 1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AFreeT", "Value": 36})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADrPullUp", "Value": 4})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ASpinJmpr", "Value": 6})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AHopJmpr", "Value": 2})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstFade", "Value": 4})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstHook", "Value": 5})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstHopSh", "Value": 7})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstShmSh", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstDrvStB", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstSpnStB", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstPrtct", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstPrtSpn", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoCross", "Value": 1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoBhBck", "Value": 6})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoSpin", "Value": 6})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoHesit", "Value": 1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ALayUp", "Value": 8})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AGoToDunk", "Value": 8})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk2", "Value": 5})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk3", "Value": 7})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk4", "Value": 10})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk5", "Value": 16})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk6", "Value": 30})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk7", "Value": 46})
+
+    # Return
+    return pmod
+def Slayer_Legendary_SpriteBottle(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''A Cold and Refreshing Bottle of Sprite'''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Legendary"
+    # Description
+    pmod[
+        "Description"] = '''The player realizes that it is Sprite Time and it is Game Time. Set all Signature Skills to Lebron James's.  Add Finisher. -5 to all accented primary stats, add 10 to all non-accented primary stats. Add 40 to dunk.'''
+
+    # Implementation
+    for primaryAttribute in player["Archetype"].primaryAttributes:
+        if(primaryAttribute in player["Archetype"].accentedAttributes):
+            pmod["Modifications"].append({"Operation": "Subtract", "Key": primaryAttribute, "Value": 5})
+        else:
+            pmod["Modifications"].append({"Operation": "Add", "Key": primaryAttribute, "Value": 10})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SDunk", "Value": 40})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Finisher"})
+
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AFadeaway", "Value": 21})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AContestd", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AEscDrPlU", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ARunner", "Value": 15})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AFreeT", "Value": 67})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADrPullUp", "Value": 9})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ASpinJmpr", "Value": 2})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AHopJmpr", "Value": 10})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstFade", "Value": 5})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstHook", "Value": 1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstHopSh", "Value": 7})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstShmSh", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstDrvStB", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstSpnStB", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstPrtct", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "APstPrtSpn", "Value": 2})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoCross", "Value": 5})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoBhBck", "Value": 1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoSpin", "Value": 5})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoHesit", "Value": 1})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ALayUp", "Value": 0})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AGoToDunk", "Value": 21})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk2", "Value": 13})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk3", "Value": 22})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk4", "Value": 26})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk5", "Value": 29})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk6", "Value": 33})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk7", "Value": 50})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk8", "Value": 62})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk9", "Value": 45})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk10", "Value": 40})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk11", "Value": 60})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk12", "Value": 61})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk13", "Value": 2})
+
+    # Return
+    return pmod
+def Slayer_Legendary_DagobahVision(player):
+    pmod = b.getPModTemplate()
+    # Artifact Name
+    pmod["Name"] = '''A Vision from a Space Monk, with Instructions to Seek Out Some Planet called 'Dagobah\''''
+    # Artifact Info
+    pmod["Type"]["TypeName"] = "Artifact"
+    pmod["Type"]["ArchetypeLock"] = "Slayer"
+    pmod["Type"]["Rarity"] = "Legendary"
+    # Description
+    pmod[
+        "Description"] = '''The player visits Dagobah and morphs into a slimy alien midget who can move random objects with his mind. Height is set between 4'0 and 4'6. +10 to Shot 3pt, Speed, and Quickness. Vertical and Strength are set to 99. -40 to Steal and Block. Get an epic or legendary special shot:\n\n'''
+
+    # Implementation
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SSht3PT", "Value": 10})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SSpeed", "Value": 10})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SQuick", "Value": 10})
+
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SSteal", "Value": 40})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SBlock", "Value": 40})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SVertical", "Value": 99})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SStrength", "Value": 99})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": random.randrange(48,55)})
+
+    potentialSpecialShots = LEGENDARY_SPECIAL_SHOTS["Slayer"] + EPIC_SPECIAL_SHOTS["Slayer"]
+    specialShotChoice = random.choice(potentialSpecialShots)
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtForm", "Value": specialShotChoice["Shot Form"]})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": specialShotChoice["Shot Base"]})
+    pmod["Description"] += f"**{specialShotChoice['Name']}** - {specialShotChoice['Description']}"
+
+
+    # Return
+    return pmod
+slayer_legendary = [Slayer_Legendary_RuizAspirations,Slayer_Legendary_SpriteBottle,Slayer_Legendary_DagobahVision]
+
+#endregion === Slayers ===
 #region === Vigilante ===
 
-def Vigilante_Rare_NancyEmail(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Rare_NancyEmail(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Nasty Email from Nancy Soleto'''
     # Artifact Info
@@ -59,8 +1280,8 @@ def Vigilante_Rare_NancyEmail(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Rare_ChapApology(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Rare_ChapApology(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Written Apology from Chap'''
     # Artifact Info
@@ -82,8 +1303,8 @@ def Vigilante_Rare_ChapApology(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Rare_NatHound(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Rare_NatHound(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Nat's Vicious, Bloodthirsty Hound from Hell'''
     # Artifact Info
@@ -107,8 +1328,8 @@ def Vigilante_Rare_NatHound(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Rare_RumoroShrug(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Rare_RumoroShrug(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Smile and a Shrug from Nick Rumoro'''
     # Artifact Info
@@ -131,8 +1352,10 @@ def Vigilante_Rare_RumoroShrug(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Epic_FernNo(player : Player.Player):
-    pmod = Player.getPModTemplate()
+vigilante_rare = [Vigilante_Rare_NancyEmail,Vigilante_Rare_ChapApology,Vigilante_Rare_NatHound,
+                  Vigilante_Rare_RumoroShrug]
+def Vigilante_Epic_FernNo(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A 'No.' from Fernando Valencia, After Being Asked to Accept the Transfer of a User He's Been Working With'''
     # Artifact Info
@@ -151,8 +1374,8 @@ def Vigilante_Epic_FernNo(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Epic_DrewGall(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Epic_DrewGall(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''The Gall of Drew Meier'''
     # Artifact Info
@@ -174,8 +1397,8 @@ def Vigilante_Epic_DrewGall(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Epic_ChandaraCandor(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Epic_ChandaraCandor(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''The Quiet and Friendly Candor of Chandara Cheng'''
     # Artifact Info
@@ -207,8 +1430,8 @@ def Vigilante_Epic_ChandaraCandor(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Epic_EddieTHanks(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Epic_EddieTHanks(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Eddie Smith's Memoir, 'THanks for Nothing\''''
     # Artifact Info
@@ -231,8 +1454,10 @@ def Vigilante_Epic_EddieTHanks(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Legendary_TrumpChina(player : Player.Player):
-    pmod = Player.getPModTemplate()
+vigilante_epic = [Vigilante_Epic_FernNo,Vigilante_Epic_DrewGall,Vigilante_Epic_ChandaraCandor,
+                  Vigilante_Epic_EddieTHanks]
+def Vigilante_Legendary_TrumpChina(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Artistic Interpretation of Donald Trump's Relationship with China'''
     # Artifact Info
@@ -259,8 +1484,8 @@ def Vigilante_Legendary_TrumpChina(player : Player.Player):
 
     # Return
     return pmod
-def Vigilante_Legendary_DickScorecard(player: Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Legendary_DickScorecard(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''An Antique Scorecard of the S1 League Championship Game, Signed "A Fine Effort from an Extraordinary Team" by Charles Dick'''
     # Artifact Info
@@ -290,8 +1515,8 @@ def Vigilante_Legendary_DickScorecard(player: Player.Player):
 
     # Return
     return pmod
-def Vigilante_Legendary_EggrollVoucher(player: Player.Player):
-    pmod = Player.getPModTemplate()
+def Vigilante_Legendary_EggrollVoucher(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Voucher Reading '25 percnt of Next Spicy at Eggrol r We', Gloriously Lacking an Expiration Date'''
     # Artifact Info
@@ -299,13 +1524,13 @@ def Vigilante_Legendary_EggrollVoucher(player: Player.Player):
     pmod["Type"]["ArchetypeLock"] = "Vigilante"
     pmod["Type"]["Rarity"] = "Legendary"
     # Description
-    pmod["Description"] = '''Visit Eggrolls R We 1-7 times. For each time you visit, -4 to all attributes, and make another random zone Hot. If the same zone is selected twice, it becomes Burning.\n\n'''
+    pmod["Description"] = '''Visit Eggrolls R We 2-7 times. For each time you visit, -1-3 to all attributes, and make another random zone Hot. If the same zone is selected twice, it becomes Burning.\n\n'''
 
     # Implementation
-    eggrollVisits = random.randrange(1,8)
+    eggrollVisits = random.randrange(2,8)
 
     for attribute in Archetypes.ALL_ATTRIBUTES:
-        pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": eggrollVisits * 4})
+        pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": eggrollVisits * random.randrange(1,4)})
 
     possibleZones = ["HZ1","HZ2","HZ3","HZ4","HZ5","HZ6","HZ7","HZ8","HZ9","HZ10","HZ11","HZ12","HZ13","HZ14"]
     spicedZones = {}
@@ -326,13 +1551,14 @@ def Vigilante_Legendary_EggrollVoucher(player: Player.Player):
 
     # Return
     return pmod
+vigilante_legendary = [Vigilante_Legendary_TrumpChina,Vigilante_Legendary_DickScorecard,
+                       Vigilante_Legendary_EggrollVoucher]
 
 #endregion === Vigilante ===
-
 #region === Medics ===
 
-def Medic_Rare_SubwayGiftcard(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Rare_SubwayGiftcard(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''$10 Subway Gift Card, 8 years expired.'''
     # Artifact Info
@@ -353,8 +1579,8 @@ def Medic_Rare_SubwayGiftcard(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Rare_WrapApron(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Rare_WrapApron(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = ''''This is How You Wrap' Apron'''
     # Artifact Info
@@ -375,8 +1601,8 @@ def Medic_Rare_WrapApron(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Rare_Jardeenya(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Rare_Jardeenya(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''An Audio Recording of a Customer Inquiring: 'Can I have the uh JARDEENYA peppas?\''''
     # Artifact Info
@@ -396,8 +1622,8 @@ def Medic_Rare_Jardeenya(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Rare_HoneyOat(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Rare_HoneyOat(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Newspaper Cutout Advertising the Honey Oat Bread from 2009'''
     # Artifact Info
@@ -417,8 +1643,9 @@ def Medic_Rare_HoneyOat(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Epic_VileSauces(player : Player.Player):
-    pmod = Player.getPModTemplate()
+medic_rare = [Medic_Rare_SubwayGiftcard,Medic_Rare_WrapApron,Medic_Rare_Jardeenya,Medic_Rare_HoneyOat]
+def Medic_Epic_VileSauces(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Plastic Bin Filled with a Vile Mixure of Spilled Sauces'''
     # Artifact Info
@@ -437,8 +1664,8 @@ def Medic_Epic_VileSauces(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Epic_CaptionedPhoto(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Epic_CaptionedPhoto(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Circled, Highlighted, and Captioned Photo of a Single Olive on the Floor of a Subway Restaurant'''
     # Artifact Info
@@ -466,8 +1693,8 @@ def Medic_Epic_CaptionedPhoto(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Epic_SpotlessGloves(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Epic_SpotlessGloves(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Spotlessly Clean Gloves, demanded to be removed 15 seconds after they were acquired.'''
     # Artifact Info
@@ -493,8 +1720,8 @@ def Medic_Epic_SpotlessGloves(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Epic_CCTVFootage(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Epic_CCTVFootage(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''CCTV Footage of a Car Banging a U-Turn on the Road Adjacent to Subway'''
     # Artifact Info
@@ -529,8 +1756,9 @@ def Medic_Epic_CCTVFootage(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Legendary_CompressOMatic(player : Player.Player):
-    pmod = Player.getPModTemplate()
+medic_epic = [Medic_Epic_VileSauces,Medic_Epic_CaptionedPhoto,Medic_Epic_SpotlessGloves,Medic_Epic_CCTVFootage]
+def Medic_Legendary_CompressOMatic(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''The Compress-O-Matic, invented by Fredwardo Jalapeno'''
     # Artifact Info
@@ -554,8 +1782,8 @@ def Medic_Legendary_CompressOMatic(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Legendary_RancidStrawberry(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Legendary_RancidStrawberry(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Rancid Strawberry'''
     # Artifact Info
@@ -580,8 +1808,8 @@ def Medic_Legendary_RancidStrawberry(player : Player.Player):
 
     # Return
     return pmod
-def Medic_Legendary_GreasyIPhone(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Medic_Legendary_GreasyIPhone(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Greasy, Cracked iPhone 5 Left on the Basketball Court by the Annoying 11 Year Old Kid Who Completely Ruined the Game for Everyone Else'''
     # Artifact Info
@@ -598,7 +1826,7 @@ def Medic_Legendary_GreasyIPhone(player : Player.Player):
     pmod["Modifications"].append({"Operation": "Set", "Key": "SEmotion", "Value": 99})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SOReb", "Value": 99})
 
-    otherAttributes = player["Archetype"].primaryAttributes + player["Archetype"].secondaryAttributes
+    otherAttributes = player["Archetype"].primaryAttributes.copy() + player["Archetype"].secondaryAttributes.copy()
     otherAttributes.remove("SSteal")
     otherAttributes.remove("SHustle")
     otherAttributes.remove("SBlock")
@@ -645,12 +1873,13 @@ def Medic_Legendary_GreasyIPhone(player : Player.Player):
 
     # Return
     return pmod
+medic_legendary = [Medic_Legendary_CompressOMatic,Medic_Legendary_RancidStrawberry,Medic_Legendary_GreasyIPhone]
 
 #endregion === Medics ===
 #region === Guardians ===
 
-def Guardian_Rare_CornpopRazor(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Rare_CornpopRazor(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Cornpop's Razor Blade, stained with the blood of Joe Biden'''
     # Artifact Info
@@ -667,8 +1896,8 @@ def Guardian_Rare_CornpopRazor(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Rare_BidenDentures(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Rare_BidenDentures(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Joe Biden's Dentures, stained with the blood of Cornpop.'''
     # Artifact Info
@@ -685,8 +1914,8 @@ def Guardian_Rare_BidenDentures(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Rare_LearnedRoaches(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Rare_LearnedRoaches(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''The Roaches Joe Learned A Lot About'''
     # Artifact Info
@@ -706,8 +1935,8 @@ def Guardian_Rare_LearnedRoaches(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Rare_TaughtBiden(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Rare_TaughtBiden(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Joe Biden, the Man the Roaches Taught A Lot To'''
     # Artifact Info
@@ -727,8 +1956,10 @@ def Guardian_Rare_TaughtBiden(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Epic_NervousLaughter(player : Player.Player):
-    pmod = Player.getPModTemplate()
+guardian_rare = [Guardian_Rare_CornpopRazor,Guardian_Rare_BidenDentures,Guardian_Rare_LearnedRoaches,
+                 Guardian_Rare_TaughtBiden]
+def Guardian_Epic_NervousLaughter(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Nervous Laughter from an Audience in Harlem who Joe Biden just addressed as his '"'Brothas from the Hood\''''
     # Artifact Info
@@ -747,8 +1978,8 @@ def Guardian_Epic_NervousLaughter(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Epic_30330(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Epic_30330(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Confused GPS Device, Desperately Trying to Load the Location of 'JOE 30330\''''
     # Artifact Info
@@ -770,8 +2001,8 @@ def Guardian_Epic_30330(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Epic_PenCoatRack(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Epic_PenCoatRack(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Pen Joe Biden Mistakenly Gave to a Coat Rack instead of the Small Child to His Left'''
     # Artifact Info
@@ -789,8 +2020,8 @@ def Guardian_Epic_PenCoatRack(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Epic_PonySoldier(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Epic_PonySoldier(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Lying Dog-Faced Pony Soldier'''
     # Artifact Info
@@ -808,8 +2039,9 @@ def Guardian_Epic_PonySoldier(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Legendary_JordanLeg(player : Player.Player):
-    pmod = Player.getPModTemplate()
+guardian_epic = [Guardian_Epic_NervousLaughter,Guardian_Epic_30330,Guardian_Epic_PenCoatRack,Guardian_Epic_PonySoldier]
+def Guardian_Legendary_JordanLeg(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Michael Jordan's Amputated Leg'''
     # Artifact Info
@@ -863,8 +2095,8 @@ def Guardian_Legendary_JordanLeg(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Legendary_FitzgeraldElixir(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Legendary_FitzgeraldElixir(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''The Mysterious Elixir Last Drunken by Fitzgerald Kambavolo'''
     # Artifact Info
@@ -889,8 +2121,8 @@ def Guardian_Legendary_FitzgeraldElixir(player : Player.Player):
 
     # Return
     return pmod
-def Guardian_Legendary_IcyTouch(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Guardian_Legendary_IcyTouch(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''The Icy Touch of the Night King'''
     # Artifact Info
@@ -935,12 +2167,14 @@ def Guardian_Legendary_IcyTouch(player : Player.Player):
 
     # Return
     return pmod
+guardian_legendary = [Guardian_Legendary_JordanLeg,Guardian_Legendary_FitzgeraldElixir,
+                      Guardian_Legendary_IcyTouch]
 
 #endregion === Guardians ===
 #region === Engineers ===
 
-def Engineer_Rare_ShirtBearArms(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Rare_ShirtBearArms(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A T-Shirt from Scott Brown reading: '2nd to Shoot, 1st to Kill! #RightToBearArms\''''
     # Artifact Info
@@ -957,8 +2191,8 @@ def Engineer_Rare_ShirtBearArms(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Rare_ShirtArmedBacon(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Rare_ShirtArmedBacon(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A T-Shirt from Scott Brown reading: 'Be warned, I'm legally armed with weaponry....and BACON!\''''
     # Artifact Info
@@ -975,8 +2209,8 @@ def Engineer_Rare_ShirtArmedBacon(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Rare_ShirtStupidMask(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Rare_ShirtStupidMask(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A T-Shirt from Scott Brown reading: 'Keep your mask on, it stops all the STUPID from spilling out!\''''
     # Artifact Info
@@ -993,8 +2227,8 @@ def Engineer_Rare_ShirtStupidMask(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Rare_ShirtAllergy(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Rare_ShirtAllergy(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A T-Shirt from Scott Brown reading: 'Stay back,  I am deathly allergic to STUPID!\''''
     # Artifact Info
@@ -1011,8 +2245,10 @@ def Engineer_Rare_ShirtAllergy(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Epic_ShirtBachelors(player : Player.Player):
-    pmod = Player.getPModTemplate()
+engineer_rare = [Engineer_Rare_ShirtBearArms,Engineer_Rare_ShirtArmedBacon,Engineer_Rare_ShirtStupidMask,
+                 Engineer_Rare_ShirtAllergy]
+def Engineer_Epic_ShirtBachelors(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A T-Shirt from Scott Brown reading: 'I wipe my ASS with your bachelor of arts degree!\''''
     # Artifact Info
@@ -1031,8 +2267,8 @@ def Engineer_Epic_ShirtBachelors(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Epic_ShirtSarcastic(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Epic_ShirtSarcastic(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A T-Shirt from Scott Brown reading: 'If you don't want a sarcastic answer, don't ask a STUPID question!\''''
     # Artifact Info
@@ -1055,8 +2291,8 @@ def Engineer_Epic_ShirtSarcastic(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Epic_ShirtSpeakMoron(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Epic_ShirtSpeakMoron(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A T-Shirt from Scott Brown reading: 'I don't speak MORON, we'll have to communicate in sign language!' Below is an image of a white man giving the middle finger.'''
     # Artifact Info
@@ -1087,8 +2323,8 @@ def Engineer_Epic_ShirtSpeakMoron(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Epic_ShirtTechSupport(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Epic_ShirtTechSupport(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A T-Shirt from Scott Brown reading: 'Nothing you can do will scare me - I work in TECH SUPPORT!\''''
     # Artifact Info
@@ -1117,8 +2353,10 @@ def Engineer_Epic_ShirtTechSupport(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Legendary_SecuritySerum(player : Player.Player):
-    pmod = Player.getPModTemplate()
+engineer_epic = [Engineer_Epic_ShirtBachelors,Engineer_Epic_ShirtSarcastic,Engineer_Epic_ShirtSpeakMoron,
+                 Engineer_Epic_ShirtTechSupport]
+def Engineer_Legendary_SecuritySerum(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Security Serum, courtesy of Amalgamo Inc.'''
     # Artifact Info
@@ -1149,8 +2387,8 @@ def Engineer_Legendary_SecuritySerum(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Legendary_LaatzPass(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Legendary_LaatzPass(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Backstage Pass, VIP Tickets to see Michael Laatz in Concert, Won from Laatz' 'ROAD TO SIX YOUTUBE SUBSCRIBERS SWEEPSTAKES\''''
     # Artifact Info
@@ -1195,8 +2433,8 @@ def Engineer_Legendary_LaatzPass(player : Player.Player):
 
     # Return
     return pmod
-def Engineer_Legendary_LavaFloor(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Engineer_Legendary_LavaFloor(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''The Bewildered and Horrified Look on Sneh's Face After Tim Molkosky Cautioned Him that the 'Floor is Lava\''''
     # Artifact Info
@@ -1244,12 +2482,14 @@ def Engineer_Legendary_LavaFloor(player : Player.Player):
 
     # Return
     return pmod
+engineer_legendary = [Engineer_Legendary_SecuritySerum,Engineer_Legendary_LaatzPass,
+                      Engineer_Legendary_LavaFloor]
 
 #endregion === Engineers ===
 #region === Directors ===
 
-def Director_Rare_BagOfRocks(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Rare_BagOfRocks(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Bag of "Rocks" Recovered from a DEA Agent's Remains'''
     # Artifact Info
@@ -1267,8 +2507,8 @@ def Director_Rare_BagOfRocks(player : Player.Player):
 
     # Return
     return pmod
-def Director_Rare_BagOfMeth(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Rare_BagOfMeth(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Bag of "Meth" Recovered from a Massive Explosion in the City'''
     # Artifact Info
@@ -1286,8 +2526,8 @@ def Director_Rare_BagOfMeth(player : Player.Player):
 
     # Return
     return pmod
-def Director_Rare_HamlinBoxing(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Rare_HamlinBoxing(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Howard Hamlin's Pristine Boxing Gear'''
     # Artifact Info
@@ -1305,8 +2545,8 @@ def Director_Rare_HamlinBoxing(player : Player.Player):
 
     # Return
     return pmod
-def Director_Rare_JimmyBoxing(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Rare_JimmyBoxing(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Jimmy McGill's Wartorn Boxing Gear'''
     # Artifact Info
@@ -1324,8 +2564,10 @@ def Director_Rare_JimmyBoxing(player : Player.Player):
 
     # Return
     return pmod
-def Director_Epic_Pimento(player : Player.Player):
-    pmod = Player.getPModTemplate()
+director_rare = [Director_Rare_BagOfRocks,Director_Rare_BagOfMeth,Director_Rare_HamlinBoxing,
+                 Director_Rare_JimmyBoxing]
+def Director_Epic_Pimento(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Some Geezer Eating a Pimento Sandwich'''
     # Artifact Info
@@ -1344,8 +2586,8 @@ def Director_Epic_Pimento(player : Player.Player):
 
     # Return
     return pmod
-def Director_Epic_VinceHumility(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Epic_VinceHumility(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Vial of Vince Gilligan's Humility, Liquefied'''
     # Artifact Info
@@ -1367,8 +2609,8 @@ def Director_Epic_VinceHumility(player : Player.Player):
 
     # Return
     return pmod
-def Director_Epic_SnappedCellphone(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Epic_SnappedCellphone(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Cellphone Snapped Perfectly in Two'''
     # Artifact Info
@@ -1393,8 +2635,8 @@ def Director_Epic_SnappedCellphone(player : Player.Player):
 
     # Return
     return pmod
-def Director_Epic_BloodCandle(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Epic_BloodCandle(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''A Burnt Out Candle, Stained with a Single Drop of Blood'''
     # Artifact Info
@@ -1416,8 +2658,10 @@ def Director_Epic_BloodCandle(player : Player.Player):
 
     # Return
     return pmod
-def Director_Legendary_SwiftnessSerum(player : Player.Player):
-    pmod = Player.getPModTemplate()
+director_epic = [Director_Epic_Pimento,Director_Epic_VinceHumility,Director_Epic_SnappedCellphone,
+                 Director_Epic_BloodCandle]
+def Director_Legendary_SwiftnessSerum(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''Swiftness Serum, courtesy of Amalgamo Inc.'''
     # Artifact Info
@@ -1447,8 +2691,8 @@ def Director_Legendary_SwiftnessSerum(player : Player.Player):
 
     # Return
     return pmod
-def Director_Legendary_MidCertification(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Legendary_MidCertification(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''An Ancient Mid Certification Badge, Passed Down for Hundreds of Years'''
     # Artifact Info
@@ -1485,8 +2729,8 @@ def Director_Legendary_MidCertification(player : Player.Player):
 
     # Return
     return pmod
-def Director_Legendary_MilkdudNarcotics(player : Player.Player):
-    pmod = Player.getPModTemplate()
+def Director_Legendary_MilkdudNarcotics(player):
+    pmod = b.getPModTemplate()
     # Artifact Name
     pmod["Name"] = '''An Assorted Baggy of Mystical Melvin Milkdud's Hallucinogenic Narcotics Labeled "Magic Candy for Kids of All Ages!'''
     # Artifact Info
@@ -1517,12 +2761,15 @@ def Director_Legendary_MilkdudNarcotics(player : Player.Player):
 
     # Return
     return pmod
+director_legendary = [Director_Legendary_SwiftnessSerum,Director_Legendary_MidCertification,
+                      Director_Legendary_MilkdudNarcotics]
 
 #endregion === Directors ===
 
-testPlayer = Player.Player()
-testPlayer["Archetype"] = Archetypes.ARCH_VIGILANTE
-testPlayer.genAttributes()
-
-testPMod = Vigilante_Legendary_EggrollVoucher(testPlayer)
-testPlayer.compilePMod(testPMod)
+ARTIFACTS = {"Neutral" : {"Rare" : neutral_rare, "Epic" : neutral_epic, "Legendary" : neutral_legendary, "Godlike" : neutral_godlike},
+             "Slayer" : {"Rare" : slayer_rare, "Epic" : slayer_epic, "Legendary" : slayer_legendary},
+             "Vigilante" : {"Rare" : vigilante_rare, "Epic" : vigilante_epic, "Legendary" : vigilante_legendary},
+             "Medic" : {"Rare" : medic_rare, "Epic" : medic_epic, "Legendary" : medic_legendary},
+             "Guardian" : {"Rare" : guardian_rare, "Epic" : guardian_epic, "Legendary" : guardian_legendary},
+             "Engineer" : {"Rare" : engineer_rare, "Epic" : engineer_epic, "Legendary" : engineer_legendary},
+             "Director" : {"Rare" : director_rare, "Epic" : director_epic, "Legendary" : director_legendary}}
