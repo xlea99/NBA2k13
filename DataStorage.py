@@ -5,7 +5,8 @@ import BaseFunctions as b
 import sqlite3 as sql
 from datetime import date
 import random
-
+import ast
+import json
 
 # This dictionary stores relevant values for each possible Jersey that can be selected.
 JERSEY_DICT = {
@@ -663,6 +664,8 @@ class DataStorage:
             thisPlayer["SpriteID"] = row["SpriteID"]
             for key in thisPlayer.vals.keys():
                 thisPlayer[key] = row[key]
+            if(row["PMods"] is not None):
+                thisPlayer.pmods = json.loads(row["PMods"])
             allPlayers[thisPlayer["SpriteID"]] = thisPlayer
 
         self.players = allPlayers
@@ -689,6 +692,13 @@ class DataStorage:
                     else:
                         finalVal = thisPlayer[key]
                     values.append(finalVal)
+                # We also handle serializing potential PMods for this Player.
+                columnNameQuery += "PMods, "
+                valuesQuery += "?, "
+                if(len(thisPlayer.pmods) > 0):
+                    values.append(json.dumps(thisPlayer.pmods))
+                else:
+                    values.append(None)
                 # Now, we append the SpriteID to actually replace/insert into the
                 # correct SpriteID.
                 columnNameQuery += "SpriteID)"
@@ -1116,7 +1126,8 @@ class DataStorage:
     #endregion === Helpers ===
 
 # The actual, global DataStorage object used.
-dataStorage = DataStorage()
+d = DataStorage()
+
 
 
 '''

@@ -331,6 +331,56 @@ class PlayerAttributeDisplay(QWidget):
         for attribute,label in self.generalAttributes.items():
             label.setText(f"{Archetypes.MAPPED_ATTRIBUTES[attribute]}: {playerObj[attribute]}")
 
+# This is one of the bottom half widgets that displays stats info. It displays all relevant player stats.
+class PlayerStatsDisplay(QWidget):
+
+    def __init__(self, dataStorageObject : DataStorage.DataStorage, parent=None):
+        super().__init__(parent)
+
+        self.dataStorage = dataStorageObject
+
+        self.layout = QVBoxLayout(self)
+
+        self.setup_stats_display()
+
+    def setup_stats_display(self):
+        self.statsFrame = QFrame(self)
+        self.statsFrame.setFrameShape(QFrame.StyledPanel)
+        self.statsLayout = QGridLayout(self.statsFrame)
+
+        # Define stats labels
+        self.statsLabels = {
+            "Points": QLabel("Points: N/A"),
+            "DefensiveRebounds": QLabel("Defensive Rebounds: N/A"),
+            "OffensiveRebounds": QLabel("Offensive Rebounds: N/A"),
+            "PointsPerAssist": QLabel("Points Per Assist: N/A"),
+            "AssistCount": QLabel("Assist Count: N/A"),
+            "Steals": QLabel("Steals: N/A"),
+            "Blocks": QLabel("Blocks: N/A"),
+            "Turnovers": QLabel("Turnovers: N/A"),
+            "InsidesMade": QLabel("Insides Made: N/A"),
+            "InsidesAttempted": QLabel("Insides Attempted: N/A"),
+            "ThreesMade": QLabel("Threes Made: N/A"),
+            "ThreesAttempted": QLabel("Threes Attempted: N/A"),
+            "Fouls": QLabel("Fouls: N/A"),
+            "Dunks": QLabel("Dunks: N/A"),
+            "Layups": QLabel("Layups: N/A"),
+            "Unknown1": QLabel("Unknown1: N/A"),
+            "Unknown2": QLabel("Unknown2: N/A"),
+        }
+
+        # Position the labels in the grid
+        positions = [(i, j) for i in range(8) for j in range(2)]  # Adjust grid size as needed
+        for pos, (name, label) in zip(positions, self.statsLabels.items()):
+            self.statsLayout.addWidget(label, *pos)
+
+        self.layout.addWidget(self.statsFrame)
+
+    def update_stats(self, spriteID, statType="Totals"):
+        # statType could be "Totals" or "Averages"
+        for statName, label in self.statsLabels.items():
+            statValue = self.dataStorage.stats[spriteID][statType][statName]
+            label.setText(f"{statName.replace('_', ' ')}: {statValue}")
 
 
 app = QApplication()

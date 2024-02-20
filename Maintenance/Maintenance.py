@@ -21,9 +21,7 @@ def genBlankPlayersTable(dbPath,tableName="Players"):
                             "Archetype": "Text",
                             "Rarity": "Text",
                             "CAP_Nick": "Integer",
-                            "ArtifactName": "Text",
-                            "ArtifactDesc": "Text",
-                            "ArtifactCode": "Blob",
+                            "PMods" : "Text",
                             "Hand": "Integer",
                             "Height": "Integer",
                             "Weight": "Real",
@@ -1214,8 +1212,8 @@ def trackNewRoster(newRosterName,buildNewRosterFile=False,dataStorageObject=None
 #----------------------------------------------------------
 
 maxSpriteID = 355
-oldPlayersFilePath = f"{b.paths.databases}\\Players.db"
-newPlayersFilePath = f"{b.paths.databases}\\PlayersTest.db"
+oldPlayersFilePath = f"{b.paths.databases}\\PlayersPostPMod.db"
+newPlayersFilePath = f"{b.paths.databases}\\PlayersEpic.db"
 
 genBlankPlayersTable(dbPath=newPlayersFilePath)
 dOld = DataStorage.DataStorage(playersPathOverride=oldPlayersFilePath)

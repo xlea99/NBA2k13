@@ -3,7 +3,7 @@ import BaseFunctions as b
 import Archetypes
 import math
 import WeightedDict
-import PMod
+import PModOLD
 
 
 # EXTRA VALUES:
@@ -31,35 +31,35 @@ class Player:
                     "Post Up High","Cutter","Mid Range","3 PT"],
         "PlayType4" : ["None","Isolation","P&R Ball Handler","P&R Roll Man","Post Up Low",
                     "Post Up High","Cutter","Mid Range","3 PT"],
-        "SigSkill1" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill1" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
-        "SigSkill2" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill2" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
-        "SigSkill3" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill3" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
-        "SigSkill4" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill4" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
-        "SigSkill5" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill5" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
         "AShtForm" : ["Release 1", "Release 2", "Release 3", "Release 4", "Release 5", "Release 6", "Release 7",
                      "Release 8", "Release 9", "Release 10", "Release 11", "Release 12", "Release 13",
@@ -273,9 +273,6 @@ class Player:
                     "Archetype": None, # Default to none - archetype MUST be set.
                     "Rarity": "Common", # Default to common rarity
                     "CAP_Nick": 0,
-                    "ArtifactName": None, # Artifacts default to none, and can only be added by generation.
-                    "ArtifactDesc": None, # Artifacts default to none, and can only be added by generation.
-                    "ArtifactCode": None, # Artifacts default to none, and can only be added by generation.
                     "Hand": 1, # Default is right
                     "Height": 70, # Default is 5'10
                     "Weight": 185.0, # Default is 185
@@ -752,6 +749,10 @@ class Player:
                     "ExtraValue49": None,
                     "ExtraValue50": None}
 
+        # List of any PMods applied to this object. All PMods in this list have ALREADY BEEN COMPILED
+        # against this player.
+        self.pmods = []
+
         # This helper member tracks whether changes have been made to this Player object,
         # with the intent to organically detect necessary updates.
         self.hasPendingUpdates = False
@@ -791,6 +792,9 @@ class Player:
         # Testing if the key is for SpriteID.
         elif(key == "SpriteID"):
             return self.__spriteID
+        # Testing if the key is to access the list of pmods.
+        elif(key == "PMods" or key == "PMod"):
+            return self.pmods
         # Testing if the key is an ExtraValue.
         elif(key in self.extraValuesMap.keys()):
             return self.vals[self.extraValuesMap[key]]
@@ -1376,7 +1380,7 @@ class Player:
         self.vals["PlayType4"] = "0"
 
         self.hasPendingUpdates = True
-    # This method  randomly selects and generates an artifact based on rarity and archetype..
+    # This method  randomly selects and generates an artifact based on rarity and archetype.
     def generateArtifact(self,archetype = None,rarity = None):
         if(archetype is None):
             if(self.vals["Archetype"] is None):
@@ -1391,7 +1395,7 @@ class Player:
                 rarity = self.vals["Rarity"]
 
         if(rarity != "Common"):
-            artGen = PMod.PModCompiler(f"{b.paths.programData}\\Artifacts.txt",self)
+            artGen = PModOLD.PModCompiler(f"{b.paths.programData}\\Artifacts.txt",self)
             validNeutralArtifactIndexes = []
             validArchetypalArtifactIndexes = []
             counter = 0
@@ -1435,3 +1439,47 @@ class Player:
 
     #endregion === Generators ===
 
+    #region === PMod ===
+
+    # This method accepts a PMod (Player Modification) data structure, compiles it against this
+    # player object, and stores it permanently.
+    def compilePMod(self,pmod : dict):
+        for modification in pmod["Modifications"]:
+            if(modification["Key"] not in pmod["PrevValues"].keys()):
+                pmod["PrevValues"][modification["Key"]] = self[modification["Key"]]
+            if(modification["Operation"] == "Add"):
+                self[modification["Key"]] += modification["Value"]
+            elif(modification["Operation"] == "Subtract"):
+                self[modification["Key"]] -= modification["Value"]
+            elif(modification["Operation"] == "Set"):
+                self[modification["Key"]] = modification["Value"]
+            else:
+                raise ValueError(f"Incorrect PMod operation type: '{modification['Operation']}'")
+        pmod["Compiled"] = True
+        self.pmods.append(pmod)
+
+    # Given the index of a PMod in the self.pmods list, this method reverts the changes made by it
+    # and removes it from the list, returning a decompiled version.
+    def revertPMod(self,index : int):
+        pmodToRevert = self.pmods.pop(index)
+        for keyToRevert,valueToRevert in pmodToRevert["PrevValues"].items():
+            self[keyToRevert] = valueToRevert
+
+        pmodToRevert["Compiled"] = False
+        pmodToRevert["PrevValues"] = {}
+
+        return pmodToRevert
+
+    #endregion === PMod ===
+
+
+# Helper method to return a PMod template dictionary.
+def getPModTemplate():
+    return {
+        "Name": None,
+        "Type": {},
+        "Description" : None,
+        "Modifications": [],
+        "Compiled": False,
+        "PrevValues": {}
+    }
