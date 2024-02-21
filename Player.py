@@ -4,6 +4,7 @@ import Archetypes
 import math
 import WeightedDict
 import Artifacts
+import Factions
 
 
 # EXTRA VALUES:
@@ -1380,9 +1381,13 @@ class Player:
         self.vals["PlayType4"] = "0"
 
         self.hasPendingUpdates = True
+    # Generates a few random, miscellaneous, inconsequential values.
+    def genMisc(self):
+        self.vals["Personality"] = random.randrange(0,len(self.idMap["Personality"]))
+        self.hasPendingUpdates = True
     # This method  randomly selects and generates an artifact based on rarity and archetype.
-    def genArtifact(self,archetype = None,rarity = None,specificArtifact = None):
-        if(specificArtifact is None):
+    def genArtifact(self,archetype = None,rarity = None,artifact = None):
+        if(artifact is None):
             if(archetype is None):
                 if(self.vals["Archetype"] is None):
                     raise ValueError("Must specify an archetype if the Player's default archetype is None.")
@@ -1407,15 +1412,16 @@ class Player:
                 pmod = targetArtifact(self)
                 self.compilePMod(pmod=pmod)
         else:
-            pmod = specificArtifact(self)
+            pmod = artifact(self)
             self.compilePMod(pmod=pmod)
 
         self.hasPendingUpdates = True
-    # Generates a few random, miscellaneous, inconsequential values.
-    def genMisc(self):
-        self.vals["Personality"] = random.randrange(0,len(self.idMap["Personality"]))
+    # Helper method that connects to Factions.py to generate random or specific faction information for this player.
+    def genFaction(self,faction : str = None):
+        if(faction is None):
+            faction = Factions.getRandomFaction()
+        Factions.genFaction(faction=faction,player=self)
 
-        self.hasPendingUpdates = True
 
     #endregion === Generators ===
 
@@ -1452,23 +1458,23 @@ class Player:
 
     #endregion === PMod ===
 
-
-
-testPlayer = Player()
-testPlayer["Archetype"] = Archetypes.ARCH_SLAYER
-testPlayer["Rarity"] = "Common"
-testPlayer.genAttributes()
-testPlayer.genTendencies()
-testPlayer.genHotspots()
-testPlayer.genHeight()
-testPlayer.genAnimations()
-testPlayer.genPlayStyle()
-testPlayer.genPlayTypes()
-testPlayer.genMisc()
-specificArtifact = Artifacts.Neutral_Godlike_JuicerBlacklist
-print(f"{testPlayer['Archetype_Name']}")
-testPlayer.genArtifact(specificArtifact=specificArtifact)
-
+allPlayers = []
+for i in range(50):
+    testPlayer = Player()
+    testPlayer.genArchetype()
+    testPlayer.genRarity()
+    testPlayer.genAttributes()
+    testPlayer.genTendencies()
+    testPlayer.genHotspots()
+    testPlayer.genHeight()
+    testPlayer.genAnimations()
+    testPlayer.genPlayStyle()
+    testPlayer.genPlayTypes()
+    testPlayer.genMisc()
+    testPlayer.genArtifact()
+    testPlayer.genFaction()
+    print(f"{testPlayer['First_Name']} {testPlayer['Last_Name']} ({testPlayer['Rarity']} {testPlayer['Archetype_Name']}) | Faction: {testPlayer['Faction']}")
+    allPlayers.append(testPlayer)
 
 
 

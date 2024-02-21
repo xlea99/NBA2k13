@@ -3,8 +3,6 @@ import csv
 import sqlite3
 import os
 import random
-import sys
-import Player
 
 #region === Database Maintenance ===
 
@@ -830,12 +828,8 @@ dbDict = buildDatabaseDict()
 
 #endregion === Build DB Dict ===
 
-# This method uses race information to generate all headshape information for a given player
-# object, or a new returned one if not provided.
-def genRaceHeadshape(raceName : str,player : Player.Player = None):
-    if(player is None):
-        player = Player.Player()
-
+# This method uses race information to generate all headshape information for a given player.
+def genRaceHeadshape(raceName : str,player):
     if(raceName not in dbDict["Races"].keys()):
         raise ValueError(f"Invalid race name: '{raceName}'")
 
@@ -851,12 +845,8 @@ def genRaceHeadshape(raceName : str,player : Player.Player = None):
 
     player["Race"] = raceName
     return player
-# This method uses a given gearset to generate all gear information for a given player object,
-# or a new returned one if not provided.
-def genGearset(gearset : str,player : Player.Player = None):
-    if(player is None):
-        player = Player.Player()
-
+# This method uses a given gearset to generate all gear information for a given player.
+def genGearset(gearset : str,player):
     if(gearset not in dbDict["GearSets"].keys()):
         raise ValueError(f"Invalid gearset name: '{gearset}'")
     thisGearset = dbDict["GearSets"][gearset]
@@ -921,12 +911,8 @@ def genGearset(gearset : str,player : Player.Player = None):
         player[symmetricalCounterpart] = player[symmetrySlot]
 
     return player
-# This method generates factional information for an existing Player object, or outputs
-# a new one.
-def genFaction(faction : str,player : Player.Player = None):
-    if(player is None):
-        player = Player.Player()
-
+# This method generates factional information for an existing Player.
+def genFaction(faction : str,player):
     if(faction not in dbDict["Factions"].keys()):
         raise ValueError(f"Invalid faction name: '{faction}'")
     thisFactionDict = dbDict["Factions"][faction]
@@ -1061,7 +1047,3 @@ def getRandomFaction():
 
 
 # TODO FIX YOUR RSTRING IDIOT
-# TODO NAMELISTS:
-# - Roman
-
-
