@@ -129,7 +129,7 @@ class PlayerBio(QWidget):
 
     def update_player_bio(self, playerObj):
         factionPixmap = QPixmap(f"{b.paths.graphics}\\FactionIcons\\{playerObj['Faction']}.png") # Assume you get a QPixmap for the faction
-        self.factionImage.setPixmap(factionPixmap.scaled(75, 75, Qt.KeepAspectRatio))
+        self.factionImage.setPixmap(factionPixmap.scaled(75, 75, Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
         self.playerName.setText(f"{playerObj['First_Name']} {playerObj['Last_Name']}")
 

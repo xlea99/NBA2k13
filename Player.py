@@ -1459,7 +1459,7 @@ class Player:
     #endregion === PMod ===
 
 allPlayers = []
-for i in range(50):
+for i in range(0):
     testPlayer = Player()
     testPlayer.genArchetype()
     testPlayer.genRarity()
