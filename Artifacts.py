@@ -94,7 +94,7 @@ def Neutral_Rare_PesticideJuice(player):
     pmod["Type"]["ArchetypeLock"] = "Neutral"
     pmod["Type"]["Rarity"] = "Rare"
     # Description
-    pmod["Description"] = '''Add Antifreeze. -25 a random, unaccented Primary Stat.'''
+    pmod["Description"] = '''Add Antifreeze and Heat Retention. -25 a random, unaccented Primary Stat.'''
 
     # Implementation
     possibleAttributes = []
@@ -104,6 +104,7 @@ def Neutral_Rare_PesticideJuice(player):
 
     pmod["Modifications"].append({"Operation": "Subtract", "Key": random.choice(possibleAttributes), "Value": 25})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Anti-Freeze"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Heat Retention"})
 
 
     # Return
@@ -207,34 +208,28 @@ def Neutral_Rare_CornerClub(player):
 
     # Return
     return pmod
-def Neutral_Rare_PilatesCourse(player):
+def Neutral_Rare_BlueMeth(player):
     pmod = b.getPModTemplate()
     # Artifact Name
-    pmod["Name"] = '''Warren the Undying's Intense Pilates Crash Course'''
+    pmod["Name"] = '''Blue Crystal Meth'''
     # Artifact Info
     pmod["Type"]["TypeName"] = "Artifact"
     pmod["Type"]["ArchetypeLock"] = "Neutral"
     pmod["Type"]["Rarity"] = "Rare"
     # Description
-    pmod["Description"] = '''Add +5-7 to all accented Primary stats. -5 to all other stats.'''
+    pmod["Description"] = '''Subtract -40 from both Offensive and Defensive Awareness.  Adds Microwave.'''
 
     # Implementation
-    for attribute in Archetypes.ALL_ATTRIBUTES:
-        if(attribute in player["Archetype"].primaryAttributes and attribute in player["Archetype"].accentedAttributes):
-            pmod["Modifications"].append({"Operation": "Add", "Key": attribute, "Value": random.randrange(5,8)})
-        else:
-            pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": 5})
-
-
-
-
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SOAwar", "Value": 40})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SDAwar", "Value": 40})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Microwave"})
 
 
     # Return
     return pmod
 neutral_rare = [Neutral_Rare_GaryGloves,Neutral_Rare_CalebLemonade,Neutral_Rare_PesticideJuice,
-                Neutral_Rare_BuffetSneakers,Neutral_Rare_RomeSandals,Neutral_Rare_ScooterLoops,
-                Neutral_Rare_CornerClub,Neutral_Rare_PilatesCourse]
+                Neutral_Rare_BuffetSneakers,Neutral_Rare_BlueMeth,Neutral_Rare_RomeSandals,Neutral_Rare_ScooterLoops,
+                Neutral_Rare_CornerClub]
 def Neutral_Epic_LincolnOs(player):
     pmod = b.getPModTemplate()
     # Artifact Name
@@ -267,21 +262,27 @@ def Neutral_Epic_LincolnOs(player):
 
     # Return
     return pmod
-def Neutral_Epic_BlueMeth(player):
+def Neutral_Epic_PilatesCourse(player):
     pmod = b.getPModTemplate()
     # Artifact Name
-    pmod["Name"] = '''Blue Crystal Meth'''
+    pmod["Name"] = '''Warren the Undying's Intense Pilates Crash Course'''
     # Artifact Info
     pmod["Type"]["TypeName"] = "Artifact"
     pmod["Type"]["ArchetypeLock"] = "Neutral"
     pmod["Type"]["Rarity"] = "Epic"
     # Description
-    pmod["Description"] = '''Subtract -40 from both Offensive and Defensive Awareness.  Adds Microwave.'''
+    pmod["Description"] = '''Add +5-7 to all accented Primary stats. -5 to all other stats.'''
 
     # Implementation
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SOAwar", "Value": 40})
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SDAwar", "Value": 40})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Microwave"})
+    for attribute in Archetypes.ALL_ATTRIBUTES:
+        if(attribute in player["Archetype"].primaryAttributes and attribute in player["Archetype"].accentedAttributes):
+            pmod["Modifications"].append({"Operation": "Add", "Key": attribute, "Value": random.randrange(5,8)})
+        else:
+            pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": 5})
+
+
+
+
 
 
     # Return
@@ -418,7 +419,7 @@ def Neutral_Epic_PowerWordSiamese(player):
 
     # Return
     return pmod
-neutral_epic = [Neutral_Epic_LincolnOs,Neutral_Epic_BlueMeth,Neutral_Epic_PowerWordBo,Neutral_Epic_PowerWordConfuse,
+neutral_epic = [Neutral_Epic_LincolnOs,Neutral_Epic_PilatesCourse,Neutral_Epic_PowerWordBo,Neutral_Epic_PowerWordConfuse,
                 Neutral_Epic_PowerWordBluegill,Neutral_Epic_PowerWordSiamese]
 def Neutral_Legendary_LaatzCrunch(player):
     pmod = b.getPModTemplate()
@@ -537,11 +538,11 @@ def Neutral_Legendary_YesCindy(player):
     pmod["Type"]["ArchetypeLock"] = "Neutral"
     pmod["Type"]["Rarity"] = "Legendary"
     # Description
-    pmod["Description"] = '''Add 20 to all tertiary stats, remove 20 from all primary stats. Add a fully random special shot:\n\n'''
+    pmod["Description"] = '''Add 30 to all tertiary stats, remove 20 from all primary stats. Add a fully random special shot:\n\n'''
 
     # Implementation
     for tertiaryAttribute in player["Archetype"].tertiaryAttributes:
-        pmod["Modifications"].append({"Operation": "Add", "Key": tertiaryAttribute, "Value": 20})
+        pmod["Modifications"].append({"Operation": "Add", "Key": tertiaryAttribute, "Value": 30})
 
     for primaryAttribute in player["Archetype"].primaryAttributes:
         pmod["Modifications"].append({"Operation": "Subtract", "Key": primaryAttribute, "Value": 20})
@@ -651,7 +652,7 @@ def Neutral_Godlike_BrokenPromise(player):
     pmod["Type"]["ArchetypeLock"] = "Neutral"
     pmod["Type"]["Rarity"] = "Godlike"
     # Description
-    pmod["Description"] = '''Height is set to 8'0. All abilities except for one random primary and one random secondary are set to 25. Give the player Brick Wall.'''
+    pmod["Description"] = '''Height is set between 8'5 and 8'10. All abilities except for one random primary and one random secondary are set to 25. Give the player Brick Wall.'''
 
     # Implementation
     randomPrimaryAttribute = random.choice(player["Archetype"].primaryAttributes)
@@ -661,7 +662,7 @@ def Neutral_Godlike_BrokenPromise(player):
         if(attribute not in [randomPrimaryAttribute,randomSecondaryAttribute]):
             pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 25})
 
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": 96})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": random.randrange(101,107)})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Brick Wall"})
 
 
@@ -676,7 +677,7 @@ def Neutral_Godlike_RussianRoulette(player):
     pmod["Type"]["ArchetypeLock"] = "Neutral"
     pmod["Type"]["Rarity"] = "Godlike"
     # Description
-    pmod["Description"] = '''Set all stats to 99. Play 1-6 rounds of Russian Roulette, for each round subtract 10-15 from each stat.\n\n'''
+    pmod["Description"] = '''Set all stats to 99. Play 1-6 rounds of Russian Roulette, for each round subtract 7-13 from each stat.\n\n'''
 
     # Implementation
     currentAttributeVals = {}
@@ -686,12 +687,12 @@ def Neutral_Godlike_RussianRoulette(player):
     roundsOfRussianRoulette = random.randrange(1,7)
     for roundOfRussianRoulette in range(roundsOfRussianRoulette):
         for attribute in currentAttributeVals.keys():
-            currentAttributeVals[attribute] -= random.randrange(10,16)
+            currentAttributeVals[attribute] -= random.randrange(7,14)
 
     for attribute,value in currentAttributeVals.items():
         pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": value})
 
-    if(roundsOfRussianRoulette > 0):
+    if(roundsOfRussianRoulette > 1):
         pmod["Description"] += f"This player played {roundsOfRussianRoulette} rounds of Russian Roulette."
     else:
         pmod["Description"] += f"This player played {roundsOfRussianRoulette} round of Russian Roulette."
@@ -732,14 +733,14 @@ def Neutral_Godlike_PesticideBeer(player):
 
     for primaryAttribute in possibleAttributeSets[newPrimary]:
         if(primaryAttribute in newPrimaryAccents):
-            pmod["Modifications"].append({"Operation": "Set", "Key": primaryAttribute, "Value": random.randrange(70, 91)})
+            pmod["Modifications"].append({"Operation": "Set", "Key": primaryAttribute, "Value": random.randrange(80, 100)})
         else:
-            pmod["Modifications"].append({"Operation": "Set", "Key": primaryAttribute, "Value": random.randrange(65,84)})
+            pmod["Modifications"].append({"Operation": "Set", "Key": primaryAttribute, "Value": random.randrange(70,86)})
     for secondaryAttribute in possibleAttributeSets[newSecondary]:
         if(secondaryAttribute in newSecondaryAccents):
-            pmod["Modifications"].append({"Operation": "Set", "Key": secondaryAttribute, "Value": random.randrange(55, 71)})
+            pmod["Modifications"].append({"Operation": "Set", "Key": secondaryAttribute, "Value": random.randrange(60, 76)})
         else:
-            pmod["Modifications"].append({"Operation": "Set", "Key": secondaryAttribute, "Value": random.randrange(45,66)})
+            pmod["Modifications"].append({"Operation": "Set", "Key": secondaryAttribute, "Value": random.randrange(50,66)})
     for tertiaryAttribute in possibleAttributeSets[newTertiary]:
         if(tertiaryAttribute in newTertiaryAccents):
             pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute, "Value": random.randrange(35, 51)})
@@ -809,22 +810,15 @@ def Neutral_Godlike_SnehGambling(player):
     pmod["Type"]["ArchetypeLock"] = "Neutral"
     pmod["Type"]["Rarity"] = "Godlike"
     # Description
-    pmod["Description"] = '''Set all stats to 25. 5 random stats are set to 99. Add 5 random Skill Cards. Add 5 inches to Height.'''
+    pmod["Description"] = '''Set all stats to 25. 7 random stats are set to 99. Add 5 random Skill Cards. Set Height between 6'0 - 7'6.'''
 
     # Implementation
     possibleAttributes = Archetypes.ALL_ATTRIBUTES.copy()
-    attribute1 = random.choice(possibleAttributes)
-    possibleAttributes.remove(attribute1)
-    attribute2 = random.choice(possibleAttributes)
-    possibleAttributes.remove(attribute2)
-    attribute3 = random.choice(possibleAttributes)
-    possibleAttributes.remove(attribute3)
-    attribute4 = random.choice(possibleAttributes)
-    possibleAttributes.remove(attribute4)
-    attribute5 = random.choice(possibleAttributes)
+    random.shuffle(possibleAttributes)
+
 
     for attribute in Archetypes.ALL_ATTRIBUTES:
-        if(attribute in [attribute1,attribute2,attribute3,attribute4,attribute5]):
+        if(attribute in possibleAttributes[:7]):
             pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 99})
         else:
             pmod["Modifications"].append({"Operation": "Set", "Key": attribute, "Value": 25})
@@ -838,7 +832,7 @@ def Neutral_Godlike_SnehGambling(player):
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill4", "Value": sigSkillValues[3]})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill5", "Value": sigSkillValues[4]})
 
-    pmod["Modifications"].append({"Operation": "Add", "Key": "HeightIn", "Value": 5})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": random.randrange(72,91)})
 
 
 
@@ -872,7 +866,7 @@ def Neutral_Godlike_JuicerBlacklist(player):
     pmod["Type"]["ArchetypeLock"] = "Neutral"
     pmod["Type"]["Rarity"] = "Godlike"
     # Description
-    pmod["Description"] = '''Amazed that almost every single person he knows is on this blacklist, the player decides to totally rethink his in game strategy. Add 3 random skill cards, randomly set all stats to 25-90. Add any special shot:\n\n'''
+    pmod["Description"] = '''Amazed that almost every single person he knows is on this blacklist, the player decides to totally rethink his in game strategy. Add 3 random skill cards, randomly set all stats to 25-90. Set Height between 5'0 - 7'9. Add any legendary special shot:\n\n'''
 
     # Implementation
     for attribute in Archetypes.ALL_ATTRIBUTES:
@@ -884,11 +878,9 @@ def Neutral_Godlike_JuicerBlacklist(player):
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": sigSkillValues[1]})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill3", "Value": sigSkillValues[2]})
 
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": random.randrange(60,94)})
+
     potentialSpecialShots = []
-    for shotList in RARE_SPECIAL_SHOTS.values():
-        potentialSpecialShots += shotList
-    for shotList in EPIC_SPECIAL_SHOTS.values():
-        potentialSpecialShots += shotList
     for shotList in LEGENDARY_SPECIAL_SHOTS.values():
         potentialSpecialShots += shotList
     specialShotChoice = random.choice(potentialSpecialShots)
@@ -988,10 +980,10 @@ def Slayer_Rare_BartenderSword(player):
     pmod["Type"]["ArchetypeLock"] = "Slayer"
     pmod["Type"]["Rarity"] = "Rare"
     # Description
-    pmod["Description"] = '''Besides gaining the psychotic 3 consciences of Algemi and the disembodied voice of Christian Shearcliff all screaming at each other in their mind, the player also loses 3 inches in Height.  Add Spot up Shooter.'''
+    pmod["Description"] = '''Besides gaining the psychotic 3 consciences of Algemi and the disembodied voice of Christian Shearcliff all screaming at each other in their mind, the player also loses 3-4 inches in Height.  Add Spot up Shooter.'''
 
     # Implementation
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "HeightIn", "Value": 3})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "HeightIn", "Value": random.randrange(3,5)})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Spot Up Shooter"})
 
 
@@ -1088,8 +1080,7 @@ def Slayer_Epic_IlluminatiPizza(player):
     pmod["Type"]["ArchetypeLock"] = "Slayer"
     pmod["Type"]["Rarity"] = "Epic"
     # Description
-    pmod[
-        "Description"] = '''Ah, a member I see. The player joins the illuminati and changes in the following fashion: Set Offensive and Defensive awareness to 99. Add 20 to Pass. Add Dimer, Post Playmaker, Alley-ooper, and Ankle Breaker. -12 to 3Pt.'''
+    pmod["Description"] = '''Ah, a member I see. The player joins the illuminati and changes in the following fashion: Set Offensive and Defensive awareness to 99. Add 20 to Pass. Add Dimer, Post Playmaker, Alley-ooper, and Ankle Breaker. -12 to 3Pt.'''
 
     # Implementation
     pmod["Modifications"].append({"Operation": "Set", "Key": "SOAwar", "Value": 99})
@@ -1118,45 +1109,25 @@ def Slayer_Legendary_RuizAspirations(player):
     pmod["Type"]["Rarity"] = "Legendary"
     # Description
     pmod[
-        "Description"] = '''David always wanted to be Kobe Bryant, and the player makes the leap where David could not and turns from a soft-spoken Mexican man to a basketball overlord. Set all Signature Skills to Kobe Bryant's.  Add Acrobat. Set all tertiary stats to 25. -30 to passing.'''
+        "Description"] = '''David always wanted to be Kobe Bryant, and the player makes the leap where David could not and turns from a soft-spoken Mexican man to a basketball overlord. Set the Shot Form and Base to Kobe Bryant's. Set Shot Form and Shot Base to Kobe Bryant's.  Add 20 to Off Hand Dribbling, Ball Handling, and Vertical. Set all tertiary stats, Passing, and Hustle to 25. -30 to passing. Add Acrobat, Ankle Breaker, and Microwave.'''
 
     # Implementation
     for tertiaryAttribute in player["Archetype"].tertiaryAttributes:
         pmod["Modifications"].append({"Operation": "Set", "Key": tertiaryAttribute, "Value": 25})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SPass", "Value": 25})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SHustle", "Value": 25})
 
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SPass", "Value": 30})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SOffHDrib", "Value": 20})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SVertical", "Value": 20})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SBallHndl", "Value": 20})
+
+
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Acrobat"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Ankle Breaker"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill3", "Value": "Microwave"})
 
     pmod["Modifications"].append({"Operation": "Set", "Key": "AShtForm", "Value": 93})
     pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": 71})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AFadeaway", "Value": 19})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AContestd", "Value": 0})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AEscDrPlU", "Value": 1})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ARunner", "Value": 1})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AFreeT", "Value": 36})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ADrPullUp", "Value": 4})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ASpinJmpr", "Value": 6})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AHopJmpr", "Value": 2})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "APstFade", "Value": 4})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "APstHook", "Value": 5})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "APstHopSh", "Value": 7})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "APstShmSh", "Value": 0})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "APstDrvStB", "Value": 3})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "APstSpnStB", "Value": 0})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "APstPrtct", "Value": 0})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "APstPrtSpn", "Value": 0})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoCross", "Value": 1})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoBhBck", "Value": 6})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoSpin", "Value": 6})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AIsoHesit", "Value": 1})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ALayUp", "Value": 8})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AGoToDunk", "Value": 8})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk2", "Value": 5})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk3", "Value": 7})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk4", "Value": 10})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk5", "Value": 16})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk6", "Value": 30})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "ADunk7", "Value": 46})
 
     # Return
     return pmod
@@ -1383,14 +1354,15 @@ def Vigilante_Epic_DrewGall(player):
     pmod["Type"]["ArchetypeLock"] = "Vigilante"
     pmod["Type"]["Rarity"] = "Epic"
     # Description
-    pmod["Description"] = '''Feeling enraged by the absolute nerve of fellow coworker Drew Meier passing his 9th call of the day, the player spitefully changes as follows: Set Passing and Quickness to 99.  Add Dimer and Alley-Ooper. -10 to all primary stats.'''
+    pmod["Description"] = '''Feeling enraged by the absolute nerve of fellow coworker Drew Meier passing his 9th call of the day, the player spitefully changes as follows: Set Passing and Quickness to 99.  Add Dimer and Alley-Ooper. -7-10 to all accented primary stats. '''
 
     # Implementation
     pmod["Modifications"].append({"Operation": "Set", "Key": "SPass", "Value": 99})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SQuick", "Value": 99})
 
     for primaryAttribute in player["Archetype"].primaryAttributes:
-        pmod["Modifications"].append({"Operation": "Subtract", "Key": primaryAttribute, "Value": 10})
+        if(primaryAttribute in player["Archetype"].accentedAttributes):
+            pmod["Modifications"].append({"Operation": "Subtract", "Key": primaryAttribute, "Value": random.randrange(7,11)})
 
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Dimer"})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Alley Oopers"})
@@ -1465,10 +1437,10 @@ def Vigilante_Legendary_TrumpChina(player):
     pmod["Type"]["ArchetypeLock"] = "Vigilante"
     pmod["Type"]["Rarity"] = "Legendary"
     # Description
-    pmod["Description"] = '''It's very big and beautiful, the greatest art. I do have to say it is really great. This sets the player's height to 7'6. Set all Signature Skills to Yao Ming's. Set Vertical to 25, and all secondary stats randomized between 25-40. Add Finisher and Deadeye skills.'''
+    pmod["Description"] = '''It's very big and beautiful, the greatest art. I do have to say it is really great. Set height between 7'3-7'8. Set Vertical to 25, and all secondary stats randomized between 25-40. Add Finisher and Deadeye skills.'''
 
     # Implementation
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": 90})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HeightIn", "Value": random.randrange(87,93)})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SVertical", "Value": 25})
 
     for secondaryAttribute in player["Archetype"].secondaryAttributes:
@@ -1476,9 +1448,6 @@ def Vigilante_Legendary_TrumpChina(player):
     
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Finisher"})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Deadeye"})
-
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AShtBase", "Value": 124})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "AFadeaway", "Value": 30})
 
 
 
@@ -1494,11 +1463,18 @@ def Vigilante_Legendary_DickScorecard(player):
     pmod["Type"]["Rarity"] = "Legendary"
     # Description
     pmod[
-        "Description"] = '''Shedding a tear at such a beautiful piece of 2k history, the player is reformed in the following fashion: Subtract 10 from all stats. Add Microwave, Deadeye, Spot-up Shooter, Shot Creator, and War General.  Get an epic or legendary special shot:\n\n'''
+        "Description"] = '''Shedding a tear at such a beautiful piece of 2k history, the player is reformed in the following fashion: Subtract 250 points randomly distributed between all stats. Add Microwave, Deadeye, Spot-up Shooter, Shot Creator, and War General.  Get an epic or legendary special shot:\n\n'''
 
     # Implementation
-    for attribute in Archetypes.ALL_ATTRIBUTES:
-        pmod["Modifications"].append({"Operation": "Subtract", "Key": attribute, "Value": 10})
+    pointsToSpend = 250
+    adjustedAttributes = {}
+    while pointsToSpend > 0:
+        randomAttribute = random.choice(Archetypes.ALL_ATTRIBUTES)
+        adjustedAttributes[randomAttribute] = adjustedAttributes.get(randomAttribute,0) + 1
+        pointsToSpend -= 1
+    for adjustedAttribute,value in adjustedAttributes.items():
+        pmod["Modifications"].append({"Operation": "Subtract", "Key": adjustedAttribute, "Value": value})
+
 
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Microwave"})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Deadeye"})
@@ -1566,14 +1542,15 @@ def Medic_Rare_SubwayGiftcard(player):
     pmod["Type"]["ArchetypeLock"] = "Medic"
     pmod["Type"]["Rarity"] = "Rare"
     # Description
-    pmod["Description"] = '''Not enough to buy a 6 inch steak and cheese sandwich, but just enough to buy a miniature pizza. Add +10 to Offensive, Defensive Rebound, and Vertical. -10 to all Secondary Stats. Add Break Starter.'''
+    pmod["Description"] = '''Not enough to buy a 6 inch steak and cheese sandwich, but just enough to buy a miniature pizza. Add +5 to Offensive, Defensive Rebound, and Vertical. -5 to all accented Secondary Stats. Add Break Starter.'''
 
     # Implementation
-    pmod["Modifications"].append({"Operation" : "Add", "Key" : "SDReb", "Value" : 10})
-    pmod["Modifications"].append({"Operation" : "Add", "Key" : "SOReb", "Value" : 10})
-    pmod["Modifications"].append({"Operation" : "Add", "Key" : "SVertical", "Value" : 10})
+    pmod["Modifications"].append({"Operation" : "Add", "Key" : "SDReb", "Value" : 5})
+    pmod["Modifications"].append({"Operation" : "Add", "Key" : "SOReb", "Value" : 5})
+    pmod["Modifications"].append({"Operation" : "Add", "Key" : "SVertical", "Value" : 5})
     for secondaryAttribute in player["Archetype"].secondaryAttributes:
-        pmod["Modifications"].append({"Operation": "Subtract", "Key": secondaryAttribute, "Value": 10})
+        if(secondaryAttribute in player["Archetype"].accentedAttributes):
+            pmod["Modifications"].append({"Operation": "Subtract", "Key": secondaryAttribute, "Value": 5})
 
     pmod["Modifications"].append({"Operation" : "Set", "Key" : "SigSkill1", "Value" : "Break Starter"})
 
@@ -1588,14 +1565,15 @@ def Medic_Rare_WrapApron(player):
     pmod["Type"]["ArchetypeLock"] = "Medic"
     pmod["Type"]["Rarity"] = "Rare"
     # Description
-    pmod["Description"] = '''Stylish and groovy, this will surely make the player fit in with the cool crowd. Add +10 to all Secondary Stats. -10 to Offensive, Defensive Rebound, and Vertical. Add Post Playmaker.'''
+    pmod["Description"] = '''Stylish and groovy, this will surely make the player fit in with the cool crowd. Add +5 to all accented Secondary Stats. -5 to Offensive, Defensive Rebound, and Vertical. Add Post Playmaker.'''
 
     # Implementation
-    pmod["Modifications"].append({"Operation" : "Subtract", "Key" : "SDReb", "Value" : 10})
-    pmod["Modifications"].append({"Operation" : "Subtract", "Key" : "SOReb", "Value" : 10})
-    pmod["Modifications"].append({"Operation" : "Subtract", "Key" : "SVertical", "Value" : 10})
+    pmod["Modifications"].append({"Operation" : "Subtract", "Key" : "SDReb", "Value" : 5})
+    pmod["Modifications"].append({"Operation" : "Subtract", "Key" : "SOReb", "Value" : 5})
+    pmod["Modifications"].append({"Operation" : "Subtract", "Key" : "SVertical", "Value" : 5})
     for secondaryAttribute in player["Archetype"].secondaryAttributes:
-        pmod["Modifications"].append({"Operation": "Add", "Key": secondaryAttribute, "Value": 10})
+        if(secondaryAttribute in player["Archetype"].accentedAttributes):
+            pmod["Modifications"].append({"Operation": "Add", "Key": secondaryAttribute, "Value": 5})
 
     pmod["Modifications"].append({"Operation" : "Set", "Key" : "SigSkill1", "Value" : "Post Playmaker"})
 
@@ -1702,11 +1680,11 @@ def Medic_Epic_SpotlessGloves(player):
     pmod["Type"]["ArchetypeLock"] = "Medic"
     pmod["Type"]["Rarity"] = "Epic"
     # Description
-    pmod["Description"] = '''Feeling depressed that these beautiful gloves had to go to waste because of an obnoxious, power-hungry sewer mutant of a human being, the player changes as follows: Add 40 to Pass and Hands. -15 to all non-accented Primary and Secondary stats. Add Dimer, Break Starter, and Scrapper.'''
+    pmod["Description"] = '''Feeling depressed that these beautiful gloves had to go to waste because of an obnoxious, power-hungry sewer mutant of a human being, the player changes as follows: Add 40 to Pass and Hands. -15 to all accented Secondary stats. Add Dimer, Break Starter, and Scrapper.'''
 
     # Implementation
     for unaccentedAttribute in player["Archetype"].unaccentedAttributes:
-        if(unaccentedAttribute in player["Archetype"].primaryAttributes or unaccentedAttribute in player["Archetype"].secondaryAttributes):
+        if(unaccentedAttribute in player["Archetype"].secondaryAttributes):
             pmod["Modifications"].append({"Operation": "Subtract", "Key": unaccentedAttribute, "Value": 15})
 
     pmod["Modifications"].append({"Operation": "Add", "Key": "SPass", "Value": 40})
@@ -1729,12 +1707,14 @@ def Medic_Epic_CCTVFootage(player):
     pmod["Type"]["ArchetypeLock"] = "Medic"
     pmod["Type"]["Rarity"] = "Epic"
     # Description
-    pmod["Description"] = '''Yep, brace for the dreaded beep. The player changes while bracing for the drive-thru customer in the following way: Add +10 to accented Primary Skills. Spot up tendencies/hotspots will be set to almost always have the player post up for 3s. Add Alley-ooper and Deadeye.'''
+    pmod["Description"] = '''Yep, brace for the dreaded beep. The player changes while bracing for the drive-thru customer in the following way: Add +10 to accented Primary Skills. +15-25 to 3pt shot. Spot up tendencies/hotspots will be set to almost always have the player post up for 3s. Add Alley-ooper and Deadeye.'''
 
     # Implementation
     for accentedAttribute in player["Archetype"].accentedAttributes:
         if(accentedAttribute in player["Archetype"].primaryAttributes):
             pmod["Modifications"].append({"Operation": "Subtract", "Key": accentedAttribute, "Value": 10})
+
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SSht3PT", "Value": random.randrange(15, 26)})
 
     pmod["Modifications"].append({"Operation": "Set", "Key": "TPostUp", "Value": random.randrange(1,21)})
     pmod["Modifications"].append({"Operation": "Set", "Key": "TPostUp", "Value": random.randrange(70,101)})
@@ -2276,7 +2256,7 @@ def Engineer_Epic_ShirtSarcastic(player):
     pmod["Type"]["ArchetypeLock"] = "Engineer"
     pmod["Type"]["Rarity"] = "Epic"
     # Description
-    pmod["Description"] = '''So damn true. The player smiles knowingly and changes as follows: Add 20 to Speed and Quickness. Add 15 to accented secondary stats.  Strength and Low Post Defense are set to 25. -6 inches to Height.'''
+    pmod["Description"] = '''So damn true. The player smiles knowingly and changes as follows: Add 20 to Speed and Quickness. Add 15 to accented secondary stats.  Strength and Low Post Defense are set to 25. -5-7 inches to Height.'''
 
     # Implementation
     pmod["Modifications"].append({"Operation": "Add", "Key": "SSpeed", "Value": 20})
@@ -2286,7 +2266,7 @@ def Engineer_Epic_ShirtSarcastic(player):
             pmod["Modifications"].append({"Operation": "Add", "Key": accentedAttribute, "Value": 15})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SStrength", "Value": 25})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SDLowPost", "Value": 25})
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "HeightIn", "Value": 6})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "HeightIn", "Value": random.randrange(5,8)})
 
 
     # Return
@@ -2332,10 +2312,10 @@ def Engineer_Epic_ShirtTechSupport(player):
     pmod["Type"]["ArchetypeLock"] = "Engineer"
     pmod["Type"]["Rarity"] = "Epic"
     # Description
-    pmod["Description"] = '''Feeling relieved to work a job that builds so much character, the player evolves: Add 6 inches to height, subtract 30 from speed, quickness, and vertical. Add 20 to non-accented secondary stats. Add Eraser and Brick Wall.'''
+    pmod["Description"] = '''Feeling relieved to work a job that builds so much character, the player evolves: Add 5-7 inches to height, subtract 30 from speed, quickness, and vertical. Add 20 to non-accented secondary stats. Add Eraser and Brick Wall.'''
 
     # Implementation
-    pmod["Modifications"].append({"Operation": "Add", "Key": "HeightIn", "Value": 6})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "HeightIn", "Value": random.randrange(5,8)})
 
     pmod["Modifications"].append({"Operation": "Subtract", "Key": "SSpeed", "Value": 30})
     pmod["Modifications"].append({"Operation": "Subtract", "Key": "SQuick", "Value": 30})
@@ -2364,20 +2344,24 @@ def Engineer_Legendary_SecuritySerum(player):
     pmod["Type"]["ArchetypeLock"] = "Engineer"
     pmod["Type"]["Rarity"] = "Legendary"
     # Description
-    pmod["Description"] = '''Take 1-5 swigs of the Security Serum. For each swig taken, -10 Speed and Quickness, -5 Offensive Rebound, +5 Defensive Rebound, and +10 to Low Post Defense and On-Ball Defense.  Add Lockdown Defender and Eraser.\n\n'''
+    pmod["Description"] = '''Take 1-5 swigs of the Security Serum. For each swig taken, -8-12 Speed and Quickness, and Offensive Rebound, and +8-12 to Defensive Rebound, Low Post Defense, On-Ball Defense, Strength, Ball Security, Block, and Defensive Awareness. Add Lockdown Defender and Eraser.\n\n'''
 
     # Implementation
     swigs = random.randrange(1,6)
 
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SSpeed", "Value": swigs * 10})
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SQuick", "Value": swigs * 10})
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SOReb", "Value": swigs * 5})
-    pmod["Modifications"].append({"Operation": "Add", "Key": "SDReb", "Value": swigs * 5})
-    pmod["Modifications"].append({"Operation": "Add", "Key": "SDLowPost", "Value": swigs * 10})
-    pmod["Modifications"].append({"Operation": "Add", "Key": "SOnBallD", "Value": swigs * 10})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SSpeed", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SQuick", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SOReb", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SDReb", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SDLowPost", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SOnBallD", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SStrength", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SBallSec", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SBlock", "Value": swigs * random.randrange(8,13)})
+    pmod["Modifications"].append({"Operation": "Add", "Key": "SDAwar", "Value": swigs * random.randrange(8,13)})
 
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Lockdown Defender"})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Eraser"})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill2", "Value": "Eraser"})
 
     pmod["Description"] += f"This player took {swigs} swig"
     if(swigs > 1):
@@ -2644,11 +2628,11 @@ def Director_Epic_BloodCandle(player):
     pmod["Type"]["ArchetypeLock"] = "Director"
     pmod["Type"]["Rarity"] = "Epic"
     # Description
-    pmod["Description"] = '''Holy fuck. The player didn't expect such a deeply unnerving artifact and changes as follows: Set Offensive and Defensive awareness to 99.  Add Shot Creator, Brick Wall,  Antifreeze, and Microwave.  Subtract 7 from all secondary stats.'''
+    pmod["Description"] = '''Holy fuck. The player didn't expect such a deeply unnerving artifact and changes as follows: Set Offensive and Defensive awareness to 99.  Add Shot Creator, Brick Wall,  Antifreeze, and Microwave.  Subtract 4-7 from all secondary stats.'''
 
     # Implementation
     for secondaryAttribute in player["Archetype"].secondaryAttributes:
-        pmod["Modifications"].append({"Operation" : "Subtract", "Key" : secondaryAttribute, "Value" : 7})
+        pmod["Modifications"].append({"Operation" : "Subtract", "Key" : secondaryAttribute, "Value" : random.randrange(4,8)})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SOAwar", "Value": 99})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SDAwar", "Value": 99})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Shot Creator"})
@@ -2700,14 +2684,12 @@ def Director_Legendary_MidCertification(player):
     pmod["Type"]["ArchetypeLock"] = "Director"
     pmod["Type"]["Rarity"] = "Legendary"
     # Description
-    pmod["Description"] = '''The player knows the weight that such a certification carries, and feels empowered that they are able to carry on its legacy. Shot Medium, Shot Close, and Consistency are set to 99. Add Corner Specialist and Acrobat. All 3PT Hotzones are Cold Zones. -10 to 3PT shot. Add a epic or legendary shot:\n\n'''
+    pmod["Description"] = '''The player knows the weight that such a certification carries, and feels empowered that they are able to carry on its legacy. Shot Medium, Shot Close, and Consistency are set to 90-99. Add Corner Specialist and Acrobat. All 3PT Hotzones are Cold Zones.  Add a epic or legendary shot:\n\n'''
 
     # Implementation
-    pmod["Modifications"].append({"Operation": "Set", "Key": "SShtMed", "Value": 99})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "SShtCls", "Value": 99})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "SConsis", "Value": 99})
-
-    pmod["Modifications"].append({"Operation": "Subtract", "Key": "SSht3PT", "Value": 10})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SShtMed", "Value": random.randrange(90,100)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SShtCls", "Value": random.randrange(90,100)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "SConsis", "Value": random.randrange(90,100)})
 
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Corner Specialist"})
     pmod["Modifications"].append({"Operation": "Set", "Key": "SigSkill1", "Value": "Acrobat"})
@@ -2747,15 +2729,15 @@ def Director_Legendary_MilkdudNarcotics(player):
 
     pmod["Modifications"].append({"Operation": "Subtract", "Key": "HeightIn", "Value": random.randrange(6,9)})
 
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ1", "Value": random.randrange(0, 3)})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ2", "Value": random.randrange(0, 3)})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ3", "Value": random.randrange(0, 3)})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ4", "Value": random.randrange(0, 3)})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ5", "Value": random.randrange(0, 3)})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ6", "Value": random.randrange(0, 3)})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ7", "Value": random.randrange(0, 3)})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ8", "Value": random.randrange(0, 3)})
-    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ9", "Value": random.randrange(0, 3)})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ1", "Value": random.choice([0,2])})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ2", "Value": random.choice([0,2])})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ3", "Value": random.choice([0,2])})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ4", "Value": random.choice([0,2])})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ5", "Value": random.choice([0,2])})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ6", "Value": random.choice([0,2])})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ7", "Value": random.choice([0,2])})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ8", "Value": random.choice([0,2])})
+    pmod["Modifications"].append({"Operation": "Set", "Key": "HZ9", "Value": random.choice([0,2])})
 
 
 

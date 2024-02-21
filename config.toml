@@ -17,7 +17,7 @@ commonChance = 0.45             # Common player chance
 rareChance = 0.33               # Rare player chance
 epicChance = 0.15               # Epic player chance
 legendaryChance = 0.06          # Legendary player chance
-godlikeChance = 10.01            # Godlike player chance
+godlikeChance = 0.01            # Godlike player chance
 
 # Likelihood of a generated artifact being archetype specific
 archetypeBasedArtifactChance = 0.60

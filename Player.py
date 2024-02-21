@@ -1381,29 +1381,33 @@ class Player:
 
         self.hasPendingUpdates = True
     # This method  randomly selects and generates an artifact based on rarity and archetype.
-    def genArtifact(self,archetype = None,rarity = None):
-        if(archetype is None):
-            if(self.vals["Archetype"] is None):
-                raise ValueError("Must specify an archetype if the Player's default archetype is None.")
-            else:
-                archetype = self.vals["Archetype"]
+    def genArtifact(self,archetype = None,rarity = None,specificArtifact = None):
+        if(specificArtifact is None):
+            if(archetype is None):
+                if(self.vals["Archetype"] is None):
+                    raise ValueError("Must specify an archetype if the Player's default archetype is None.")
+                else:
+                    archetype = self.vals["Archetype"]
 
-        if(rarity is None):
-            if(self.vals["Rarity"] is None):
-                raise ValueError("Must specify a rarity if the Player's default rarity is None.")
-            else:
-                rarity = self.vals["Rarity"]
+            if(rarity is None):
+                if(self.vals["Rarity"] is None):
+                    raise ValueError("Must specify a rarity if the Player's default rarity is None.")
+                else:
+                    rarity = self.vals["Rarity"]
 
-        if(rarity != "Common"):
-            if(rarity == "Godlike"):
-                isArchetypeArtifact = False
-            else:
-                isArchetypeArtifact = b.config["rarities"]["archetypeBasedArtifactChance"] > random.random()
-            if(isArchetypeArtifact):
-                targetArtifact = random.choice(Artifacts.ARTIFACTS[self["Archetype_Name"]][rarity])
-            else:
-                targetArtifact = random.choice(Artifacts.ARTIFACTS["Neutral"][rarity])
-            pmod = targetArtifact(self)
+            if(rarity != "Common"):
+                if(rarity == "Godlike"):
+                    isArchetypeArtifact = False
+                else:
+                    isArchetypeArtifact = b.config["rarities"]["archetypeBasedArtifactChance"] > random.random()
+                if(isArchetypeArtifact):
+                    targetArtifact = random.choice(Artifacts.ARTIFACTS[self["Archetype_Name"]][rarity])
+                else:
+                    targetArtifact = random.choice(Artifacts.ARTIFACTS["Neutral"][rarity])
+                pmod = targetArtifact(self)
+                self.compilePMod(pmod=pmod)
+        else:
+            pmod = specificArtifact(self)
             self.compilePMod(pmod=pmod)
 
         self.hasPendingUpdates = True
@@ -1449,21 +1453,22 @@ class Player:
     #endregion === PMod ===
 
 
-allThePlayers = []
-for i in range(500):
-    testPlayer = Player()
-    testPlayer.genArchetype()
-    testPlayer.genRarity()
-    testPlayer.genAttributes()
-    testPlayer.genTendencies()
-    testPlayer.genHotspots()
-    testPlayer.genHeight()
-    testPlayer.genAnimations()
-    testPlayer.genPlayStyle()
-    testPlayer.genPlayTypes()
-    testPlayer.genMisc()
-    testPlayer.genArtifact()
-    allThePlayers.append(testPlayer)
+
+testPlayer = Player()
+testPlayer["Archetype"] = Archetypes.ARCH_SLAYER
+testPlayer["Rarity"] = "Common"
+testPlayer.genAttributes()
+testPlayer.genTendencies()
+testPlayer.genHotspots()
+testPlayer.genHeight()
+testPlayer.genAnimations()
+testPlayer.genPlayStyle()
+testPlayer.genPlayTypes()
+testPlayer.genMisc()
+specificArtifact = Artifacts.Neutral_Godlike_JuicerBlacklist
+print(f"{testPlayer['Archetype_Name']}")
+testPlayer.genArtifact(specificArtifact=specificArtifact)
+
 
 
 

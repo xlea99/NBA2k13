@@ -135,11 +135,11 @@ class PlayerBio(QWidget):
 
         # Update the artifact image if it exists
         #TODO add description label
-        if playerObj["ArtifactName"] is not None:
-            artifactPixmap = QPixmap()  # Assume you get a QPixmap for the artifact
-            self.artifactImage.setPixmap(artifactPixmap.scaled(75, 75, Qt.KeepAspectRatio))
-        else:
-            self.artifactImage.clear()
+        #if playerObj["ArtifactName"] is not None:
+        #    artifactPixmap = QPixmap()  # Assume you get a QPixmap for the artifact
+        #    self.artifactImage.setPixmap(artifactPixmap.scaled(75, 75, Qt.KeepAspectRatio))
+        #else:
+        self.artifactImage.clear()
 
         # Update Archetype with coloring based on value
         archetype = playerObj["Archetype_Name"]
@@ -384,6 +384,6 @@ class PlayerStatsDisplay(QWidget):
 
 
 app = QApplication()
-window = MainPlayerViewerWindow(DataStorage.dataStorage)
+window = MainPlayerViewerWindow(DataStorage.d)
 window.show()
 sys.exit(app.exec())
