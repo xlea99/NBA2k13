@@ -4,9 +4,9 @@
 
 [paths]
 # Folder for runtime program files.
-workDirectory = 'S:\Coding\Projects\NBA2k13\SaveData'
+workDirectory = 'C:\Crap\Coding\Python\NBA2k13\SaveData'
 # Path to NBA 2k13 game install directory
-gameInstall = 'S:\Games\SteamLibrary\steamapps\common\NBA2K13'
+gameInstall = 'C:\Program Files (x86)\Steam\steamapps\common\NBA2K13'
 
 # Count of backups to keep for all backed up files.
 backupCount = 10

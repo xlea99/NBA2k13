@@ -1,5 +1,5 @@
 import sqlite3
-import lxml.etree as ET
+#import lxml.etree as ET
 import BaseFunctions as b
 import shutil
 import DataStorage
@@ -21,9 +21,7 @@ def genBlankPlayersTable(dbPath,tableName="Players"):
                             "Archetype": "Text",
                             "Rarity": "Text",
                             "CAP_Nick": "Integer",
-                            "ArtifactName": "Text",
-                            "ArtifactDesc": "Text",
-                            "ArtifactCode": "Blob",
+                            "PMods" : "Text",
                             "Hand": "Integer",
                             "Height": "Integer",
                             "Weight": "Real",
@@ -504,7 +502,7 @@ def genBlankPlayersTable(dbPath,tableName="Players"):
 
     cursor = conn.cursor()
 
-    cursor.execute("CREATE TABLE '" + tableName + "' ('SpriteID' INTEGER NOT NULL UNIQUE, PRIMARY KEY('SpriteID' AUTOINCREMENT));")
+    cursor.execute("CREATE TABLE '" + tableName + "' ('SpriteID' INTEGER NOT NULL UNIQUE, PRIMARY KEY('SpriteID'));")
     for key in playersXMLList.keys():
         if(playersXMLList[key] in ["Text","Blob"]):
             defaultVal = "NULL"
@@ -1093,7 +1091,7 @@ def genBlankStatsTable(dbPath):
     createStatsTable = "CREATE TABLE 'Games' ('GameID' INTEGER NOT NULL UNIQUE,"
     for key in GLOBAL_STAT_LIST.keys():
         createStatsTable += "'" + key + "'" + " " + GLOBAL_STAT_LIST[key] + ","
-    createStatsTable += "PRIMARY KEY('GameID' AUTOINCREMENT));"
+    createStatsTable += "PRIMARY KEY('GameID'));"
 
     createSlotsTable = "CREATE TABLE 'PlayerSlots' ('GameID' INTEGER NOT NULL,"
     for key in INDIVIDUAL_STAT_LIST:
@@ -1205,28 +1203,28 @@ def trackNewRoster(newRosterName,buildNewRosterFile=False,dataStorageObject=None
 
 
 
+#genBlankStatsTable(f"{b.paths.databases}\\Stats.db")
+
 '''
-----------------------------------------------------------
-This code block generates an entirely new Players.db file, copying over up to maxSpriteID players
-from an old Players.db file.
-----------------------------------------------------------
+#----------------------------------------------------------
+#This code block generates an entirely new Players.db file, copying over up to maxSpriteID players
+#from an old Players.db file.
+#----------------------------------------------------------
 
 maxSpriteID = 355
-oldPlayersFilePath = f"{b.paths.databases}\\PlayersSad.db"
-newPlayersFilePath = f"{b.paths.databases}\\Guppies.db"
+oldPlayersFilePath = f"{b.paths.databases}\\PlayersPostPMod.db"
+newPlayersFilePath = f"{b.paths.databases}\\PlayersEpic.db"
 
-
-
-genBlankPlayersTable(dbPath="S:\\Coding\\Projects\\NBA2k13\\SaveData\\Data\\Guppies.db")
+genBlankPlayersTable(dbPath=newPlayersFilePath)
 dOld = DataStorage.DataStorage(playersPathOverride=oldPlayersFilePath)
 dNew = DataStorage.DataStorage(playersPathOverride=newPlayersFilePath)
 allPlayers = []
 for i in range(maxSpriteID):
-    thisPlayer = dOld.playersDB_GetPlayer(i)
+    thisPlayer = dOld.players[i]
     allPlayers.append(thisPlayer)
 for thisPlayer in allPlayers:
+    thisPlayer.overrideSpriteID(-1)
     print(f"-{thisPlayer['First_Name']} {thisPlayer['Last_Name']}")
-    newID = dNew.playersDB_AddBlankPlayer()
-    dNew.playersDB_UpdatePlayer(spriteID=newID,player=thisPlayer)
-dNew.playersDB_Execute()
+    newID = dNew.playersDB_AddPlayer(player=thisPlayer)
+dNew.playersDB_UploadPlayers()
 '''

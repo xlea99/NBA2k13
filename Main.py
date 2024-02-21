@@ -1,7 +1,4 @@
-import BaseFunctions as b
-import DataStorage
 import GUI
-import GUINew
 
 # 1. Create a player (or players) in the GUI. Player is now stored in Players.xml, with a blank face.
 #    Player is also stored in Premier Roster.xml, and exported as CSV.

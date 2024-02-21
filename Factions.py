@@ -3,8 +3,6 @@ import csv
 import sqlite3
 import os
 import random
-import sys
-import Player
 
 #region === Database Maintenance ===
 
@@ -71,6 +69,7 @@ FACTIONS_ATTRIBUTES = {"Race" : "Text",
                        "Backstory Modifier" : "Text",
                        "Buckets" : "Text",
                        "Description" : "Text",
+                       "Generatable" : "Integer",
                        "Special Gear Sets" : "Text",
                        "Basic Gearset Chance" : "Real",
                        "Hair Style" : "Text",
@@ -365,8 +364,12 @@ def updateFactions():
             holders += ", ?"
 
             if(attr in ["Basic Gearset Chance","Facial Hair Probability","Hair Color Match Prob","FN Ratio","LN Ratio","Symmetrical Name Chance","Tattoo Probability"]):
-                finalVal = round(float(entry[attr].split("%")[0])/100,2)
-            elif(attr == "Tattoo Symmetry"):
+                numValOnly = entry[attr].split("%")[0]
+                if(numValOnly == ""):
+                    finalVal = 0.0
+                else:
+                    finalVal = round(float(numValOnly)/100,2)
+            elif(attr in ["Tattoo Symmetry","Generatable"]):
                 if(entry[attr] == "checked"):
                     finalVal = 1
                 else:
@@ -825,12 +828,8 @@ dbDict = buildDatabaseDict()
 
 #endregion === Build DB Dict ===
 
-# This method uses race information to generate all headshape information for a given player
-# object, or a new returned one if not provided.
-def genRaceHeadshape(raceName : str,player : Player.Player = None):
-    if(player is None):
-        player = Player.Player()
-
+# This method uses race information to generate all headshape information for a given player.
+def genRaceHeadshape(raceName : str,player):
     if(raceName not in dbDict["Races"].keys()):
         raise ValueError(f"Invalid race name: '{raceName}'")
 
@@ -846,12 +845,8 @@ def genRaceHeadshape(raceName : str,player : Player.Player = None):
 
     player["Race"] = raceName
     return player
-# This method uses a given gearset to generate all gear information for a given player object,
-# or a new returned one if not provided.
-def genGearset(gearset : str,player : Player.Player = None):
-    if(player is None):
-        player = Player.Player()
-
+# This method uses a given gearset to generate all gear information for a given player.
+def genGearset(gearset : str,player):
     if(gearset not in dbDict["GearSets"].keys()):
         raise ValueError(f"Invalid gearset name: '{gearset}'")
     thisGearset = dbDict["GearSets"][gearset]
@@ -916,12 +911,8 @@ def genGearset(gearset : str,player : Player.Player = None):
         player[symmetricalCounterpart] = player[symmetrySlot]
 
     return player
-# This method generates factional information for an existing Player object, or outputs
-# a new one.
-def genFaction(faction : str,player : Player.Player = None):
-    if(player is None):
-        player = Player.Player()
-
+# This method generates factional information for an existing Player.
+def genFaction(faction : str,player):
     if(faction not in dbDict["Factions"].keys()):
         raise ValueError(f"Invalid faction name: '{faction}'")
     thisFactionDict = dbDict["Factions"][faction]
@@ -979,7 +970,7 @@ def genFaction(faction : str,player : Player.Player = None):
     if(0.20 > random.random()):
         player["CAP_Eyebr"] = 1
     else:
-        player["CAP_Eyebr"] = random.randrange(0,16)
+        player["CAP_Eyebr"] = random.randrange(0,11)
 
     # TATTOOS
     if(thisFactionDict["Tattoo Probability"] > random.random()):
@@ -1044,8 +1035,15 @@ def genFaction(faction : str,player : Player.Player = None):
     return player
 
 
+# Helper method for randomly choosing a faction to generate based on all generatable factions.
+def getRandomFaction():
+    allGeneratableFactions = []
+
+    for factionName,factionInfo in dbDict["Factions"].items():
+        if(factionInfo["Generatable"] == 1):
+            allGeneratableFactions.append(factionName)
+
+    return random.choice(allGeneratableFactions)
+
+
 # TODO FIX YOUR RSTRING IDIOT
-# TODO NAMELISTS:
-# - Roman
-
-

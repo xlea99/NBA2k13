@@ -11,7 +11,8 @@ from pathlib import Path
 import glob
 import WeightedDict
 from tkinter import simpledialog, filedialog
-
+from pympler import asizeof
+import psutil
 
 # region === Config and Pathing Setup ===
 
@@ -248,7 +249,6 @@ def getKeyFromValue(dictionary, targetValue):
             return key
     raise ValueError(f"Value does not exist in the dictionary: '{targetValue}'")
 
-
 # This method simply selects a value or values randomly from a given file of words.
 # Each word in this file should be separated by newlines - one selection per line.
 # -filePath can be a string containing a single file path, or an array of file paths.
@@ -312,7 +312,7 @@ def rStringProcess(rString,recursiveProcessing : bool = True):
 
 
     # Locate all occurrences of [path/to/file] in the string
-    options = re.findall('\[([^]]*)]', rString)
+    options = re.findall(r'\[([^]]*)]', rString)
     # Assume each option is a file path to a wordlist, recursively gen from that list
     for option in options:
         pickedOption = selectRandomFromList(filePath = f"{paths.randGen}\\{option}",rStringProcessing=recursiveProcessing)[0]
@@ -339,4 +339,48 @@ def alphaBase26(decimalNumber : int,maxPlaces : int):
         returnString += letter
     return returnString
 
+# This method accepts any python object, and returns a neat, formatted string displaying its size.
+def getMemorySizeOf(thisObject):
+    byteSize = asizeof.asizeof(thisObject)
+
+    if(byteSize > 1000):
+        kilobyteSize = byteSize / 1024
+        if(kilobyteSize > 1000):
+            megabyteSize = kilobyteSize / 1024
+            if(megabyteSize > 1000):
+                gigabyteSize = megabyteSize / 1024
+                return f"{round(gigabyteSize,2)} GB"
+            else:
+                return f"{round(megabyteSize,2)} MB"
+        else:
+            return f"{round(kilobyteSize,2)} KB"
+    else:
+        return f"{round(byteSize,2)} bytes"
+
+# This method quickly tests whether a process exists, by its name.
+def testIfProcessExists(processName : str):
+    matchingProcesses = []
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            if processName.lower() == proc.info['name'].lower():
+                return True
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    return False
+
 #endregion === Miscellaneous Functions ===
+
+#region === Templates ===
+
+# Helper method to return a PMod template dictionary.
+def getPModTemplate():
+    return {
+        "Name": None,
+        "Type": {},
+        "Description" : None,
+        "Modifications": [],
+        "Compiled": False,
+        "PrevValues": {}
+    }
+
+#endregion === Templates ===

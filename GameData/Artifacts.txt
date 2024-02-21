@@ -757,6 +757,7 @@ pmod{
 @({&PRIMARY_ATTRIBUTES&/&ACCENTED_ATTRIBUTES&}) += 10
 @SDunk += 40
 @SigSkill1 = 3
+
 @AFadeaway = 21
 @AContestd = 0
 @AEscDrPlU = 0
@@ -1402,7 +1403,7 @@ pmod{
 
 
 pmod{
-*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'I don't speak MORON, we'll have to communicate in sign language!' Below is an image of a white man giving the middle finger. "
+*PMOD_NAME = "A T-Shirt from Scott Brown reading: 'I don't speak MORON, we'll have to communicate in sign language!' Below is an image of a white man giving the middle finger."
 *PMOD_DESCRIPTION = "After uncontrollably laughing on the floor, nearly dying from asphyxiation, the player changes as follows: Set Vertical and Dunk to 99. Add 2 Dunk Packages from cool dunk types. Set all tertiary stats to 25. Add Posterizer, Finisher, and Highlight Film. "
 *PMOD_RARITY = "Epic"
 *PMOD_ARCHETYPE_LOCK = "Engineer"

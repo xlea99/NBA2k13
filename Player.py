@@ -3,7 +3,8 @@ import BaseFunctions as b
 import Archetypes
 import math
 import WeightedDict
-import PMod
+import Artifacts
+import Factions
 
 
 # EXTRA VALUES:
@@ -31,35 +32,35 @@ class Player:
                     "Post Up High","Cutter","Mid Range","3 PT"],
         "PlayType4" : ["None","Isolation","P&R Ball Handler","P&R Roll Man","Post Up Low",
                     "Post Up High","Cutter","Mid Range","3 PT"],
-        "SigSkill1" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill1" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
-        "SigSkill2" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill2" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
-        "SigSkill3" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill3" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
-        "SigSkill4" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill4" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
-        "SigSkill5" : ["None","Posterizer","Highlight Flim","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
+        "SigSkill5" : ["None","Posterizer","Highlight Film","Finisher","Acrobat","Spot Up Shooter","Shot Creator",
                           "Deadeye","Corner Specialist","Post Proficiency","Ankle Breaker","Post Playmaker","Dimer",
                           "Break Starter","Alley Oopers","Brick Wall","Lockdown Defender","Charge Card","Interceptor",
                           "Pick Pocketer","Active Hands","Eraser","Chase Down Artist","Bruiser","Hustle Points","Scrapper",
-                          "Anti-Freeze","Microwave","Heat Rentention","Closer","Floor General","Defensive Anchor",
+                          "Anti-Freeze","Microwave","Heat Retention","Closer","Floor General","Defensive Anchor",
                           "Gatorade Prime Pack","On Court Coach"],
         "AShtForm" : ["Release 1", "Release 2", "Release 3", "Release 4", "Release 5", "Release 6", "Release 7",
                      "Release 8", "Release 9", "Release 10", "Release 11", "Release 12", "Release 13",
@@ -263,16 +264,16 @@ class Player:
 
     # Init method for initializing the value dictionary to default values.
     def __init__(self):
-        self.vals = {"SpriteID" : -1, # -1 Means spriteID has not yet been set, and must be set immediately.
-                    "First_Name": "",
+        # SpriteID, the unique ID value used to distinguish between all Players.
+        self.__spriteID = -1  # -1 Means spriteID has not yet been set, and must be set immediately.
+
+        # Holder for all values in this Player object.
+        self.vals = {"First_Name": "",
                     "Last_Name": "",
                     "NickName": "",
                     "Archetype": None, # Default to none - archetype MUST be set.
                     "Rarity": "Common", # Default to common rarity
                     "CAP_Nick": 0,
-                    "ArtifactName": None, # Artifacts default to none, and can only be added by generation.
-                    "ArtifactDesc": None, # Artifacts default to none, and can only be added by generation.
-                    "ArtifactCode": None, # Artifacts default to none, and can only be added by generation.
                     "Hand": 1, # Default is right
                     "Height": 70, # Default is 5'10
                     "Weight": 185.0, # Default is 185
@@ -749,9 +750,17 @@ class Player:
                     "ExtraValue49": None,
                     "ExtraValue50": None}
 
+        # List of any PMods applied to this object. All PMods in this list have ALREADY BEEN COMPILED
+        # against this player.
+        self.pmods = []
+
+        # This helper member tracks whether changes have been made to this Player object,
+        # with the intent to organically detect necessary updates.
+        self.hasPendingUpdates = False
+
     # Simple string method for quickly displaying the full object.
     def __str__(self):
-        returnString = ""
+        returnString = f"SpriteID: {self.__spriteID}"
         for key,value in self.vals.items():
             if(key in self.extraValuesMap.values()):
                 returnString += f"{b.getKeyFromValue(dictionary=self.extraValuesMap,targetValue=key)}: {value}"
@@ -772,7 +781,6 @@ class Player:
     def __ge__(self, other):
         return f"{self.vals['First_Name']}{self.vals['Last_Name']}" >= f"{other.vals['First_Name']}{other.vals['Last_Name']}"
 
-
     #endregion === Init and Constants ===
 
     #region === Getter and Setter ===
@@ -782,6 +790,12 @@ class Player:
         # Done first to avoid conflicts later with _Name specifier. Damn RedMC
         if(key == "First_Name" or key == "Last_Name"):
             return self.vals[key]
+        # Testing if the key is for SpriteID.
+        elif(key == "SpriteID"):
+            return self.__spriteID
+        # Testing if the key is to access the list of pmods.
+        elif(key == "PMods" or key == "PMod"):
+            return self.pmods
         # Testing if the key is an ExtraValue.
         elif(key in self.extraValuesMap.keys()):
             return self.vals[self.extraValuesMap[key]]
@@ -822,6 +836,13 @@ class Player:
         # Done first to avoid conflicts later with _Name specifier. Damn RedMC
         if(key == "First_Name" or key == "Last_Name"):
             self.vals[key] = value
+        # Testing if the key is SpriteID, and if so, applying special logic. SpriteID can only be set
+        # if the current SpriteID is unset (a negative number), because once set, it should NEVER EVER be changed.
+        elif(key == "SpriteID"):
+            if(self.__spriteID < 0):
+                self.__spriteID = int(value)
+            else:
+                raise ValueError("ERROR: Can not attempt to change SpriteID of an existing player!!")
         # Testing if the key is an ExtraValue.
         elif(key in self.extraValuesMap.keys()):
             self.vals[self.extraValuesMap[key]] = value
@@ -840,6 +861,8 @@ class Player:
                     self["Archetype"] = Archetypes.ARCH_ENGINEER
                 elif(value.lower() == "director"):
                     self["Archetype"] = Archetypes.ARCH_DIRECTOR
+                elif(value.lower() == "none" or value is None):
+                    self["Archetype"] = None
                 else:
                     raise ValueError(f"Invalid archetype name: '{value}'")
             elif(type(value) is Archetypes.Archetype):
@@ -906,6 +929,13 @@ class Player:
             else:
                 raise ValueError(f"Key does not exist in player object: '{key}'")
 
+        self.hasPendingUpdates = True
+
+    # Special override function to set SpriteID manually. Should only be used
+    # in extremely specific circumstances.
+    def overrideSpriteID(self,newSpriteID):
+        self.__spriteID = newSpriteID
+
     #endregion === Getter and Setter ===
 
     #region === Generators ===
@@ -923,6 +953,7 @@ class Player:
         rarityWeightedDict.add("Legendary", int(b.config["rarities"]["legendaryChance"] * 100))
         rarityWeightedDict.add("Godlike", int(b.config["rarities"]["godlikeChance"] * 100))
         self.vals["Rarity"] = rarityWeightedDict.pull()
+        self.hasPendingUpdates = True
     # Generates all attributes based on the given archetype.
     def genAttributes(self,archetype = None):
         if(archetype is None):
@@ -966,6 +997,8 @@ class Player:
         self.vals["SShtInT"] = random.randrange(archetype.attributeRanges.get("SShtInT")[0], archetype.attributeRanges.get("SShtInT")[1] + 1)
         self.vals["SShtOfD"] = random.randrange(archetype.attributeRanges.get("SShtOfD")[0], archetype.attributeRanges.get("SShtOfD")[1] + 1)
         self.vals["SConsis"] = random.randrange(archetype.attributeRanges.get("SConsis")[0], archetype.attributeRanges.get("SConsis")[1] + 1)
+
+        self.hasPendingUpdates = True
     # Generates all tendencies based on the given archetype.
     def genTendencies(self,archetype = None):
         if(archetype is None):
@@ -1043,6 +1076,8 @@ class Player:
         self.vals["TStpThrgh"] = random.randrange(archetype.t_StepThrough[0], archetype.t_StepThrough[1] + 1)
         self.vals["TAlleyOop"] = random.randrange(archetype.t_ThrowAlleyOop[0], archetype.t_ThrowAlleyOop[1] + 1)
         self.vals["TGiveGo"] = random.randrange(archetype.t_GiveNGo[0], archetype.t_GiveNGo[1] + 1)
+
+        self.hasPendingUpdates = True
     # Generates all hotspots based on the given archetype.
     def genHotspots(self,archetype = None):
         if(archetype is None):
@@ -1145,6 +1180,8 @@ class Player:
                 self.vals["HPstLHigh"] += 1
             elif (pull == "HPstLLow"):
                 self.vals["HPstLLow"] += 1
+
+        self.hasPendingUpdates = True
     # Generates height based on either a given or, if not provided, the Player's default archetype height range.
     def genHeight(self,archetype = None):
         if(archetype is None):
@@ -1153,6 +1190,8 @@ class Player:
             else:
                 archetype = self.vals["Archetype"]
         self.vals["Height"] = random.randrange(archetype.heightRange[0],archetype.heightRange[1])
+
+        self.hasPendingUpdates = True
     # Rolls all animations.
     def genAnimations(self,archetype = None,dunkCount : int = None):
         if(archetype is None):
@@ -1243,6 +1282,8 @@ class Player:
         self.vals["AIntPreG2"] = random.randrange(0, len(self.idMap["AIntPreG2"]))
         self.vals["AIntPreT1"] = random.randrange(0, len(self.idMap["AIntPreT1"]))
         self.vals["AIntPreT2"] = random.randrange(0, len(self.idMap["AIntPreT2"]))
+
+        self.hasPendingUpdates = True
     # Generates and selects a play style based on archetype and attributes.
     def genPlayStyle(self,archetype = None):
         if(archetype is None):
@@ -1318,6 +1359,8 @@ class Player:
                 potentialStyles.append(1)
 
         self.vals["PlayStyle"] = random.choice(potentialStyles)
+
+        self.hasPendingUpdates = True
     # Generates a few play types if and only if the archetype is Engineer or Director.
     def genPlayTypes(self, archetype = None):
         if(archetype is None):
@@ -1336,57 +1379,102 @@ class Player:
             self.vals["PlayType2"] = "0"
         self.vals["PlayType3"] = "0"
         self.vals["PlayType4"] = "0"
-    # This method  randomly selects and generates an artifact based on rarity and archetype..
-    def generateArtifact(self,archetype = None,rarity = None):
-        if(archetype is None):
-            if(self.vals["Archetype"] is None):
-                raise ValueError("Must specify an archetype if the Player's default archetype is None.")
-            else:
-                archetype = self.vals["Archetype"]
 
-        if(rarity is None):
-            if(self.vals["Rarity"] is None):
-                raise ValueError("Must specify a rarity if the Player's default rarity is None.")
-            else:
-                rarity = self.vals["Rarity"]
-
-        if(rarity != "Common"):
-            artGen = PMod.PModCompiler(f"{b.paths.programData}\\Artifacts.txt",self)
-            validNeutralArtifactIndexes = []
-            validArchetypalArtifactIndexes = []
-            counter = 0
-            for artifactDict in artGen.listOfAllPMods:
-                if(artifactDict.get("PMOD_RARITY") == rarity):
-                    if(artifactDict.get("PMOD_ARCHETYPE_LOCK") == archetype.archetypeName):
-                        validArchetypalArtifactIndexes.append(counter)
-                    elif(artifactDict.get("PMOD_ARCHETYPE_LOCK") == "Neutral"):
-                        validNeutralArtifactIndexes.append(counter)
-                counter += 1
-
-
-            # We decide if the artifact will be archetype based...
-            if(random.random() > b.config["rarities"]["archetypeBasedArtifactChance"] and len(validArchetypalArtifactIndexes) > 0):
-                artGen.compilePMod(validArchetypalArtifactIndexes[random.randrange(0, len(validArchetypalArtifactIndexes))])
-            # Or neutral.
-            else:
-                artGen.compilePMod(validNeutralArtifactIndexes[random.randrange(0, len(validNeutralArtifactIndexes))])
-
-            self.vals["Artifact"] = artGen.parameters
-            del artGen
-
-            for parameter in self.vals["Artifact"].keys():
-                if(parameter == "PMOD_NAME" or parameter == "PMOD_DESCRIPTION" or parameter == "PMOD_RARITY" or parameter == "PMOD_ARCHETYPE_LOCK"):
-                    continue
-                else:
-                    value = self.vals["Artifact"].get(parameter)
-                    if(value.startswith("-")):
-                        self.vals[parameter] -= (int(value) * -1)
-                    elif(value.startswith("+")):
-                        self.vals[parameter] += int(value)
-                    elif(value.startswith("=")):
-                        self.vals[parameter] = value.lstrip("=")
+        self.hasPendingUpdates = True
     # Generates a few random, miscellaneous, inconsequential values.
     def genMisc(self):
         self.vals["Personality"] = random.randrange(0,len(self.idMap["Personality"]))
+        self.hasPendingUpdates = True
+    # This method  randomly selects and generates an artifact based on rarity and archetype.
+    def genArtifact(self,archetype = None,rarity = None,artifact = None):
+        if(artifact is None):
+            if(archetype is None):
+                if(self.vals["Archetype"] is None):
+                    raise ValueError("Must specify an archetype if the Player's default archetype is None.")
+                else:
+                    archetype = self.vals["Archetype"]
+
+            if(rarity is None):
+                if(self.vals["Rarity"] is None):
+                    raise ValueError("Must specify a rarity if the Player's default rarity is None.")
+                else:
+                    rarity = self.vals["Rarity"]
+
+            if(rarity != "Common"):
+                if(rarity == "Godlike"):
+                    isArchetypeArtifact = False
+                else:
+                    isArchetypeArtifact = b.config["rarities"]["archetypeBasedArtifactChance"] > random.random()
+                if(isArchetypeArtifact):
+                    targetArtifact = random.choice(Artifacts.ARTIFACTS[self["Archetype_Name"]][rarity])
+                else:
+                    targetArtifact = random.choice(Artifacts.ARTIFACTS["Neutral"][rarity])
+                pmod = targetArtifact(self)
+                self.compilePMod(pmod=pmod)
+        else:
+            pmod = artifact(self)
+            self.compilePMod(pmod=pmod)
+
+        self.hasPendingUpdates = True
+    # Helper method that connects to Factions.py to generate random or specific faction information for this player.
+    def genFaction(self,faction : str = None):
+        if(faction is None):
+            faction = Factions.getRandomFaction()
+        Factions.genFaction(faction=faction,player=self)
+
 
     #endregion === Generators ===
+
+    #region === PMod ===
+
+    # This method accepts a PMod (Player Modification) data structure, compiles it against this
+    # player object, and stores it permanently.
+    def compilePMod(self,pmod : dict):
+        for modification in pmod["Modifications"]:
+            if(modification["Key"] not in pmod["PrevValues"].keys()):
+                pmod["PrevValues"][modification["Key"]] = self[modification["Key"]]
+            if(modification["Operation"] == "Add"):
+                self[modification["Key"]] += modification["Value"]
+            elif(modification["Operation"] == "Subtract"):
+                self[modification["Key"]] -= modification["Value"]
+            elif(modification["Operation"] == "Set"):
+                self[modification["Key"]] = modification["Value"]
+            else:
+                raise ValueError(f"Incorrect PMod operation type: '{modification['Operation']}'")
+        pmod["Compiled"] = True
+        self.pmods.append(pmod)
+
+    # Given the index of a PMod in the self.pmods list, this method reverts the changes made by it
+    # and removes it from the list, returning a decompiled version.
+    def revertPMod(self,index : int):
+        pmodToRevert = self.pmods.pop(index)
+        for keyToRevert,valueToRevert in pmodToRevert["PrevValues"].items():
+            self[keyToRevert] = valueToRevert
+
+        pmodToRevert["Compiled"] = False
+        pmodToRevert["PrevValues"] = {}
+
+        return pmodToRevert
+
+    #endregion === PMod ===
+
+allPlayers = []
+for i in range(0):
+    testPlayer = Player()
+    testPlayer.genArchetype()
+    testPlayer.genRarity()
+    testPlayer.genAttributes()
+    testPlayer.genTendencies()
+    testPlayer.genHotspots()
+    testPlayer.genHeight()
+    testPlayer.genAnimations()
+    testPlayer.genPlayStyle()
+    testPlayer.genPlayTypes()
+    testPlayer.genMisc()
+    testPlayer.genArtifact()
+    testPlayer.genFaction()
+    print(f"{testPlayer['First_Name']} {testPlayer['Last_Name']} ({testPlayer['Rarity']} {testPlayer['Archetype_Name']}) | Faction: {testPlayer['Faction']}")
+    allPlayers.append(testPlayer)
+
+
+
