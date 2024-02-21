@@ -1,5 +1,3 @@
-import GUI
-
 # 1. Create a player (or players) in the GUI. Player is now stored in Players.xml, with a blank face.
 #    Player is also stored in Premier Roster.xml, and exported as CSV.
 # 2. GUI now shows one pending outgoing change to the Premier Roster (or however many players were created). To save these changes,
