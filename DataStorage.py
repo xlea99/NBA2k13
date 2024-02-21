@@ -5,7 +5,6 @@ import BaseFunctions as b
 import sqlite3 as sql
 from datetime import date
 import random
-import ast
 import json
 
 # This dictionary stores relevant values for each possible Jersey that can be selected.
@@ -396,10 +395,6 @@ class DataStorage:
     # This method simply returns the SpriteID of a player on a roster, given RosterID.
     def csv_GetSpriteIDFromRosterID(self, rosterName, rosterID):
         return self.rosters[rosterName]["SpriteIDs"].get(rosterID,None)
-        # TODO pretty sure this is old and unneeded, but leaving just in case
-        #query = f"SELECT SpriteID FROM SpriteIDs WHERE RosterID = {rosterID}"
-        #self.__csvCursorDict[rosterName].execute(query)
-        #return self.__csvCursorDict[rosterName].fetchone()[0]
     # This method simply returns the RosterID if a player exists on a roster with given SpriteID.
     def csv_GetRosterIDFromSpriteID(self, rosterName, spriteID):
         for rosterID in self.rosters[rosterName]["SpriteIDs"]:

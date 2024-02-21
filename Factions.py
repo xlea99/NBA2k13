@@ -828,6 +828,7 @@ dbDict = buildDatabaseDict()
 
 #endregion === Build DB Dict ===
 
+
 # This method uses race information to generate all headshape information for a given player.
 def genRaceHeadshape(raceName : str,player):
     if(raceName not in dbDict["Races"].keys()):
@@ -911,17 +912,20 @@ def genGearset(gearset : str,player):
         player[symmetricalCounterpart] = player[symmetrySlot]
 
     return player
-# This method generates factional information for an existing Player.
-def genFaction(faction : str,player):
+
+# Generates the race and headshape info, and applies it to the given player.
+def genFactionRace(faction : str,player):
+    if (faction not in dbDict["Factions"].keys()):
+        raise ValueError(f"Invalid faction name: '{faction}'")
+    thisFactionDict = dbDict["Factions"][faction]
+    race = random.choice(thisFactionDict["Race"].split(",") if thisFactionDict["Race"] != "" else [])
+    player = genRaceHeadshape(raceName=race,player=player)
+# Generates the full Gearset based off the given faction, and applies it to the Player.
+def genFactionGearset(faction : str,player):
     if(faction not in dbDict["Factions"].keys()):
         raise ValueError(f"Invalid faction name: '{faction}'")
     thisFactionDict = dbDict["Factions"][faction]
 
-    # RACE AND HEADSHAPE
-    race = random.choice(thisFactionDict["Race"].split(",") if thisFactionDict["Race"] != "" else [])
-    player = genRaceHeadshape(raceName=race,player=player)
-
-    # GEARSET
     gearsetChoices = []
     # Chance of getting a basic gearset
     if(thisFactionDict["Basic Gearset Chance"] > random.random()):
@@ -934,12 +938,17 @@ def genFaction(faction : str,player):
     if(len(gearsetChoices) > 0):
         gearsetSelection = random.choice(gearsetChoices)
         genGearset(gearset=gearsetSelection,player=player)
+# Generates all Hair, Facial Hair, and Eyebrow information based off the given faction, and applies it to the Player.
+def genFactionHair(faction : str,player):
+    if(faction not in dbDict["Factions"].keys()):
+        raise ValueError(f"Invalid faction name: '{faction}'")
+    thisFactionDict = dbDict["Factions"][faction]
 
-    # HAIR AND FACIAL HAIR
     hairChoices = thisFactionDict["Hair Style"].split(",") if thisFactionDict["Hair Style"] != "" else []
     player["CAP_Hstl"] = dbDict["Hair"][random.choice(hairChoices)]["ID"]
     hairColorChoices = thisFactionDict["Hair Color"].split(",") if thisFactionDict["Hair Style"] != "" else []
     player["CAP_Hcol"] = dbDict["HairColor"][random.choice(hairColorChoices)]["ID"]
+
     # Now, we randomly roll to see which, if any, facial hair types will be present.
     validFacialHairTypes = []
     if(thisFactionDict["Beard"] != ""):
@@ -965,14 +974,17 @@ def genFaction(faction : str,player):
         facialHairColorChoices = thisFactionDict["Facial Hair Color"].split(",") if thisFactionDict["Facial Hair Color"] != "" else [0]
         player["CAP_Fhcol"] = dbDict["HairColor"][random.choice(facialHairColorChoices)]["ID"]
 
-    # EYEBROWS
     # Eyebrows are always randomly picked
     if(0.20 > random.random()):
         player["CAP_Eyebr"] = 1
     else:
         player["CAP_Eyebr"] = random.randrange(0,11)
+# Generates all tattoos information based off the given faction, and applies it to the Player.
+def genFactionTattoos(faction : str,player):
+    if(faction not in dbDict["Factions"].keys()):
+        raise ValueError(f"Invalid faction name: '{faction}'")
+    thisFactionDict = dbDict["Factions"][faction]
 
-    # TATTOOS
     if(thisFactionDict["Tattoo Probability"] > random.random()):
         tattooDensity = thisFactionDict["Tattoo Density"]
         if(tattooDensity == "Light"):
@@ -994,12 +1006,17 @@ def genFaction(faction : str,player):
                 symmetricalTattoo = dbDict["Tattoo"][tattooTypeChoice]["Symmetry"]
                 if(symmetricalTattoo != ""):
                     player[symmetricalTattoo] = random.randrange(1, dbDict["Tattoo"][symmetricalTattoo]["Max ID"] + 1)
+# Generates a random name, based off the given faction, and applies it to the Player.
+def genFactionName(faction : str,player):
+    if(faction not in dbDict["Factions"].keys()):
+        raise ValueError(f"Invalid faction name: '{faction}'")
+    thisFactionDict = dbDict["Factions"][faction]
 
-    # NAMES
     if(thisFactionDict["Symmetrical Name Chance"] > random.random()):
         isSymmetricalName = True
     else:
         isSymmetricalName = False
+
     # First name
     if(thisFactionDict["FN Ratio"] > random.random()):
         firstNameListOptions = thisFactionDict["Primary FN"].split(",") if thisFactionDict["Primary FN"] != "" else []
@@ -1010,6 +1027,7 @@ def genFaction(faction : str,player):
         symmetricalLastName = dbDict["NameLists"][chosenFirstNameList]["Symmetry"]
     else:
         symmetricalLastName = None
+
     # Last Name
     if(thisFactionDict["LN Ratio"] > random.random()):
         lastNameListOptions = thisFactionDict["Primary LN"].split(",") if thisFactionDict["Primary LN"] != "" else []
@@ -1029,10 +1047,6 @@ def genFaction(faction : str,player):
     lastNameListPath = dbDict["NameLists"][chosenLastNameList]["Value"].replace("$NL_PATH", "\\WordLists\\NameLists")
     player["First_Name"] = b.rStringProcess(firstNameListPath)
     player["Last_Name"] = b.rStringProcess(lastNameListPath)
-
-
-    player["Faction"] = faction
-    return player
 
 
 # Helper method for randomly choosing a faction to generate based on all generatable factions.

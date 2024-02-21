@@ -910,7 +910,7 @@ class Player:
                 raise ValueError(f"'{cleanKey}' is not a mapped value, and can not be accessed using _Name.")
             else:
                 raise ValueError(f"Invalid value given for {cleanKey}: '{value}'")
-        # Test if its an attribute:
+        # Test if it's an attribute:
         elif(key in ["SShtIns","SShtCls","SShtMed","SSht3PT","SShtFT","SLayUp","SDunk","SStdDunk","SShtInT","SPstFdaway","SPstHook","SShtOfD","SBallHndl","SOffHDrib","SBallSec","SPass","SBlock","SSteal","SHands","SOnBallD","SOReb","SDReb","SOLowPost","SDLowPost","SOAwar","SDAwar","SConsis","SStamina","SSpeed","SQuick","SStrength","SVertical","SHustle","SDurab","SPOT","SEmotion"]):
             self.vals[key] = int(value)
             if(self.vals[key] > 99):
@@ -1392,7 +1392,7 @@ class Player:
                 if(self.vals["Archetype"] is None):
                     raise ValueError("Must specify an archetype if the Player's default archetype is None.")
                 else:
-                    archetype = self.vals["Archetype"]
+                    archetype = self["Archetype_Name"]
 
             if(rarity is None):
                 if(self.vals["Rarity"] is None):
@@ -1406,7 +1406,7 @@ class Player:
                 else:
                     isArchetypeArtifact = b.config["rarities"]["archetypeBasedArtifactChance"] > random.random()
                 if(isArchetypeArtifact):
-                    targetArtifact = random.choice(Artifacts.ARTIFACTS[self["Archetype_Name"]][rarity])
+                    targetArtifact = random.choice(Artifacts.ARTIFACTS[archetype][rarity])
                 else:
                     targetArtifact = random.choice(Artifacts.ARTIFACTS["Neutral"][rarity])
                 pmod = targetArtifact(self)
@@ -1420,7 +1420,12 @@ class Player:
     def genFaction(self,faction : str = None):
         if(faction is None):
             faction = Factions.getRandomFaction()
-        Factions.genFaction(faction=faction,player=self)
+        self["Faction"] = faction
+        Factions.genFactionRace(faction=faction,player=self)
+        Factions.genFactionGearset(faction=faction,player=self)
+        Factions.genFactionHair(faction=faction,player=self)
+        Factions.genFactionTattoos(faction=faction,player=self)
+        Factions.genFactionName(faction=faction,player=self)
 
 
     #endregion === Generators ===
@@ -1459,7 +1464,7 @@ class Player:
     #endregion === PMod ===
 
 allPlayers = []
-for i in range(0):
+for playerCount in range(5):
     testPlayer = Player()
     testPlayer.genArchetype()
     testPlayer.genRarity()
