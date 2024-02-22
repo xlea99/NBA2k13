@@ -6,6 +6,7 @@ import sqlite3 as sql
 from datetime import date
 import random
 import json
+import StatsProcessing
 
 # This dictionary stores relevant values for each possible Jersey that can be selected.
 JERSEY_DICT = {
@@ -1122,7 +1123,8 @@ class DataStorage:
 
 # The actual, global DataStorage object used.
 d = DataStorage()
-
+StatsProcessing.generatePlayerGamesDict(d)
+StatsProcessing.calculatePlayerAverages(d)
 
 
 '''

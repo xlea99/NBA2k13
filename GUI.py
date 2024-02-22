@@ -14,7 +14,7 @@ class MainPlayerViewerWindow(QMainWindow):
         self.dataStorageObject = dataStorageObject
 
         self.setWindowTitle("Spritopia Presents")
-        self.setGeometry(100, 100, 400, 800)  # Window size
+        self.setGeometry(100, 100, 400, 900)  # Window size
 
         # Central widget setup
         self.centralWidget = QWidget(self)
@@ -42,6 +42,10 @@ class MainPlayerViewerWindow(QMainWindow):
         #self.layout.addWidget(self.attributeDisplay)  # Add to layout below the dropdown
         self.tabWidget.addTab(self.attributeDisplay,"Attributes")
 
+        # Intialize the StatsDisplay
+        self.statsDisplay = PlayerStatsDisplay(dataStorageObject=self.dataStorageObject,parent=self)
+        self.tabWidget.addTab(self.statsDisplay,"Stats")
+
         # Connect the player selection change signal to update the attribute display
         self.playerComboBox.currentIndexChanged.connect(self.onPlayerSelected)
 
@@ -53,6 +57,7 @@ class MainPlayerViewerWindow(QMainWindow):
         self.playerBio.update_player_bio(self.currentPlayer)
         self.attributeDisplay.reorder_attributes(self.currentPlayer["Archetype_Name"])
         self.attributeDisplay.update_attributes(self.currentPlayer)
+        self.statsDisplay.update_stats(spriteID=self.currentPlayer["SpriteID"])
 
 # This combo box provides a simple player selection menu, with the SpriteID of the given player accessible
 # using the getCurrentSpriteID method.
@@ -340,7 +345,6 @@ class PlayerStatsDisplay(QWidget):
         self.dataStorage = dataStorageObject
 
         self.layout = QVBoxLayout(self)
-
         self.setup_stats_display()
 
     def setup_stats_display(self):
@@ -348,39 +352,77 @@ class PlayerStatsDisplay(QWidget):
         self.statsFrame.setFrameShape(QFrame.StyledPanel)
         self.statsLayout = QGridLayout(self.statsFrame)
 
-        # Define stats labels
-        self.statsLabels = {
-            "Points": QLabel("Points: N/A"),
-            "DefensiveRebounds": QLabel("Defensive Rebounds: N/A"),
-            "OffensiveRebounds": QLabel("Offensive Rebounds: N/A"),
-            "PointsPerAssist": QLabel("Points Per Assist: N/A"),
-            "AssistCount": QLabel("Assist Count: N/A"),
-            "Steals": QLabel("Steals: N/A"),
-            "Blocks": QLabel("Blocks: N/A"),
-            "Turnovers": QLabel("Turnovers: N/A"),
-            "InsidesMade": QLabel("Insides Made: N/A"),
-            "InsidesAttempted": QLabel("Insides Attempted: N/A"),
-            "ThreesMade": QLabel("Threes Made: N/A"),
-            "ThreesAttempted": QLabel("Threes Attempted: N/A"),
-            "Fouls": QLabel("Fouls: N/A"),
-            "Dunks": QLabel("Dunks: N/A"),
-            "Layups": QLabel("Layups: N/A"),
-            "Unknown1": QLabel("Unknown1: N/A"),
-            "Unknown2": QLabel("Unknown2: N/A"),
-        }
+        # Header labels for the grid
+        self.headerLabels = ["Stat Name", "Total", "Average"]
+        for col, text in enumerate(self.headerLabels):
+            label = QLabel(text)
+            self.statsLayout.addWidget(label, 0, col)
 
-        # Position the labels in the grid
-        positions = [(i, j) for i in range(8) for j in range(2)]  # Adjust grid size as needed
-        for pos, (name, label) in zip(positions, self.statsLabels.items()):
-            self.statsLayout.addWidget(label, *pos)
+        # Thick, translucent line
+        headerLine = QFrame()
+        headerLine.setFrameShape(QFrame.HLine)
+        headerLine.setFrameShadow(QFrame.Sunken)
+        headerLine.setStyleSheet("border: 2px solid rgba(0, 0, 0, 50);")  # Adjust color and opacity here
+        self.statsLayout.addWidget(headerLine, 1, 0, 1, -1)  # Span across all columns
+
+        self.displayedStatNames = [
+            "Games Played",
+            "Points",
+            "Defensive Rebounds",
+            "Offensive Rebounds",
+            "Points Per Assist",
+            "Assist Count",
+            "Steals",
+            "Blocks",
+            "Turnovers",
+            "Insides Made",
+            "Insides Attempted",
+            "Threes Made",
+            "Threes Attempted",
+            "Fouls",
+            "Dunks",
+            "Layups"
+        ]
+
+        self.statsLabels = {}
+        row_offset = 2  # Adjust for header and thick line
+        for i, statName in enumerate(self.displayedStatNames, row_offset):
+            rowIndex = i * 2  # Double the row index for each stat to accommodate separators
+            self.statsLabels[statName] = {
+                "TotalLabel": QLabel("N/A"),
+                "AverageLabel": QLabel("N/A")
+            }
+            self.statsLayout.addWidget(QLabel(statName), rowIndex, 0)
+            self.statsLayout.addWidget(self.statsLabels[statName]["TotalLabel"], rowIndex, 1)
+            self.statsLayout.addWidget(self.statsLabels[statName]["AverageLabel"], rowIndex, 2)
+
+            # Hazy, semi-transparent line after each row
+            if i < len(self.displayedStatNames) + row_offset - 1:  # Avoid adding at the very end
+                separator = QFrame()
+                separator.setFrameShape(QFrame.HLine)
+                separator.setFrameShadow(QFrame.Sunken)
+                separator.setStyleSheet("border: 1px solid rgba(0, 0, 0, 25);")  # Adjust color and opacity here
+                self.statsLayout.addWidget(separator, rowIndex + 1, 0, 1, -1)  # Span across all columns
 
         self.layout.addWidget(self.statsFrame)
 
-    def update_stats(self, spriteID, statType="Totals"):
-        # statType could be "Totals" or "Averages"
-        for statName, label in self.statsLabels.items():
-            statValue = self.dataStorage.stats[spriteID][statType][statName]
-            label.setText(f"{statName.replace('_', ' ')}: {statValue}")
+    def update_stats(self, spriteID):
+        if spriteID not in self.dataStorage.stats["Players"]:
+            for statName in self.displayedStatNames:
+                self.statsLabels[statName]["TotalLabel"].setText("0")
+                if(statName == "Games Played"):
+                    self.statsLabels[statName]["AverageLabel"].setText(f"-")
+                else:
+                    self.statsLabels[statName]["AverageLabel"].setText("0.00")
+        else:
+            for statName in self.displayedStatNames:
+                totalValue = self.dataStorage.stats["Players"][spriteID]["Totals"].get(statName.replace(" ",""), 0)
+                averageValue = self.dataStorage.stats["Players"][spriteID]["Averages"].get(statName.replace(" ",""), 0)
+                self.statsLabels[statName]["TotalLabel"].setText(str(totalValue))
+                if(statName == "Games Played"):
+                    self.statsLabels[statName]["AverageLabel"].setText(f"-")
+                else:
+                    self.statsLabels[statName]["AverageLabel"].setText(f"{averageValue:.2f}")
 
 
 app = QApplication()

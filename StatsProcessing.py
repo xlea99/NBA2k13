@@ -1,10 +1,9 @@
 import BaseFunctions as b
-import DataStorage
 
 
 # This method, given a DataStorage object with a Raw stats dictionary, generates the Player history dictionary,
 # which simply lists all games that the player has played in along with their stats.
-def generatePlayerGamesDict(dataStorageObject : DataStorage):
+def generatePlayerGamesDict(dataStorageObject):
     playerGamesList = {}
     for gameId,gameInfo in dataStorageObject.stats["Raw"].items():
         for slotId,slotInfo in gameInfo["PlayerSlots"].items():
@@ -54,7 +53,7 @@ def generatePlayerGamesDict(dataStorageObject : DataStorage):
     dataStorageObject.stats["Players"] = playerGamesList
 
 # Given a dataStorageObject with a PlayerGamesDict, this method simply calculates a set of averages.
-def calculatePlayerAverages(dataStorageObject : DataStorage):
+def calculatePlayerAverages(dataStorageObject):
     for spriteID,playerStats in dataStorageObject.stats["Players"].items():
         playerStats["Averages"] = {"Points" : 0,
                                    "DefensiveRebounds" : 0,
@@ -79,7 +78,7 @@ def calculatePlayerAverages(dataStorageObject : DataStorage):
 
 # This function calculates the amount of games where the team with the most of the stat "statName" won, and
 # how many that team lost. If multiple stats are provided, it calculates based on a total of all supplied stats.
-def calculateStatGameImportance(dataStorageObject : DataStorage, statName : (str,list)):
+def calculateStatGameImportance(dataStorageObject, statName : (str,list)):
     if(type(statName) is not list):
         statName = [statName]
 
@@ -119,6 +118,4 @@ def calculateStatGameImportance(dataStorageObject : DataStorage, statName : (str
 
 
 
-d = DataStorage.DataStorage()
-generatePlayerGamesDict(d)
-calculatePlayerAverages(d)
+

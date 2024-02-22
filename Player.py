@@ -1427,7 +1427,6 @@ class Player:
         Factions.genFactionTattoos(faction=faction,player=self)
         Factions.genFactionName(faction=faction,player=self)
 
-
     #endregion === Generators ===
 
     #region === PMod ===
@@ -1464,7 +1463,7 @@ class Player:
     #endregion === PMod ===
 
 allPlayers = []
-for playerCount in range(5):
+for playerCount in range(0):
     testPlayer = Player()
     testPlayer.genArchetype()
     testPlayer.genRarity()
