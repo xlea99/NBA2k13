@@ -378,6 +378,7 @@ def getPModTemplate():
         "Name": None,
         "Type": {},
         "Description" : None,
+        "Image": None,
         "Modifications": [],
         "Compiled": False,
         "PrevValues": {}

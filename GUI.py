@@ -136,16 +136,20 @@ class PlayerBio(QWidget):
         factionPixmap = QPixmap(f"{b.paths.graphics}\\FactionIcons\\{playerObj['Faction']}.png") # Assume you get a QPixmap for the faction
         self.factionImage.setPixmap(factionPixmap.scaled(75, 75, Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
-        self.playerName.setText(f"{playerObj['First_Name']} {playerObj['Last_Name']}")
-
-        # Update the artifact image if it exists
-        #TODO add description label
-        #if playerObj["ArtifactName"] is not None:
-        #    artifactPixmap = QPixmap()  # Assume you get a QPixmap for the artifact
-        #    self.artifactImage.setPixmap(artifactPixmap.scaled(75, 75, Qt.KeepAspectRatio))
-        #else:
+        # Set artifact image here.
         self.artifactImage.clear()
+        artifactPMod = None
+        if(len(playerObj["PMods"]) > 0):
+            for pmod in playerObj["PMods"]:
+                if(pmod["Type"]["TypeName"] == "Artifact"):
+                    artifactPMod = pmod
+                    break
+        if(artifactPMod is not None):
+            artifactPixmap = QPixmap(f"{b.paths.graphics}\\{artifactPMod['Image']}")
+            self.artifactImage.setPixmap(artifactPixmap.scaled(75,75,Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
+
+        self.playerName.setText(f"{playerObj['First_Name']} {playerObj['Last_Name']}")
         # Update Archetype with coloring based on value
         archetype = playerObj["Archetype_Name"]
         self.archetypeLabel.setText(f"<i>{archetype}</i>")
