@@ -3,29 +3,207 @@ import BaseFunctions as b
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
-import DataStorage
+import DataStorage as d
 import Helpers
 import sys
 
+# Helper method to dynamically adjust font size depending on the label's maximum width.
+def dynamicallyResizeFont(label : QLabel):
+    # Retrieve the text from the QLabel
+    text = label.text()
 
-class MainPlayerViewerWindow(QMainWindow):
-    def __init__(self,dataStorageObject : DataStorage.DataStorage):
+    # Maximum label width
+    max_width = label.maximumWidth()
+
+    # Initial font and font size
+    font = label.font()  # Use the current font of the label
+    font.setPointSize(20)  # Start with an initial font size, adjust as needed
+    label.setFont(font)
+
+    # Create QFontMetrics for measuring text width
+    fm = QFontMetrics(font)
+
+    # Check if the text width is within the bounds of maximum width
+    text_width = fm.horizontalAdvance(text)
+    while text_width > max_width and font.pointSize() > 1:  # Ensure the font size never goes below 1
+        # Decrease font size
+        font.setPointSize(font.pointSize() - 1)
+        # Update QFontMetrics with the new font size
+        fm = QFontMetrics(font)
+        # Recalculate text width
+        text_width = fm.horizontalAdvance(text)
+
+    # Set the adjusted font to the label
+    label.setFont(font)
+
+
+class MainWindow(QMainWindow):
+    def __init__(self):
         super().__init__()
-        self.dataStorageObject = dataStorageObject
 
+        # Set the window title and size
         self.setWindowTitle("Spritopia Presents")
-        self.setGeometry(100, 100, 400, 900)  # Window size
+        self.setGeometry(100, 100, 1200, 900)
+
+        # Central widget and layout
+        self.centralWidget = QWidget(self)
+        self.setCentralWidget(self.centralWidget)
+        self.mainLayout = QHBoxLayout(self.centralWidget)  # Horizontal layout to hold sidebars and main content
+        self.mainLayout.setSpacing(0)  # No space between widgets
+        self.mainLayout.setContentsMargins(0, 0, 0, 0)  # No margins
+
+        # Initialize left sidebar
+        self.leftSidebar = LeftSidebarWidget()
+        self.leftSidebar.setFixedWidth(400)
+        self.mainLayout.addWidget(self.leftSidebar)
+
+
+        # Initialize outer main content area
+        self.mainContentOuter = QWidget()
+        self.mainContentOuterLayout = QVBoxLayout(self.mainContentOuter)  # Placeholder layout
+        self.mainLayout.addWidget(self.mainContentOuter)  # Add to layout with stretch factor
+
+        self.mainContent = MainContentWidget()
+        self.mainContentOuterLayout.addWidget(self.mainContent)
+        self.bottomContent = QWidget()
+        self.mainContentOuterLayout.addWidget(self.bottomContent)
+
+        self.setupMenuBar()
+
+        self.showMaximized()
+
+    def setupMenuBar(self):
+        menuBar = self.menuBar()  # This gets the QMainWindow's menu bar
+
+        # Create menus
+        fileMenu = menuBar.addMenu("&File")
+        editMenu = menuBar.addMenu("&Edit")
+        viewMenu = menuBar.addMenu("&View")
+
+        # Add actions to file menu
+        fileMenu.addAction("New")
+        fileMenu.addAction("Open")
+        fileMenu.addAction("Save")
+        fileMenu.addAction("Exit", self.close)
+
+        # Add actions to edit menu (Add your own functionality)
+        editMenu.addAction("Undo")
+        editMenu.addAction("Redo")
+
+        # Add actions to view menu (Add your own functionality)
+        viewMenu.addAction("Toggle Sidebar")
+
+
+#region === Main Content ===
+
+class MainContentWidget(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setObjectName("MainContentWidget")
 
         # Central widget setup
         self.centralWidget = QWidget(self)
         self.setCentralWidget(self.centralWidget)
         self.layout = QVBoxLayout(self.centralWidget)  # Main layout
 
+        #self.setStyleSheet("""
+        ##MainContentWidget {
+        #    background-color: #1e3059;
+        #}
+        #""")
+
+        self.playerCreationWidget = PlayerCreation(self)
+        self.layout.addWidget(self.playerCreationWidget)
+
+# This is the top half widget the displays basic player description and graphics.
+class PlayerCreation(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.layout = QVBoxLayout(self)
+
+        self.createAPlayerLabel = QLabel()
+        createAPlayerFont = QFont("Arial",30)
+        createAPlayerFont.setBold(True)
+        self.createAPlayerLabel.setFont(createAPlayerFont)
+        self.layout.addWidget(self.createAPlayerLabel)
+        self.createAPlayerLabel.setText("Create a New Player")
+
+
+    def setup_ui(self):
+        layout = QVBoxLayout(self)  # Main layout for the widget
+
+        # Top layout for Faction and Artifact images
+        topLayout = QHBoxLayout()
+        self.factionImage = QLabel()
+        self.factionImage.setFixedSize(75, 75)  # Fixed small size for images
+        self.playerName = QLabel()
+        playerNameFont = QFont("Arial", 20)
+        playerNameFont.setBold(True)
+        self.playerName.setFont(playerNameFont)
+        self.playerName.setMaximumWidth(200)
+        self.artifactImage = QLabel()
+        self.artifactImage.setFixedSize(75, 75)
+        topLayout.addWidget(self.factionImage)
+        topLayout.addStretch()
+        topLayout.addWidget(self.playerName)
+        topLayout.addStretch()
+        topLayout.addWidget(self.artifactImage)
+
+        # Middle layout for Archetype and Rarity
+        middleLayout = QVBoxLayout()
+        self.archetypeLabel = QLabel()
+        archetypeLabelFont = QFont("Arial", 10)
+        archetypeLabelFont.setItalic(True)
+        self.archetypeLabel.setFont(archetypeLabelFont)
+        self.archetypeLabel.setAlignment(Qt.AlignCenter)
+        self.rarityLabel = QLabel()
+        rarityLabelFont = QFont("Arial", 10)
+        rarityLabelFont.setBold(True)
+        self.rarityLabel.setFont(rarityLabelFont)
+        self.rarityLabel.setAlignment(Qt.AlignCenter)
+        middleLayout.addWidget(self.archetypeLabel)
+        middleLayout.addWidget(self.rarityLabel)
+        middleLayout.addStretch()
+
+        # Bottom layout for Description
+        self.descriptionLabel = QLabel()
+        self.descriptionLabel.setWordWrap(True)  # Allow multi-line text
+        self.descriptionLabel.setFont(QFont("Arial", 10))
+        self.descriptionLabel.setAlignment(Qt.AlignCenter)
+
+        # Add sub-layouts to the main layout
+        layout.addLayout(topLayout)
+        layout.addLayout(middleLayout)
+        layout.addWidget(self.descriptionLabel)
+
+
+
+#endregion === Main Content ===
+
+#region === Left Sidebar ===
+
+class LeftSidebarWidget(QMainWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.setObjectName("LeftSidebarWidget")
+
+        # Central widget setup
+        self.centralWidget = QWidget(self)
+        self.setCentralWidget(self.centralWidget)
+        self.layout = QVBoxLayout(self.centralWidget)  # Main layout
+
+        self.setStyleSheet("""
+        #LeftSidebarWidget {
+            background-color: #939393;
+        }
+        """)
         # Holder member for the currently selected player.
         self.currentPlayer = None
 
         # Initialize the PlayerComboBox
-        self.playerComboBox = PlayerSelectionBox(dataStorageObject=self.dataStorageObject, parent=self)
+        self.playerComboBox = PlayerSelectionBox(parent=self)
         self.layout.addWidget(self.playerComboBox)  # Add to layout
 
         # Initialize the PlayerBio
@@ -43,17 +221,16 @@ class MainPlayerViewerWindow(QMainWindow):
         self.tabWidget.addTab(self.attributeDisplay,"Attributes")
 
         # Intialize the StatsDisplay
-        self.statsDisplay = PlayerStatsDisplay(dataStorageObject=self.dataStorageObject,parent=self)
+        self.statsDisplay = PlayerStatsDisplay(parent=self)
         self.tabWidget.addTab(self.statsDisplay,"Stats")
 
         # Connect the player selection change signal to update the attribute display
         self.playerComboBox.currentIndexChanged.connect(self.onPlayerSelected)
-
         self.onPlayerSelected(None)
 
     def onPlayerSelected(self, index):
         spriteID = self.playerComboBox.getCurrentSpriteID()
-        self.currentPlayer = self.dataStorageObject.players[spriteID]
+        self.currentPlayer = d.d.players[spriteID]
         self.playerBio.update_player_bio(self.currentPlayer)
         self.attributeDisplay.reorder_attributes(self.currentPlayer["Archetype_Name"])
         self.attributeDisplay.update_attributes(self.currentPlayer)
@@ -62,16 +239,15 @@ class MainPlayerViewerWindow(QMainWindow):
 # This combo box provides a simple player selection menu, with the SpriteID of the given player accessible
 # using the getCurrentSpriteID method.
 class PlayerSelectionBox(QComboBox):
-    def __init__(self, dataStorageObject : DataStorage.DataStorage, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
-        self.dataStorageObject = dataStorageObject
         self.populate()
         self.currentIndexChanged.connect(self.onPlayerSelected)
         self.spriteID = self.currentData()
 
     def populate(self):
         # Populate with players' names and spriteIDs.
-        for spriteID, player in self.dataStorageObject.players.items():
+        for spriteID, player in d.d.players.items():
             self.addItem(f"{player['First_Name']} {player['Last_Name']}", spriteID)
 
     def getCurrentSpriteID(self):
@@ -97,6 +273,7 @@ class PlayerBio(QWidget):
         playerNameFont = QFont("Arial", 20)
         playerNameFont.setBold(True)
         self.playerName.setFont(playerNameFont)
+        self.playerName.setMaximumWidth(200)
         self.artifactImage = QLabel()
         self.artifactImage.setFixedSize(75, 75)
         topLayout.addWidget(self.factionImage)
@@ -148,8 +325,9 @@ class PlayerBio(QWidget):
             artifactPixmap = QPixmap(f"{b.paths.graphics}\\{artifactPMod['Image']}")
             self.artifactImage.setPixmap(artifactPixmap.scaled(75,75,Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
-
+        # Set player name
         self.playerName.setText(f"{playerObj['First_Name']} {playerObj['Last_Name']}")
+        dynamicallyResizeFont(self.playerName)
         # Update Archetype with coloring based on value
         archetype = playerObj["Archetype_Name"]
         self.archetypeLabel.setText(f"<i>{archetype}</i>")
@@ -343,10 +521,8 @@ class PlayerAttributeDisplay(QWidget):
 # This is one of the bottom half widgets that displays stats info. It displays all relevant player stats.
 class PlayerStatsDisplay(QWidget):
 
-    def __init__(self, dataStorageObject : DataStorage.DataStorage, parent=None):
+    def __init__(self,parent=None):
         super().__init__(parent)
-
-        self.dataStorage = dataStorageObject
 
         self.layout = QVBoxLayout(self)
         self.setup_stats_display()
@@ -411,7 +587,7 @@ class PlayerStatsDisplay(QWidget):
         self.layout.addWidget(self.statsFrame)
 
     def update_stats(self, spriteID):
-        if spriteID not in self.dataStorage.stats["Players"]:
+        if spriteID not in d.d.stats["Players"]:
             for statName in self.displayedStatNames:
                 self.statsLabels[statName]["TotalLabel"].setText("0")
                 if(statName == "Games Played"):
@@ -420,16 +596,25 @@ class PlayerStatsDisplay(QWidget):
                     self.statsLabels[statName]["AverageLabel"].setText("0.00")
         else:
             for statName in self.displayedStatNames:
-                totalValue = self.dataStorage.stats["Players"][spriteID]["Totals"].get(statName.replace(" ",""), 0)
-                averageValue = self.dataStorage.stats["Players"][spriteID]["Averages"].get(statName.replace(" ",""), 0)
+                totalValue = d.d.stats["Players"][spriteID]["Totals"].get(statName.replace(" ",""), 0)
+                averageValue = d.d.stats["Players"][spriteID]["Averages"].get(statName.replace(" ",""), 0)
                 self.statsLabels[statName]["TotalLabel"].setText(str(totalValue))
                 if(statName == "Games Played"):
                     self.statsLabels[statName]["AverageLabel"].setText(f"-")
                 else:
                     self.statsLabels[statName]["AverageLabel"].setText(f"{averageValue:.2f}")
 
+#endregion === Left Sidebar ===
+
+#region === Bottom Bar ===
+
+
+
+#endregion === Bottom Bar ===
+
+
 
 app = QApplication()
-window = MainPlayerViewerWindow(DataStorage.d)
+window = MainWindow()
 window.show()
 sys.exit(app.exec())

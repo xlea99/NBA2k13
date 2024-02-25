@@ -1,7 +1,6 @@
 from pymem import *
 from pymem.process import *
 import BaseFunctions as b
-import DataStorage
 import time
 import threading
 
@@ -12,7 +11,7 @@ class Tracker:
     #region === Setup and Tools ===
 
     # Basic init method to initialize member variables.
-    def __init__(self):
+    def __init__(self,dataStorageObject):
         # Members for actually connecting to 2K
         self.mem = None
         self.module = None
@@ -23,6 +22,9 @@ class Tracker:
         self.trackerRunning = False
         self.tick = 0
 
+        # Built in dataStorageObject.
+        self.dataStorage = dataStorageObject
+
         # Stores the current location of the app.
         self.location = "Disconnected"
 
@@ -32,6 +34,9 @@ class Tracker:
         self.haveFinalStatsBeenRipped = False
         self.needsCoin = None
         self.coinHasBeenAdded = None
+        self.ballHolding = {"InPlay" : {},"OutOfPlay" : {}}
+        self.lastTime = 0
+        self.canCalcBallHolding = False
 
         # When a game ends, all ripped stats are temporarily stored here for use elsewhere.
         self.rippedGames = {}
@@ -129,7 +134,6 @@ class Tracker:
         with self.lock:
             self.location = self.testCurrentScreen()
 
-
     # Method that tracks the current status of the running game.
     def updateGameStatus(self):
         with self.lock:
@@ -150,6 +154,29 @@ class Tracker:
                     self.needsCoin = None
                     self.coinHasBeenAdded = None
                     self.haveFinalStatsBeenRipped = False
+                    self.ballHolding = {}
+                    self.canCalcBallHolding = False
+
+    # Method that tracks the current ball holder of the game.
+    def updateBallHolding(self):
+        with self.lock:
+            if(self.location == "InGame"):
+                # Do this if game is actively running.
+                if(self.gameStatus == "Running"):
+                    currentIValue = self.getBallHolder()
+                    isBallInPlay = self.testIfBallIsInPlay()
+
+                    now = time.perf_counter()
+                    timeDif = now - self.lastTime
+                    self.lastTime = now
+
+                    if(isBallInPlay):
+                        self.ballHolding["InPlay"][currentIValue] = self.ballHolding["InPlay"].get(currentIValue,0.0) + timeDif
+                    else:
+                        self.ballHolding["OutOfPlay"][currentIValue] = self.ballHolding["OutOfPlay"].get(currentIValue,0.0) + timeDif
+                # Do this if game is paused or ended/won.
+                else:
+                    self.lastTime = time.perf_counter()
 
     # This update method handles ripping stats from an active game and flagging it as finished or unfinished.
     def updateStatsRip(self):
@@ -157,6 +184,13 @@ class Tracker:
             if(self.location == "InGame" and not self.haveFinalStatsBeenRipped):
                 if(self.tick % 20 == 0 or self.gameStatus == "Won"):
                     thisStatRip = self.ripAllStats()
+                    # Calculate ball holding times here
+                    if(self.canCalcBallHolding or thisStatRip["GameStats"]["LoadedRoster"].split(".ROS")[0] in self.dataStorage.rosters.keys()):
+                        ballHoldingTimes = self.convertIValueTimesToRosterIDs(rosterName=thisStatRip["GameStats"]["LoadedRoster"].split(".ROS")[0],
+                                                       rippedStats=thisStatRip,iValueTimes=self.ballHolding)
+                        if(ballHoldingTimes is not None):
+                            self.canCalcBallHolding = True
+                            thisStatRip["BallHolding"] = ballHoldingTimes
                     if(self.gameStatus == "Won"):
                         self.haveFinalStatsBeenRipped = True
                         thisStatRip["Final"] = True
@@ -170,6 +204,7 @@ class Tracker:
         while self.trackerRunning:
             self.updateLocationTracking()
             self.updateGameStatus()
+            self.updateBallHolding()
             self.updateStatsRip()
 
             self.tick += 1
@@ -733,6 +768,88 @@ class Tracker:
             scoresDict["RingersScore"] = slotStats[5]["Points"] + slotStats[6]["Points"] + slotStats[7]["Points"] + slotStats[8]["Points"] + slotStats[9]["Points"]
         return scoresDict
 
+    # Is 0 if the ball is in play, is any other number (undetermined) if it's not.
+    isBallInPlayAddress = [[0x0002BC48,0x164],[0x00035ADC,0x164],[0x00037D14,0x3A4],[0x00037A78,0x3D4],[0x009AEA88,0x154]]
+    def testIfBallIsInPlay(self):
+        isBallInPlayVal = self.getAddressValue(self.isBallInPlayAddress[0])
+        if(isBallInPlayVal == 0):
+            return True
+        else:
+            return False
+    ballHolderAddress = [[0x00550FA0,0x8],[0x017AA6C8,0x7C,0x670,0x24,0x3E8,0x4,0x284,0x730],[0x40,0x48,0x24,0x670,0x2C,0x284,0x730],[0x00D3E51C,0x4,0xC,0x18,0x18,0x1C,0x2A4,0x6B0],[0x01843A14,0x30C,0x304,0x70,0x10,0xE0,0x46C,0x450],[0x00DF05EC,0x3C,0x4C,0x38,0x7C8,0x598],[0x00DF05E4,0x18,0x3C,0x44,0x4,0x44,0x7E8,0x598]]
+    # This function returns the current ball holder (iValue)
+    def getBallHolder(self):
+        currentIValue = self.getAddressValue(addressSet=self.ballHolderAddress[0])
+        return currentIValue
+    # This helper method, when given a COMPLETE list of scraped i values (must be complete, otherwise
+    # function will map incorrectly), a dictionary of rosterIDs mapped to a specific blacktop slot, a rosterName,
+    # and a data storage object, this function returns a mapped list of each rosterID to its corresponding i value.
+    # End result looks like {419052152 (iValue) : 26 (RosterID)}
+    def mapIValues(self,iValues: list, rosterIDs: dict, rosterName: str):
+        mappedIValues = {}
+
+        # Given a dictionary of rosterIDs mapped to a specific blacktop slot, a rosterName,
+        # and a data storage object, will calculate each rosterIDs' a value (the order compared to all other rosterIDs on that
+        # team)
+        def mapAValues():
+            _aValues = {}
+
+            ballerzWeights = {}
+            ringersWeights = {}
+            for rosterID, slot in rosterIDs.items():
+
+                tempWeight = (self.dataStorage.csvRosterDict[rosterName]["HeightMap"][rosterID][
+                                  "RealHeight"] * 1000) + \
+                             self.dataStorage.csvRosterDict[rosterName]["HeightMap"][rosterID]["HeightAdjustment"]
+                if (slot >= 5):
+                    ringersWeights[tempWeight] = rosterID
+                else:
+                    ballerzWeights[tempWeight] = rosterID
+
+            for index, weight in enumerate(sorted(ringersWeights.keys(), reverse=True)):
+                _aValues[index] = ringersWeights[weight]
+
+            for index, weight in enumerate(sorted(ballerzWeights.keys(), reverse=True)):
+                _aValues[index + len(ringersWeights)] = ballerzWeights[weight]
+
+            return _aValues
+
+        aValues = mapAValues()
+
+        sortedIValues = sorted(list(iValues))
+
+        for index, iValue in enumerate(sortedIValues):
+            mappedIValues[iValue] = aValues[index]
+
+        return mappedIValues
+    # This method accepts a set of fully ripped stats, a rosterName, and a iValue times dictionary, and returns
+    # a dictionary of ball held times to RosterID.
+    def convertIValueTimesToRosterIDs(self,rosterName : str, rippedStats : dict,iValueTimes : dict):
+        # Build iValues list
+        allIValues = set(iValueTimes["InPlay"].keys()) | set(iValueTimes["OutOfPlay"].keys())
+        allIValues.discard(0)
+        allIValues = list(allIValues)
+        # If there are less IValues than there are slots, that means the iValue list is incomplete and this
+        # can't yet successfully calculate ball holding stats.
+        if(len(allIValues) < rippedStats["GameStats"]["GameMode"]):
+            return None
+
+        # Build RosterID list
+        rosterIDSlotDict = {}
+        for slot,slotInfo in rippedStats["GameStats"]["SlotStats"].items():
+            if(slotInfo["IsActive"] == 1):
+                rosterIDSlotDict[slotInfo["RosterID"]] = slot
+
+        # Generate iValueMap
+        iValueMap = self.mapIValues(iValues=allIValues,rosterIDs=rosterIDSlotDict,rosterName=rosterName)
+
+        ballHeldDict = {}
+        for iValue,rosterID in iValueMap.items():
+            ballHeldDict[rosterID]["InPlay"] = iValueTimes[iValue]["InPlay"]
+            ballHeldDict[rosterID]["OutOfPlay"] = iValueTimes[iValue]["OutOfPlay"]
+
+        return ballHeldDict
+
     #endregion === Game Tracking ===
 
     # These two addressSets deal with tracking and setting the players in the
@@ -799,3 +916,11 @@ class Tracker:
                 self.mem.write_int(self.module + self.slotActivatorAddressDict.get(key),convertedVal)
         self.mem.write_int(self.getPointerAddress(self.playerCounterAddress[0]),playerCount)
 
+
+
+
+t = Tracker()
+t.testAppConnection()
+while True:
+    print(t.testIfBallIsInPlay())
+    time.sleep(0.5)

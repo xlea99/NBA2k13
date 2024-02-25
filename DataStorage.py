@@ -1125,6 +1125,7 @@ class DataStorage:
 d = DataStorage()
 StatsProcessing.generatePlayerGamesDict(d)
 StatsProcessing.calculatePlayerAverages(d)
+StatsProcessing.calculateExtraPlayerValues(d)
 
 
 '''

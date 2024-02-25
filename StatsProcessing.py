@@ -75,6 +75,19 @@ def calculatePlayerAverages(dataStorageObject):
         for statName in playerStats["Averages"].keys():
             playerStats["Averages"][statName] = round(playerStats["Totals"][statName] / playerStats["Totals"]["GamesPlayed"] if playerStats["Totals"]["GamesPlayed"] != 0 else 0,3)
 
+# Given a dataStorageObject with a PlayerGamesDict in which both Totals and Averages are calculated, this calculates
+# extra player-specific values such as Three Point %, FG %, etc
+def calculateExtraPlayerValues(dataStorageObject):
+    for playerStats in dataStorageObject.stats["Players"].values():
+        playerStats["Other"] = {}
+        playerStats["Other"]["InsidePercentage"] = round(playerStats["Totals"]["InsidesMade"] / playerStats["Totals"]["InsidesAttempted"],3) if playerStats["Totals"]["InsidesAttempted"] != 0 else 0
+        playerStats["Other"]["ThreePercentage"] = round(playerStats["Totals"]["ThreesMade"] / playerStats["Totals"]["ThreesAttempted"],3) if playerStats["Totals"]["ThreesAttempted"] != 0 else 0
+        playerStats["Other"]["ReboundBias"] = round(playerStats["Averages"]["OffensiveRebounds"] - playerStats["Averages"]["DefensiveRebounds"],3)
+        playerStats["Other"]["AssistWorth"] = round(playerStats["Averages"]["PointsPerAssist"] / playerStats["Averages"]["AssistCount"],3) if playerStats["Averages"]["AssistCount"] != 0 else 0
+
+
+
+
 
 # This function calculates the amount of games where the team with the most of the stat "statName" won, and
 # how many that team lost. If multiple stats are provided, it calculates based on a total of all supplied stats.
