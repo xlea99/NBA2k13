@@ -36,14 +36,15 @@ def dynamicallyResizeFont(label : QLabel):
     # Set the adjusted font to the label
     label.setFont(font)
 
+QApplication.setStyle("Fusion")
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
         # Set the window title and size
-        self.setWindowTitle("Spritopia Presents")
-        self.setGeometry(100, 100, 1200, 900)
+        #self.setWindowTitle("Spritopia Presents")
+        #self.setGeometry(100, 100, 1200, 900)
 
         # Central widget and layout
         self.centralWidget = QWidget(self)
@@ -54,44 +55,27 @@ class MainWindow(QMainWindow):
 
         # Initialize left sidebar
         self.leftSidebar = LeftSidebarWidget()
-        self.leftSidebar.setFixedWidth(400)
-        self.mainLayout.addWidget(self.leftSidebar)
+        #sself.leftSidebar.setFixedWidth(400)
+        self.mainLayout.addWidget(self.leftSidebar,1)
 
 
         # Initialize outer main content area
         self.mainContentOuter = QWidget()
         self.mainContentOuterLayout = QVBoxLayout(self.mainContentOuter)  # Placeholder layout
-        self.mainLayout.addWidget(self.mainContentOuter)  # Add to layout with stretch factor
+        self.mainContentOuterLayout.setSpacing(0)  # No space between widgets
+        self.mainContentOuterLayout.setContentsMargins(0, 0, 0, 0)  # No margins
+        self.mainLayout.addWidget(self.mainContentOuter,3)  # Add to layout with stretch factor
 
         self.mainContent = MainContentWidget()
-        self.mainContentOuterLayout.addWidget(self.mainContent)
-        self.bottomContent = QWidget()
-        self.mainContentOuterLayout.addWidget(self.bottomContent)
+        self.mainContent.setStyleSheet("border: 1px solid black;")  # TODO TEMP
 
-        self.setupMenuBar()
+        self.bottomContent = QWidget()
+        self.bottomContent.setStyleSheet("border: 1px solid black;") #TODO TEMP
+
+        self.mainContentOuterLayout.addWidget(self.mainContent,2)
+        self.mainContentOuterLayout.addWidget(self.bottomContent,1)
 
         self.showMaximized()
-
-    def setupMenuBar(self):
-        menuBar = self.menuBar()  # This gets the QMainWindow's menu bar
-
-        # Create menus
-        fileMenu = menuBar.addMenu("&File")
-        editMenu = menuBar.addMenu("&Edit")
-        viewMenu = menuBar.addMenu("&View")
-
-        # Add actions to file menu
-        fileMenu.addAction("New")
-        fileMenu.addAction("Open")
-        fileMenu.addAction("Save")
-        fileMenu.addAction("Exit", self.close)
-
-        # Add actions to edit menu (Add your own functionality)
-        editMenu.addAction("Undo")
-        editMenu.addAction("Redo")
-
-        # Add actions to view menu (Add your own functionality)
-        viewMenu.addAction("Toggle Sidebar")
 
 
 #region === Main Content ===
@@ -113,8 +97,8 @@ class MainContentWidget(QMainWindow):
         #}
         #""")
 
-        self.playerCreationWidget = PlayerCreation(self)
-        self.layout.addWidget(self.playerCreationWidget)
+        self.pickerMenuWidget = PickerMenu(self)
+        self.layout.addWidget(self.pickerMenuWidget)
 
 # This is the top half widget the displays basic player description and graphics.
 class PlayerCreation(QWidget):
@@ -177,6 +161,74 @@ class PlayerCreation(QWidget):
         layout.addLayout(middleLayout)
         layout.addWidget(self.descriptionLabel)
 
+# Class for providing the Picker Menu.
+class PickerMenu(QWidget):
+
+    def __init__(self,parent=None):
+        super().__init__(parent)
+        self.layout = QHBoxLayout()
+        self.layout.addStretch(1)
+
+        self.initUI()
+        self.playerSlots = {0 : None, 1 : None, 2 : None, 3 : None, 4 : None, # Ballerz
+                            5 : None, 6 : None, 7 : None, 8 : None, 9 : None} # Ringers
+
+
+
+    def initUI(self):
+        # Main layout for the whole widget, with some spacing for aesthetics
+
+
+        # Ballerz Team Layout
+        ballerzLayout = QVBoxLayout()
+        ballerzHeader = QLabel("Ballerz")
+        ballerzHeader.setAlignment(Qt.AlignCenter)
+        ballerzLayout.addWidget(ballerzHeader)
+
+        # Ringers Team Layout
+        ringersLayout = QVBoxLayout()
+        ringersHeader = QLabel("Ringers")
+        ringersHeader.setAlignment(Qt.AlignCenter)
+        ringersLayout.addWidget(ringersHeader)
+
+        # Initialize and add player labels for Ballerz
+        self.ballerzLabels = [QLabel("Slot " + str(i + 1)) for i in range(5)]
+        for label in self.ballerzLabels:
+            label.setAlignment(Qt.AlignCenter)
+            ballerzLayout.addWidget(label)
+
+        # Initialize and add player labels for Ringers
+        self.ringersLabels = [QLabel("Slot " + str(i + 1)) for i in range(5)]
+        for label in self.ringersLabels:
+            label.setAlignment(Qt.AlignCenter)
+            ringersLayout.addWidget(label)
+
+        # Adding team layouts to the main layout
+        self.layout.addLayout(ballerzLayout)
+        self.layout.addStretch(1)
+        self.layout.addLayout(ringersLayout)
+        self.layout.addStretch(1)
+
+        self.setLayout(self.layout)
+        self.setWindowTitle("Player Picker Menu")
+        self.resize(500, 300)
+
+    # Attempts to add the given playerObject to the designated slotID.
+    def updatePlayerSlot(self, slotID, playerObject = None):
+        if(0 <= slotID < 10):
+            if(playerObject is None):
+                playerName = ""
+            else:
+                playerName = f"{playerObject['First_Name']} {playerObject['Last_Name']}"
+
+            if(slotID < 5):  # Ballerz
+                self.ballerzLabels[slotID].setText(playerName)
+            else:            # Ringers
+                self.ringersLabels[slotID - 5].setText(playerName)
+            self.playerSlots[slotID] = playerObject
+        else:
+            raise ValueError(f"Invalid slotID provided: {slotID}")
+
 
 
 #endregion === Main Content ===
@@ -194,11 +246,11 @@ class LeftSidebarWidget(QMainWindow):
         self.setCentralWidget(self.centralWidget)
         self.layout = QVBoxLayout(self.centralWidget)  # Main layout
 
-        self.setStyleSheet("""
-        #LeftSidebarWidget {
-            background-color: #939393;
-        }
-        """)
+        #self.setStyleSheet("""
+        ##LeftSidebarWidget {
+        #    background-color: #939393;
+        #}
+        #""")
         # Holder member for the currently selected player.
         self.currentPlayer = None
 
@@ -611,7 +663,6 @@ class PlayerStatsDisplay(QWidget):
 
 
 #endregion === Bottom Bar ===
-
 
 
 app = QApplication()

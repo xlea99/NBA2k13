@@ -52,15 +52,14 @@ def exportRosterData(rosterName,dataStorageObject):
 # ====================================MISCELLANEOUS========================================
 # =========================================================================================
 
-'''
-d = DataStorage.DataStorage(playersPathOverride=f"{b.paths.databases}\\PlayersTest.db")
-fuckeryRoster = "PremierFuckery"
-#for i in range(100):
-#    d.csv_UpdatePlayer(rosterName=fuckeryRoster,rosterID=i)
-#for i in range(291,355):
-#    addPlayerObjectToRoster(rosterName=fuckeryRoster,playerObject=d.players[i],dataStorageObject=d)
-#d.csv_ExportCSVs(rosterName=fuckeryRoster)
 
+#d = DataStorage.DataStorage(playersPathOverride=f"{b.paths.databases}\\Players.db")
+#importRosterData("Premier",dataStorageObject=d)
+#for i in range(291,355):
+#    addPlayerToRoster(rosterName="Premier",playerObject=d.players[i],dataStorageObject=d)
+#exportRosterData("Premier",dataStorageObject=d)
+
+'''
 importRosterData(rosterName=fuckeryRoster,dataStorageObject=d)
 d.updatePlayerCAPInfoFromRoster(rosterName=fuckeryRoster,spriteID=297)
 d.playersDB_UploadPlayers()

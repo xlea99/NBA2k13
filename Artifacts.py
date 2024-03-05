@@ -3,7 +3,6 @@ import BaseFunctions as b
 import random
 
 
-
 # This file handles the creation of individual Artifact PMods, modifications to players based on rarity.
 
 #region === Globals ===

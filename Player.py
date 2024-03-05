@@ -758,8 +758,11 @@ class Player:
         # with the intent to organically detect necessary updates.
         self.hasPendingUpdates = False
 
-    # Simple string method for quickly displaying the full object.
+    # Simple string method for quickly identifying the player object using only name and SpriteID.
     def __str__(self):
+        return f"{self.__spriteID}| {self.vals['First_Name']} {self.vals['Last_Name']}"
+    # String method for quickly displaying the full object.
+    def getFullString(self):
         returnString = f"SpriteID: {self.__spriteID}"
         for key,value in self.vals.items():
             if(key in self.extraValuesMap.values()):
@@ -1385,7 +1388,7 @@ class Player:
     def genMisc(self):
         self.vals["Personality"] = random.randrange(0,len(self.idMap["Personality"]))
         self.hasPendingUpdates = True
-    # This method  randomly selects and generates an artifact based on rarity and archetype.
+    # This method randomly selects and generates an artifact based on rarity and archetype.
     def genArtifact(self,archetype = None,rarity = None,artifact = None):
         if(artifact is None):
             if(archetype is None):
