@@ -204,12 +204,15 @@ class Tracker:
                     # In rare cases (when we navigate to video settings menu), stats can't be read. Thanks 2k
                     except TypeError:
                         thisStatRip = None
-                    # Calculate ball holding times here
+
                     if(thisStatRip is not None):
+                        # Calculate ball holding times here
                         if(self.canCalcBallHolding or thisStatRip["GameStats"]["LoadedRoster"].split(".ROS")[0] in self.dataStorage.rosters.keys()):
                             ballHoldingTimes = self.convertIValueTimesToRosterIDs(rosterName=thisStatRip["GameStats"]["LoadedRoster"].split(".ROS")[0],
                                                            rippedStats=thisStatRip,iValueTimes=self.ballHolding)
                             if(ballHoldingTimes):
+                                if(not self.canCalcBallHolding):
+                                    b.log.debug("All PIDs ripped, can now correctly calculate ball holding times.")
                                 self.canCalcBallHolding = True
                         if(self.gameStatus == "Won"):
                             if(ballHoldingTimes is None):
@@ -885,8 +888,8 @@ class Tracker:
 
         for slotInfo in rippedStats["SlotStats"].values():
             if(slotInfo["IsActive"] == 1):
-                slotInfo["BallHolding"] = {"InPlay" : iValueTimes["InPlay"].get(iValueMap[slotInfo["RosterID"]],0.0),
-                                           "OutOfPlay" : iValueTimes["OutOfPlay"].get(iValueMap[slotInfo["RosterID"]],0.0)}
+                slotInfo["BallHolding_InPlay"] = iValueTimes["InPlay"].get(iValueMap[slotInfo["RosterID"]],0.0)
+                slotInfo["BallHolding_OutOfPlay"] = iValueTimes["OutOfPlay"].get(iValueMap[slotInfo["RosterID"]],0.0)
         return True
 
     #endregion === Game Tracking ===

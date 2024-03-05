@@ -1061,7 +1061,7 @@ GLOBAL_STAT_LIST = {"LoadedRoster" : "Text",
                     "ExtraValue8" : "Text",
                     "ExtraValue9" : "Text",
                     "ExtraValue10" : "Text"}
-INDIVIDUAL_STAT_LIST =    {"GameID" : "Integer",
+INDIVIDUAL_STAT_LIST = {"GameID" : "Integer",
                             "PlayerSlot" : "Integer",
                               "IsActive" : "Integer",
                               "SpriteID" : "Integer",
@@ -1082,7 +1082,9 @@ INDIVIDUAL_STAT_LIST =    {"GameID" : "Integer",
                               "Dunks" : "Integer",
                               "Layups" : "Integer",
                               "Unknown1" : "Integer",
-                              "Unknown2" : "Integer"}
+                              "Unknown2" : "Integer",
+                              "BallHolding_InPlay" : "Real",
+                              "BallHolding_OutOfPlay" : "Real"}
 # This function generates a new, empty Games and PlayerSlots table in the given dbPath.
 def genBlankStatsTable(dbPath):
     conn = sqlite3.connect(dbPath)
@@ -1203,7 +1205,7 @@ def trackNewRoster(newRosterName,buildNewRosterFile=False,dataStorageObject=None
 
 
 
-#genBlankStatsTable(f"{b.paths.databases}\\Stats.db")
+genBlankStatsTable(f"{b.paths.databases}\\NewStats.db")
 
 '''
 #----------------------------------------------------------

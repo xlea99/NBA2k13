@@ -864,7 +864,7 @@ class DataStorage:
             # Iterate through each player slot in the game
             for slotId, slotInfo in gameInfo["PlayerSlots"].items():
                 # Check if the player slot is marked as "Dirty"
-                if(slotInfo["DataState"] == "Updated"):
+                if(gameInfo["DataState"] == "Updated"):
                     # Prepare an UPDATE statement for the PlayerSlots table
                     updateSlotQuery = """
                         UPDATE PlayerSlots SET
@@ -873,7 +873,7 @@ class DataStorage:
                         AssistCount = ?, Steals = ?, Blocks = ?, Turnovers = ?,
                         InsidesMade = ?, InsidesAttempted = ?, ThreesMade = ?,
                         ThreesAttempted = ?, Fouls = ?, Dunks = ?, Layups = ?,
-                        Unknown1 = ?, Unknown2 = ?
+                        Unknown1 = ?, Unknown2 = ?, BallHolding_InPlay = ?, BallHolding_OutOfPlay = ?
                         WHERE GameID = ? AND PlayerSlot = ?
                     """
                     slotVals = (
@@ -897,19 +897,22 @@ class DataStorage:
                         slotInfo["Layups"],
                         slotInfo["Unknown1"],
                         slotInfo["Unknown2"],
+                        slotInfo["BallHolding_InPlay"],
+                        slotInfo["BallHolding_OutOfPlay"],
                         gameId,
                         slotId
                     )
                     updateQueries.append((updateSlotQuery,slotVals))
-                elif(slotInfo["DataState"] == "New"):
+                elif(gameInfo["DataState"] == "New"):
                     # Prepare an INSERT statement for the PlayerSlots table
                     insertSlotQuery = """
                         INSERT INTO PlayerSlots (
                             GameID, PlayerSlot, IsActive, SpriteID, RosterID, Points,
                             DefensiveRebounds, OffensiveRebounds, PointsPerAssist, AssistCount, Steals,
                             Blocks, Turnovers, InsidesMade, InsidesAttempted, ThreesMade,
-                            ThreesAttempted, Fouls, Dunks, Layups, Unknown1, Unknown2
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ThreesAttempted, Fouls, Dunks, Layups, Unknown1, Unknown2, BallHolding_InPlay, 
+                            BallHolding_OutOfPlay
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """
                     slotVals = (
                         gameId,
@@ -933,7 +936,9 @@ class DataStorage:
                         slotInfo["Dunks"],
                         slotInfo["Layups"],
                         slotInfo["Unknown1"],
-                        slotInfo["Unknown2"]
+                        slotInfo["Unknown2"],
+                        slotInfo["BallHolding_InPlay"],
+                        slotInfo["BallHolding_OutOfPlay"]
                     )
                     insertQueries.append((insertSlotQuery, slotVals))
 
@@ -944,7 +949,7 @@ class DataStorage:
             self.__statsCursor.execute(query, vals)
 
         # Commit the changes
-        self.__statsCursor.commit()
+        self.__statsDB.commit()
         b.log.info(f"Uploaded StatsDB to '{self.__statsDBPath}'")
 
         self.statsDB_DownloadRaw()
@@ -1156,6 +1161,7 @@ d = DataStorage()
 StatsProcessing.generatePlayerGamesDict(d)
 StatsProcessing.calculatePlayerAverages(d)
 StatsProcessing.calculateExtraPlayerValues(d)
+
 
 
 '''
