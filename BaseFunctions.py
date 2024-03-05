@@ -4,15 +4,17 @@ import shutil
 import tomlkit
 import tkinter as tk
 import random
-import time
 import re
 import chardet
-from pathlib import Path
-import glob
 import WeightedDict
 from tkinter import simpledialog, filedialog
 from pympler import asizeof
 import psutil
+import threading
+import pygame
+import logging
+from logging.handlers import RotatingFileHandler
+
 
 # region === Config and Pathing Setup ===
 
@@ -167,10 +169,52 @@ paths = Paths()
 
 # endregion === Config and Pathing Setup ===
 
+#region === Logging ===
+
+# Setup of custom logger for program-wide use.
+def setupSpriteLogger(logDirectory : str, level : int = logging.NOTSET,
+                 maxSingleFileSize : int = 1*1024*1024, maxFileCount : int = 5,logName : str = __name__,
+                 logFormat:str = '%(asctime)s - %(levelname)s - [%(filename)s:%(funcName)s:%(lineno)d] - %(message)s'):
+    # Custom rotation and cleanup function
+    def rotateLogs():
+        # List all log files
+        logs = [log for log in os.listdir(logDirectory) if log.endswith(".log")]
+        # If we have more logs than maxLogCount, delete the oldest
+        while len(logs) > maxFileCount - 1:
+            oldest_log = min(logs, key=lambda x: os.path.getctime(os.path.join(logDirectory, x)))
+            os.remove(os.path.join(logDirectory, oldest_log))
+            logs.remove(oldest_log)
+
+    # Setup initial logger.
+    _logger = logging.getLogger(logName)
+    _logger.setLevel(level)
+
+    # Setup handler
+    handler = RotatingFileHandler(
+        f"{paths.logs}\\{logName}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log",
+        maxBytes=maxSingleFileSize, backupCount=maxFileCount - 1, delay=True)
+    handler.setLevel(level)
+    _logger.addHandler(handler)
+    handler.rotator = lambda source, dest: rotateLogs()
+
+    # Setup formatter
+    formatter = logging.Formatter(logFormat)
+    handler.setFormatter(formatter)
+
+    # Initial run of rotate logs, in case the existing directory already contains multiple log files.
+    rotateLogs()
+
+    # Return actual logger.
+    return _logger
+log = setupSpriteLogger(logDirectory=paths.logs,level=logging.DEBUG,logName="log")
+log.info("Initialized logger.")
+
+
+#endregion === Logging ===
 
 #region === Miscellaneous Functions ===
 
-# Simple backup management function. Will attempt to backup the file given by filePath
+# Simple backup management function. Will attempt to back up the file given by filePath
 # to the directory backupPath, keeping at maximum backupLimit backups at any time.
 def backup(filePath, backupPath, backupLimit=10):
     # Validate and create backup directory if missing
@@ -357,9 +401,8 @@ def getMemorySizeOf(thisObject):
     else:
         return f"{round(byteSize,2)} bytes"
 
-# This method quickly tests whether a process exists, by its name.
+# This method quickly tests whether an external process exists, by its name.
 def testIfProcessExists(processName : str):
-    matchingProcesses = []
     for proc in psutil.process_iter(['pid', 'name']):
         try:
             if processName.lower() == proc.info['name'].lower():
@@ -367,6 +410,22 @@ def testIfProcessExists(processName : str):
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
     return False
+
+# Global lock to prevent simultaneous plays
+playsoundAsyncLock = threading.Lock()
+# This method simply plays a target sound asynchronously (meaning, on a separate thread.)
+def playsoundAsync(soundFilePath):
+    def sound_player(path):
+        # Load the sound file
+        sound = pygame.mixer.Sound(path)
+        # Play the sound asynchronously
+        sound.play()
+        # Wait for the sound to finish playing
+        while pygame.mixer.get_busy():
+            pygame.time.delay(100)
+
+    # Start a new thread to play the sound
+    threading.Thread(target=sound_player, args=(soundFilePath,)).start()
 
 #endregion === Miscellaneous Functions ===
 
@@ -385,3 +444,5 @@ def getPModTemplate():
     }
 
 #endregion === Templates ===
+
+
