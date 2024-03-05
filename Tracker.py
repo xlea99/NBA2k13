@@ -42,6 +42,8 @@ class Tracker:
         # When a game ends, all ripped stats are temporarily stored here for use elsewhere.
         self.rippedGames = {}
 
+        b.log.debug("Initialized Tracker object")
+
     # This helper method extracts the actual address of an address set by applying offsets
     def getPointerAddress(self,addressSet):
         address = self.mem.read_int(self.module + addressSet[0])
@@ -124,6 +126,7 @@ class Tracker:
                 else:
                     return "None"
         except Exception as e:
+            b.log.exception(e)
             raise e
 
     #endregion === Setup and Tools ===
@@ -142,10 +145,10 @@ class Tracker:
                 if (self.gameStatus != "Won"):
                     if(self.isGamePaused()):
                         self.gameStatus = "Paused"
-                        print("GAME IS PAUSED")
                     else:
                         if (self.testIfGameIsWon()):
                             self.gameStatus = "Won"
+                            b.log.info("Found that game has been won. Doing final rip.")
                             #TODO COIN MANAGEMENT CLEAN UP GOES HERE?
                         else:
                             self.gameStatus = "Running"
@@ -158,6 +161,7 @@ class Tracker:
                     self.haveFinalStatsBeenRipped = False
                     self.ballHolding = {}
                     self.canCalcBallHolding = False
+                    b.log.debug("Cleaned up Tracker object after finished game")
 
     # Method that tracks the current ball holder of the game.
     def updateBallHolding(self):
@@ -200,8 +204,10 @@ class Tracker:
                         if(self.gameStatus == "Won"):
                             if(ballHoldingTimes is None):
                                 b.playsoundAsync(f"{b.paths.media}\\Ehrmantraut\\ball_handling_not_complete.mp3")
+                                b.log.warning(f"Successfully ripped finished game stats, but ball holding times COULD NOT be calculated.")
                             else:
                                 b.playsoundAsync(f"{b.paths.media}\\Ehrmantraut\\game_rip_successful.mp3")
+                                b.log.info(f"Successfully ripped finished game stats")
                             self.haveFinalStatsBeenRipped = True
                             thisStatRip["Final"] = True
                         else:
@@ -227,9 +233,11 @@ class Tracker:
             if(runAsDaemon):
                 self.trackingThread.daemon = True  # This makes sure the thread will not prevent the program from exiting.
             self.trackingThread.start()
+            b.log.info(f"Started Tracker (daemon = {runAsDaemon}")
     # This method stops the tracking process.
     def stopTracker(self):
         self.trackerRunning = False
+        b.log.info("Stopped tracker")
 
     #endregion === Tracking and Operation ===
 

@@ -190,6 +190,7 @@ def genBlankFactionsDatabase(dbPath):
     cursor.execute(query)
 
     conn.commit()
+    b.log.info("Built new Factions.db database")
 # Helper methods for updating the Factions.db file with the CSV files stored at Factions/CSVs.
 def updateRaces():
     with open(f"{b.paths.factions}\\CSVs\\New Day of 2K - Races.csv") as f:
@@ -668,6 +669,7 @@ updateMoustache()
 updateBeard()
 updateFacialHairColor()
 updateFactions()
+b.log.debug("Setup and updated all Faction info from Airtable CSVs")
 
 #endregion === Database Maintenance ===
 

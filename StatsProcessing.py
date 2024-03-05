@@ -51,6 +51,7 @@ def generatePlayerGamesDict(dataStorageObject):
                         playerGamesList[slotInfo["SpriteID"]]["Totals"][statToTotal] += slotInfo[statToTotal]
 
     dataStorageObject.stats["Players"] = playerGamesList
+    b.log.debug("Generated Player stats dictionary.")
 
 # Given a dataStorageObject with a PlayerGamesDict, this method simply calculates a set of averages.
 def calculatePlayerAverages(dataStorageObject):
@@ -74,6 +75,7 @@ def calculatePlayerAverages(dataStorageObject):
                                    "Unknown2" : 0}
         for statName in playerStats["Averages"].keys():
             playerStats["Averages"][statName] = round(playerStats["Totals"][statName] / playerStats["Totals"]["GamesPlayed"] if playerStats["Totals"]["GamesPlayed"] != 0 else 0,3)
+    b.log.debug("Calculated stat averages for Player stats.")
 
 # Given a dataStorageObject with a PlayerGamesDict in which both Totals and Averages are calculated, this calculates
 # extra player-specific values such as Three Point %, FG %, etc
@@ -84,7 +86,7 @@ def calculateExtraPlayerValues(dataStorageObject):
         playerStats["Other"]["ThreePercentage"] = round(playerStats["Totals"]["ThreesMade"] / playerStats["Totals"]["ThreesAttempted"],3) if playerStats["Totals"]["ThreesAttempted"] != 0 else 0
         playerStats["Other"]["ReboundBias"] = round(playerStats["Averages"]["OffensiveRebounds"] - playerStats["Averages"]["DefensiveRebounds"],3)
         playerStats["Other"]["AssistWorth"] = round(playerStats["Averages"]["PointsPerAssist"] / playerStats["Averages"]["AssistCount"],3) if playerStats["Averages"]["AssistCount"] != 0 else 0
-
+    b.log.debug("Calculated extra/special stats for Player stats.")
 
 
 

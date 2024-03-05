@@ -344,8 +344,9 @@ class DataStorage:
                     validAdjustments.append(i)
 
             if (len(validAdjustments) == 0):
-                raise ValueError(
-                    f"UH OH HOMIE! You got WAY too many players with this height: {realHeight}. Can't add any more to this roster!")
+                error = ValueError(f"Out of space to add more players to roster with this height: {realHeight}. Quite sad.")
+                b.log.exception(error)
+                raise error
             thisAdjustment = random.choice(validAdjustments)
 
             query = f"UPDATE HeightMap SET RealHeight = {realHeight}, HeightAdjustment = {thisAdjustment} WHERE RosterID = {rosterID}"
@@ -497,7 +498,9 @@ class DataStorage:
     def csv_UpdatePlayer(self, rosterName, rosterID, player: Player.Player = None):
         rosterID = int(rosterID)
         if(rosterID > 999):
-            raise ValueError(f"ERROR: RosterID must be <= 999, given value is {rosterID}")
+            error = ValueError(f"ERROR: RosterID must be <= 999, given value is {rosterID}")
+            b.log.exception(error)
+            raise error
         if (player is None):
             self.rosters[rosterName]["Players"][rosterID]["IsRegNBA"] = "0"
             self.rosters[rosterName]["Players"][rosterID]["First_Name"] = f"*{b.alphaBase26(decimalNumber=rosterID,maxPlaces=15)}"
@@ -1153,8 +1156,6 @@ d = DataStorage()
 StatsProcessing.generatePlayerGamesDict(d)
 StatsProcessing.calculatePlayerAverages(d)
 StatsProcessing.calculateExtraPlayerValues(d)
-b.log.test("Howdy friend!")
-
 
 
 '''

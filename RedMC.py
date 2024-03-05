@@ -37,6 +37,8 @@ class RedMC:
         self.redMCWindow.activate()
         self.isRedMCOpen = True
 
+        b.log.debug("Opened RedMC")
+
     @staticmethod
     # Uses the open RedMC program to load the given rosterName.
     def loadRoster(rosterName):
@@ -57,6 +59,8 @@ class RedMC:
         pyautogui.write(fullRosterPath)
         pyautogui.press("enter")
 
+        b.log.debug(f"Loaded roster '{rosterName}' in RedMC")
+
     @staticmethod
     # Simply saves the currently loaded roster.
     def saveRoster():
@@ -64,6 +68,8 @@ class RedMC:
         pyautogui.keyDown("s")
         pyautogui.keyUp("ctrlleft")
         pyautogui.keyUp("s")
+
+        b.log.debug("Saved roster in RedMC")
 
     # Simply quits out of RedMC. THE FILE MUST BE SAVED BEFORE DOING THIS.
     def closeRedMC(self):
@@ -73,6 +79,7 @@ class RedMC:
         pyautogui.press("enter")
 
         self.isRedMCOpen = False
+        b.log.debug("Closed RedMC")
 
     @staticmethod
     # Uses the open RedMC program window to export the currently loaded Roster's
@@ -101,9 +108,11 @@ class RedMC:
         pyautogui.press("tab")
         pyautogui.press("space")
 
+        b.log.debug(f"Exported all CSVs for roster '{rosterName}' from RedMC")
+
     @staticmethod
-    # Uses the open RedMC program window to import the lasted exported CSV file set in
-    # the airlock folder.
+    # Uses the open RedMC program window to import the last exported CSV file set in
+    # the target roster folder.
     def importCSVs(rosterName):
         pyautogui.press("altleft")
         pyautogui.press("up")
@@ -127,6 +136,8 @@ class RedMC:
         pyautogui.press("tab")
         pyautogui.press("tab")
         pyautogui.press("space")
+
+        b.log.debug(f"Imported all CSVs for roster '{rosterName}' to RedMC")
 
     @staticmethod
     # This method simply tests that RedMC is closed for timeoutTime amount of time.

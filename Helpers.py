@@ -33,6 +33,8 @@ def importRosterData(rosterName,dataStorageObject):
     r.closeRedMC()
     time.sleep(2)
     dataStorageObject.csv_ImportCSVs(rosterName)
+
+    b.log.info(f"Imported roster data for roster '{rosterName}'")
     return r.testIfRedMCClosed()
 
 # PROGRAM -> RedMC
@@ -46,6 +48,8 @@ def exportRosterData(rosterName,dataStorageObject):
     r.importCSVs(rosterName)
     r.saveRoster()
     r.closeRedMC()
+
+    b.log.info(f"Exported roster data for roster '{rosterName}'")
     return r.testIfRedMCClosed()
 
 # =========================================================================================
