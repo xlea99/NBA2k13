@@ -305,6 +305,8 @@ class DataStorage:
             self.statsDB_Open()
             self.statsDB_DownloadRaw()
 
+        b.log.info("Finished initializing DataStorage object.")
+
     # region === CSV/Roster Management ===
 
     # This method simply returns an array of all managed and saved roster directories.
@@ -420,8 +422,9 @@ class DataStorage:
                 "Teams": readCSVFileToDict(f"{b.paths.rosterCSVs}\\{rosterName}\\Teams.csv"),
                 "Jerseys": readCSVFileToDict(f"{b.paths.rosterCSVs}\\{rosterName}\\Jerseys.csv"),
             }
-
         readBaseCSVs()
+
+        b.log.debug(f"Read CSV files for roster '{rosterName}'")
 
         # This simply generates necessary db connection and cursor objects to hook into this rosterName's
         # RosterVals.db data file. If the db doesn't exist for this roster yet, it creates it.
@@ -463,6 +466,7 @@ class DataStorage:
         self.csv_GenSpriteIDDict(rosterName)
         self.csv_GenHeightAdjustmentDict(rosterName)
         self.csv_GenJerseyConfigDict(rosterName)
+        b.log.debug(f"Imported roster '{rosterName}'")
     # This method turns a CSV dictionary into four files, saves them to the rosterName csv folder for
     # RedMC import, and overwrites any existing files there.
     def csv_ExportCSVs(self, rosterName):
@@ -485,6 +489,7 @@ class DataStorage:
                            csvData=self.rosters[rosterName]["Teams"])
         writeCSVDictToFile(filePath=f"{b.paths.rosterCSVs}\\{rosterName}\\Jerseys.csv",
                            csvData=self.rosters[rosterName]["Jerseys"])
+        b.log.debug(f"Exported CSV files for roster '{rosterName}'")
 
     # This method overwrites the given RosterID in the Players tab of rosterName with the given
     # Player object. If no Player is given, the player will instead be 'removed', which
@@ -503,6 +508,7 @@ class DataStorage:
             self.__csv_AdjustHeight(rosterName=rosterName, rosterID=rosterID, realHeight=-1)
             self.csv_GenHeightAdjustmentDict(rosterName)
             self.csv_GenJerseyConfigDict(rosterName)
+            b.log.debug(f"Updated roster '{rosterName}' rosterID {rosterID} with blank player.")
         else:
             player["HS_ID"] = rosterID
             player["PortrID"] = str(rosterID + 9999)
@@ -536,6 +542,7 @@ class DataStorage:
             self.csv_GenSpriteIDDict(rosterName)
             self.csv_GenHeightAdjustmentDict(rosterName)
             self.csv_GenJerseyConfigDict(rosterName)
+            b.log.debug(f"Updated roster '{rosterName}' rosterID {rosterID} with new player: {player}")
     # This method uses exported CSVs (specifically, headshapes and players csvs) to generate a Player object.
     # Assumes rosterName CSVs are already exported and up to date. It uses rosterID to target a single player.
     def csv_ExtractPlayer(self, rosterName, rosterID):
@@ -565,13 +572,18 @@ class DataStorage:
             if (singlePlayer["IsRegNBA"] == "1"):
                 continue
             else:
+                b.log.debug(f"Found first unused RosterID: {singlePlayer['ID']}")
                 return singlePlayer["ID"]
+        error = ValueError(f"No unused RosterIDs present on roster '{rosterName}'")
+        b.log.exception(error)
+        raise error
     # This method simply returns a list of all used RosterIDs on the "Players" tab of a CSV dict
     def csv_FindAllUsedPlayerIDs(self, rosterName):
         returnList = []
         for singlePlayer in self.rosters[rosterName]["Players"][1:]:
             if (singlePlayer["IsRegNBA"] == "1"):
                 returnList.append(int(singlePlayer["ID"]))
+        b.log.debug(f"Found {len(returnList)} used RosterIDs in roster '{rosterName}'")
         return returnList
     # This method uses the HeightMap table of RosterVals.db to determine, given a list of SpriteIDs,
     # the mapped Ball Handling IDs for that team.
@@ -616,11 +628,13 @@ class DataStorage:
 
         self.csv_ExportCSVs(rosterName)
 
-        # Finally, we ensure that the Jersey configurations are now saved in the actualy RosterVals.db.
+        # Finally, we ensure that the Jersey configurations are now saved in the actually RosterVals.db.
         updateJerseyConfigQuery = "UPDATE JerseyConfig SET JerseyValue = ? WHERE JerseyOption = ?"
         for jerseyOption,jerseyValue in self.rosters[rosterName]["JerseyConfig"].items():
             self.__csvCursorDict[rosterName].execute(updateJerseyConfigQuery,(jerseyValue,jerseyOption))
         self.__csvDBDict[rosterName].commit()
+
+        b.log.info("Updated all Jersey information")
 
     # endregion === CSV/Roster Management ===
 
@@ -631,21 +645,25 @@ class DataStorage:
         self.__playersDB = sql.connect(self.__playersDBPath)
         self.__playersDB.row_factory = sql.Row
         self.__playersCursor = self.__playersDB.cursor()
+        b.log.debug(f"Opened PlayerDB connection with '{self.__playersDBPath}'")
 
     # This method simply returns the count of Players currently in the players table.
     def playersDB_GetPlayerCount(self):
         countQuery = "SELECT COUNT(*) FROM Players;"
         self.__playersCursor.execute(countQuery)
         rowCount = self.__playersCursor.fetchone()[0]
+        b.log.debug(f"Counted {rowCount} players in player table")
         return rowCount
     # This function simply returns the first unused SpriteID from the players table.
     def playersDB_GetFirstUnusedSpriteID(self):
         if(self.playersDB_GetPlayerCount() == 0):
+            b.log.debug("Found first unused SpriteID to be 0, since there are currently no players in database.")
             return 0
         else:
             spriteQuery = "SELECT MAX(SpriteID) FROM Players;"
             self.__playersCursor.execute(spriteQuery)
             maxSpriteID = self.__playersCursor.fetchone()[0]
+            b.log.debug(f"Found first unused SpriteID to be {maxSpriteID + 1}")
             return maxSpriteID + 1
 
     # This method downloads the full Players.db into this object's self.players member.
@@ -665,6 +683,7 @@ class DataStorage:
             allPlayers[thisPlayer["SpriteID"]] = thisPlayer
 
         self.players = allPlayers
+        b.log.debug(f"Downloaded full players DB from '{self.__playersDBPath}'")
     # This method uploads any changed Players in the self.players dict to the Players.db file.
     # It also handles insertion of new Players as well as SpriteID assignment.
     def playersDB_UploadPlayers(self):
@@ -716,6 +735,7 @@ class DataStorage:
         for query in pendingQueries:
             self.__playersCursor.execute(query[0], query[1])
         self.__playersDB.commit()
+        b.log.info(f"Uploaded full Players DB to '{self.__playersDBPath}'")
 
     # Helper method for adding a new player to the self.players dict. To save this player,
     # UploadPlayers MUST BE RUN or the player will be lost after program closes.
@@ -723,6 +743,7 @@ class DataStorage:
         tempSpriteID = min(self.players.keys()) - 1 if len(self.players.keys()) > 0 else -1
         player["SpriteID"] = tempSpriteID
         self.players[tempSpriteID] = player
+        b.log.info(f"Added '{player}' to players")
 
     # endregion === Players Table Management ===
 
@@ -733,8 +754,9 @@ class DataStorage:
         self.__statsDB = sql.connect(self.__statsDBPath)
         self.__statsDB.row_factory = sql.Row
         self.__statsCursor = self.__statsDB.cursor()
+        b.log.debug(f"Opened StatsDB connection with '{self.__playersDBPath}'")
 
-    # Downloads the full Stats database in the stats member of this object.
+    # Downloads the full Stats database into the stats member of this object.
     def statsDB_DownloadRaw(self):
         # Fetch all games
         self.__statsCursor.execute("SELECT * FROM Games")
@@ -761,6 +783,7 @@ class DataStorage:
             gamesDict[gameId] = gameDict
 
         self.stats["Raw"] = gamesDict
+        b.log.debug(f"Downloaded full StatsDB from '{self.__statsDBPath}'")
     # Uploads all changes made to the Stats dict to the actual stats database.
     def statsDB_UploadRaw(self):
         updateQueries = []
@@ -919,6 +942,7 @@ class DataStorage:
 
         # Commit the changes
         self.__statsCursor.commit()
+        b.log.info(f"Uploaded StatsDB to '{self.__statsDBPath}'")
 
         self.statsDB_DownloadRaw()
 
@@ -976,6 +1000,7 @@ class DataStorage:
 
         self.stats["Raw"][newGameID] = newGame
 
+        b.log.debug(f"Added new ripped game ({newGameID}, {newGame['PlayDate']}) to stats dictionary")
         return newGameID
 
     # endregion === Stats Table Management ===
@@ -1119,6 +1144,8 @@ class DataStorage:
         for headshapeVal in headshapeVals:
             self.players[spriteID][headshapeVal] = self.rosters[rosterName]["Headshapes"][rosterID][headshapeVal]
 
+        b.log.debug(f"Updated CAP Info from roster '{rosterName}' for player '{self.players[spriteID]}'")
+
     #endregion === Helpers ===
 
 # The actual, global DataStorage object used.
@@ -1126,6 +1153,8 @@ d = DataStorage()
 StatsProcessing.generatePlayerGamesDict(d)
 StatsProcessing.calculatePlayerAverages(d)
 StatsProcessing.calculateExtraPlayerValues(d)
+b.log.test("Howdy friend!")
+
 
 
 '''

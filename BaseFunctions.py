@@ -185,6 +185,14 @@ def setupSpriteLogger(logDirectory : str, level : int = logging.NOTSET,
             os.remove(os.path.join(logDirectory, oldest_log))
             logs.remove(oldest_log)
 
+    # Set up the special "Test" log level for specific testing.
+    TEST_LOG_LEVEL = 25
+    logging.addLevelName(TEST_LOG_LEVEL,"TEST")
+    def test(self,message,*args,**kwargs):
+        if(self.isEnabledFor(TEST_LOG_LEVEL)):
+            self._log(TEST_LOG_LEVEL,message,args,**kwargs)
+    logging.Logger.test = test
+
     # Setup initial logger.
     _logger = logging.getLogger(logName)
     _logger.setLevel(level)
