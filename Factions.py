@@ -669,7 +669,7 @@ updateMoustache()
 updateBeard()
 updateFacialHairColor()
 updateFactions()
-b.log.debug("Setup and updated all Faction info from Airtable CSVs")
+b.log.debug("Set up and updated all Faction info from Airtable CSVs")
 
 #endregion === Database Maintenance ===
 

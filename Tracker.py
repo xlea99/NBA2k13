@@ -44,6 +44,10 @@ class Tracker:
 
         b.log.debug("Initialized Tracker object")
 
+    # Ensuring tracking shuts down correctly on delete.
+    def __del__(self):
+        self.stopTracker()
+
     # This helper method extracts the actual address of an address set by applying offsets
     def getPointerAddress(self,addressSet):
         address = self.mem.read_int(self.module + addressSet[0])
@@ -142,15 +146,21 @@ class Tracker:
     def updateGameStatus(self):
         with self.lock:
             if(self.location == "InGame"):
+                if(self.gameStatus == "OutOfGame"):
+                    b.log.info("Started new blacktop game")
                 if (self.gameStatus != "Won"):
                     if(self.isGamePaused()):
+                        if(self.gameStatus != "Paused"):
+                            b.log.debug("Blacktop game paused")
                         self.gameStatus = "Paused"
                     else:
                         if (self.testIfGameIsWon()):
                             self.gameStatus = "Won"
-                            b.log.info("Found that game has been won. Doing final rip.")
+                            b.log.info("Found that blacktop game has been won. Doing final rip.")
                             #TODO COIN MANAGEMENT CLEAN UP GOES HERE?
                         else:
+                            if(self.gameStatus == "Paused"):
+                                b.log.debug("Resumed blacktop game after being paused")
                             self.gameStatus = "Running"
             else:
                 if(self.gameStatus != "OutOfGame"):
@@ -161,7 +171,7 @@ class Tracker:
                     self.haveFinalStatsBeenRipped = False
                     self.ballHolding = {}
                     self.canCalcBallHolding = False
-                    b.log.debug("Cleaned up Tracker object after finished game")
+                    b.log.debug("Exited blacktop game, cleaned up Tracker object after finished game")
 
     # Method that tracks the current ball holder of the game.
     def updateBallHolding(self):
@@ -233,7 +243,7 @@ class Tracker:
             if(runAsDaemon):
                 self.trackingThread.daemon = True  # This makes sure the thread will not prevent the program from exiting.
             self.trackingThread.start()
-            b.log.info(f"Started Tracker (daemon = {runAsDaemon}")
+            b.log.info(f"Started Tracker (daemon = {runAsDaemon})")
     # This method stops the tracking process.
     def stopTracker(self):
         self.trackerRunning = False
@@ -881,36 +891,39 @@ class Tracker:
 
     #endregion === Game Tracking ===
 
+    #region === Picker ===
+
+
     # These two addressSets deal with tracking and setting the players in the
-    # player select menu for blacktop. PlayerCounterAddress keeps track
+    # player select/picker menu for blacktop. PlayerCounterAddress keeps track
     # of the numbers of players currently selected, while each individual
     # slot tracks the id of a player. Get and Set methods are provided to print out
     # the currently loaded players, and to load a dict of players into the game.
     playerCounterAddress = [[0x0067634C,0x58],[0x00676E2C,0x0],[0x00678600,0x0],[0x00A91A70,0xB4],[0x00E99380,0x1BC]]
     slotActivatorAddressDict = {
-        "Slot1" : 0xE99430,
-        "Slot2" : 0xE99438,
-        "Slot3" : 0xE99440,
-        "Slot4" : 0xE99448,
-        "Slot5" : 0xE99450,
-        "Slot6" : 0xE99434,
-        "Slot7" : 0xE9943C,
-        "Slot8" : 0xE99444,
-        "Slot9" : 0xE9944C,
-        "Slot10" : 0xE99454
+        0 : 0xE99430,
+        1 : 0xE99438,
+        2 : 0xE99440,
+        3 : 0xE99448,
+        4 : 0xE99450,
+        5 : 0xE99434,
+        6 : 0xE9943C,
+        7 : 0xE99444,
+        8 : 0xE9944C,
+        9 : 0xE99454
     }
     def getLoadedBlacktopPlayers(self):
         loadedPlayerDict = {
-            "Slot1" : None,
-            "Slot2" : None,
-            "Slot3" : None,
-            "Slot4" : None,
-            "Slot5" : None,
-            "Slot6" : None,
-            "Slot7" : None,
-            "Slot8" : None,
-            "Slot9" : None,
-            "Slot10" : None,
+            0 : None,
+            1 : None,
+            2 : None,
+            3 : None,
+            4 : None,
+            5 : None,
+            6 : None,
+            7 : None,
+            8 : None,
+            9 : None,
         }
         for key,value in self.slotActivatorAddressDict.items():
             rawValue = self.mem.read_int(self.module + value)
@@ -919,34 +932,32 @@ class Tracker:
 
         gameMode = self.getBlacktopMode()
         if(gameMode < 5):
-            loadedPlayerDict["Slot5"] = None
-            loadedPlayerDict["Slot10"] = None
+            loadedPlayerDict[4] = None
+            loadedPlayerDict[9] = None
         if(gameMode < 4):
-            loadedPlayerDict["Slot4"] = None
-            loadedPlayerDict["Slot9"] = None
+            loadedPlayerDict[3] = None
+            loadedPlayerDict[8] = None
         if (gameMode < 3):
-            loadedPlayerDict["Slot3"] = None
-            loadedPlayerDict["Slot8"] = None
+            loadedPlayerDict[2] = None
+            loadedPlayerDict[7] = None
         if (gameMode < 2):
-            loadedPlayerDict["Slot2"] = None
-            loadedPlayerDict["Slot7"] = None
-        if (gameMode < 2):
-            loadedPlayerDict["Slot1"] = None
-            loadedPlayerDict["Slot6"] = None
-
+            loadedPlayerDict[1] = None
+            loadedPlayerDict[6] = None
 
         return loadedPlayerDict
     def loadBlacktopPlayers(self,playerSlotDict):
         playerCount = 0
-        for key,value in playerSlotDict.items():
-            if(value != None):
+        for slotID,rosterID in playerSlotDict.items():
+            if(rosterID is not None):
                 playerCount += 1
-                convertedVal = (value*484) + 30333580
-                self.mem.write_int(self.module + self.slotActivatorAddressDict.get(key),convertedVal)
+                convertedVal = (rosterID*484) + 30333580
+                self.mem.write_int(self.module + self.slotActivatorAddressDict[slotID],convertedVal)
         self.mem.write_int(self.getPointerAddress(self.playerCounterAddress[0]),playerCount)
+
+    #endregion === Picker ===
 
 
 
 
 t = Tracker(DataStorage.d)
-t.startTracker(runAsDaemon=False)
+t.startTracker(runAsDaemon=True)
