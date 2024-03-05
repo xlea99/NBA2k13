@@ -29,7 +29,9 @@ def generatePlayerGamesDict(dataStorageObject):
                                                                          "Dunks" : 0,
                                                                          "Layups" : 0,
                                                                          "Unknown1" : 0,
-                                                                         "Unknown2" : 0}}
+                                                                         "Unknown2" : 0,
+                                                                         "BallHolding_InPlay" : 0,
+                                                                         "BallHolding_OutOfPlay" : 0}}
 
                 thisGame = slotInfo.copy()
                 thisGame["LoadedRoster"] = gameInfo["LoadedRoster"]
@@ -72,7 +74,9 @@ def calculatePlayerAverages(dataStorageObject):
                                    "Dunks" : 0,
                                    "Layups" : 0,
                                    "Unknown1" : 0,
-                                   "Unknown2" : 0}
+                                   "Unknown2" : 0,
+                                   "BallHolding_InPlay" : 0,
+                                   "BallHolding_OutOfPlay" : 0}
         for statName in playerStats["Averages"].keys():
             playerStats["Averages"][statName] = round(playerStats["Totals"][statName] / playerStats["Totals"]["GamesPlayed"] if playerStats["Totals"]["GamesPlayed"] != 0 else 0,3)
     b.log.debug("Calculated stat averages for Player stats.")
