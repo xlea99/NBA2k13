@@ -3,8 +3,10 @@
   "id": "bandit",
   "path": "bandit.mp3",
   "name": "He's a Bandit!",
-  "artist": "Francis and the Dusty Hoops",
+  "artist": "Henry and the Dusty Hoops",
   "tags": [],
   "timestamps": {
+    "first_chorus": "0:55",
+    "second_chorus": "2:06"
   }
 }

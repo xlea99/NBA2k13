@@ -4,6 +4,7 @@ import BaseFunctions as b
 import os
 from datetime import datetime
 import time
+import re
 import json
 import threading
 import mutagen
@@ -25,6 +26,7 @@ class Radio:
         self.__signalSetSong = None
         self.__signalSetTime = -1
         self.__signalSkip = False
+        self.__signalSkipHistory = False
         self.__songIsEnded = False
         def setSongIsEnded(event):
             self.__songIsEnded = True
@@ -35,6 +37,7 @@ class Radio:
         self.__vlcEventManager.event_attach(vlc.EventType.MediaPlayerEndReached,setSongIsEnded)
 
         self.queue = []
+        self.history = []
         self.catalog = {}
         # Import all songs in base music directory by default.
         if(importAll):
@@ -95,7 +98,6 @@ class Radio:
             seconds -= (60 * minutes)
 
             return f"{minutes}:{seconds:02}"
-
 
     #endregion === Setup ===
 
@@ -170,12 +172,19 @@ class Radio:
     # This run loop method handles grabbing the next song from the queue and signaling it.
     def __signalNextQueueSong(self):
         with self.__lock:
+            previousSong = self.__activeSong
             if (self.queue):
                 nextSong = self.queue.pop(0)
                 self.__signalSetSong = nextSong
                 self.__activeSong = self.__signalSetSong
             else:
                 self.__activeSong = None
+
+            if(self.__signalSkipHistory):
+                self.__signalSkipHistory = False
+            else:
+                if(previousSong is not None):
+                    self.history.append(previousSong)
     # This run loop method handles dynamically adding new songs to the queue based on preferences.
     def __manageUpdateQueue(self):
         with self.__lock:
@@ -212,10 +221,25 @@ class Radio:
             self.__signalPause = True
     # Sets the time to play from of the current song. #TODO do we really need support for songs longer than an hour?
     def timestamp(self,timestamp):
-        thisTime = datetime.strptime(timestamp, "%M:%S")
+        timePattern = r"^[0-9]?\d:[0-5]\d$"
+        if(re.fullmatch(timePattern,timestamp)):
+            timeString = timestamp
+        else:
+            timeString = self.catalog[self.__activeSong]["timestamps"].get(timestamp,None)
+        if(timeString is None):
+            raise ValueError(f"Couldn't get valid timestamp for '{timestamp}'")
+        thisTime = datetime.strptime(timeString, "%M:%S")
         milliseconds = ((thisTime.minute * 60) + thisTime.second) * 1000
         with self.__lock:
             self.__signalSetTime = milliseconds
+    # Sets the volume of the radio.
+    def volume(self,volume):
+        if(volume > 100):
+            volume = 100
+        elif(volume < 0):
+            volume = 0
+        with self.__lock:
+            self.__player.audio_set_volume(volume)
 
     # Adds the given song to the back (or front) of the queue.
     def enqueueSong(self,songID,placeAtFront=False):
@@ -229,11 +253,19 @@ class Radio:
     # Sets the currently active song, replacing the currently playing song.
     def setSong(self,songID : str):
         self.enqueueSong(songID=songID,placeAtFront=True)
-        self.skipSong()
-    # Skips to the next song in the queue
-    def skipSong(self):
+        self.next()
+    # Skips to the next song in the queue, or returns to the last played song in history
+    def next(self):
         with self.__lock:
             self.__signalSkip = True
+    def previous(self):
+        if(self.history):
+            self.enqueueSong(self.__activeSong,placeAtFront=True)
+            previousSong = self.history.pop()
+            self.setSong(previousSong)
+            with self.__lock:
+                self.__signalSkipHistory = True
+
 
     # Method to help set the mode for refreshing the queue.
     def setQueueMode(self,autoPopulate=True,autoPlay=True,shuffle=True,playEachOnce=True):
