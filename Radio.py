@@ -17,8 +17,6 @@ import vlc
 #endregion === Imports ===
 
 
-
-
 class Radio:
 
     #region === Setup and Info ===
@@ -55,6 +53,7 @@ class Radio:
         self.__playEachOnce = True
         self.__hasBeenShuffled = False
 
+        self.__lock = threading.Lock()
         self.__thread = threading.Thread(target=self.__run).start()
 
     # This method imports the song from the given JSON path, assuming it's
@@ -82,7 +81,8 @@ class Radio:
 
     # Gets the current song played, as a neat formatted string.
     def currentSong(self):
-        return f"\"{self.catalog[self.__activeSong]['name']}\" - {self.catalog[self.__activeSong]['artist']}"
+        with self.__lock:
+            return f"\"{self.catalog[self.__activeSong]['name']}\" - {self.catalog[self.__activeSong]['artist']}"
 
     #endregion === Setup ===
 
@@ -115,72 +115,75 @@ class Radio:
                 self.__signalNextQueueSong()
                 self.__manageUpdateQueue()
 
-
             # Wait at tickrate
             time.sleep(0.03)
     # This run loop method handles setting the signaled song as the playing song in the VLC player.
     def __updateSetSong(self):
-        if (self.__signalSetSong not in self.catalog.keys()):
-            raise ValueError(f"Song with id '{self.__signalSetSong}' is not in catalog!")
+        with self.__lock:
+            if (self.__signalSetSong not in self.catalog.keys()):
+                raise ValueError(f"Song with id '{self.__signalSetSong}' is not in catalog!")
 
-        self.__player.set_media(self.__vlcInstance.media_new(self.catalog[self.__signalSetSong]["path"]))
+            self.__player.set_media(self.__vlcInstance.media_new(self.catalog[self.__signalSetSong]["path"]))
 
-        if(self.__autoPlay):
-            self.__player.play()
+            if(self.__autoPlay):
+                self.__player.play()
 
-        b.log.debug(f"Set active radio song to '{self.__signalSetSong}' at time '{self.__player.get_time()}'")
-        self.__signalSetSong = None
-        self.__songIsEnded = False
+            b.log.debug(f"Set active radio song to '{self.__signalSetSong}' at time '{self.__player.get_time()}'")
+            self.__signalSetSong = None
+            self.__songIsEnded = False
     # This run loop method handles checking for plays, pauses, and time sets.
     def __updateSongStatus(self):
-        # Detect setTime signal.
-        if (self.__signalSetTime >= 0):
-            if(self.__signalSetTime >= self.catalog[self.__activeSong]["length"]):
-                self.__player.set_time(self.catalog[self.__activeSong]["length"])
-            else:
-                self.__player.set_time(self.__signalSetTime)
-            b.log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetTime}'")
-            self.__signalSetTime = -1
-        # Detect play signal.
-        if (self.__signalPlay):
-            self.__signalPlay = False
-            if (not self.__player.is_playing()):
-                b.log.debug(f"Played/resumed radio at {self.__player.get_time()}")
-                self.__player.play()
-        # Detect pause signal.
-        if (self.__signalPause):
-            self.__signalPause = False
-            if (self.__player.is_playing()):
-                b.log.debug(f"Paused radio at {self.__player.get_time()}")
-                self.__player.pause()
+        with self.__lock:
+            # Detect setTime signal.
+            if (self.__signalSetTime >= 0):
+                if(self.__signalSetTime >= self.catalog[self.__activeSong]["length"]):
+                    self.__player.set_time(self.catalog[self.__activeSong]["length"])
+                else:
+                    self.__player.set_time(self.__signalSetTime)
+                b.log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetTime}'")
+                self.__signalSetTime = -1
+            # Detect play signal.
+            if (self.__signalPlay):
+                self.__signalPlay = False
+                if (not self.__player.is_playing()):
+                    b.log.debug(f"Played/resumed radio at {self.__player.get_time()}")
+                    self.__player.play()
+            # Detect pause signal.
+            if (self.__signalPause):
+                self.__signalPause = False
+                if (self.__player.is_playing()):
+                    b.log.debug(f"Paused radio at {self.__player.get_time()}")
+                    self.__player.pause()
     # This run loop method handles grabbing the next song from the queue and signaling it.
     def __signalNextQueueSong(self):
-        if (self.queue):
-            nextSong = self.queue.pop(0)
-            self.__signalSetSong = nextSong
-            self.__activeSong = self.__signalSetSong
-        else:
-            self.__activeSong = None
+        with self.__lock:
+            if (self.queue):
+                nextSong = self.queue.pop(0)
+                self.__signalSetSong = nextSong
+                self.__activeSong = self.__signalSetSong
+            else:
+                self.__activeSong = None
     # This run loop method handles dynamically adding new songs to the queue based on preferences.
     def __manageUpdateQueue(self):
-        if(self.__autoPopulate):
-            if(self.__playEachOnce):
-                if(len(self.queue) == 0):
-                    self.queue = list(self.catalog.keys())
-                    self.__hasBeenShuffled = False
-            else:
-                allQueuedSongs = self.queue + [self.__activeSong]
-                for songID in self.catalog.keys():
-                    if(songID not in allQueuedSongs):
-                        if(self.__shuffle and len(self.queue) > 5):
-                            # Default to adding recently played songs at least 1 song away from the queue.
-                            self.queue.insert(random.randrange(1,len(self.queue) - 1),songID)
-                        else:
-                            self.queue.append(songID)
+        with self.__lock:
+            if(self.__autoPopulate):
+                if(self.__playEachOnce):
+                    if(len(self.queue) == 0):
+                        self.queue = list(self.catalog.keys())
+                        self.__hasBeenShuffled = False
+                else:
+                    allQueuedSongs = self.queue + [self.__activeSong]
+                    for songID in self.catalog.keys():
+                        if(songID not in allQueuedSongs):
+                            if(self.__shuffle and len(self.queue) > 5):
+                                # Default to adding recently played songs at least 1 song away from the queue.
+                                self.queue.insert(random.randrange(1,len(self.queue) - 1),songID)
+                            else:
+                                self.queue.append(songID)
 
-        if(self.__shuffle and not self.__hasBeenShuffled):
-            random.shuffle(self.queue)
-            self.__hasBeenShuffled = True
+            if(self.__shuffle and not self.__hasBeenShuffled):
+                random.shuffle(self.queue)
+                self.__hasBeenShuffled = True
 
     #endregion === Looping ===
 
@@ -188,44 +191,45 @@ class Radio:
 
     # Plays the currently selected song.
     def play(self):
-        self.__signalPlay = True
+        with self.__lock:
+            self.__signalPlay = True
     # Pauses the currently selected song.
     def pause(self):
-        self.__signalPause = True
+        with self.__lock:
+            self.__signalPause = True
     # Sets the time to play from of the current song. #TODO do we really need support for songs longer than an hour?
     def timestamp(self,timestamp):
         thisTime = datetime.strptime(timestamp, "%M:%S")
         milliseconds = ((thisTime.minute * 60) + thisTime.second) * 1000
-        self.__signalSetTime = milliseconds
+        with self.__lock:
+            self.__signalSetTime = milliseconds
 
     # Adds the given song to the back (or front) of the queue.
     def enqueueSong(self,songID,placeAtFront=False):
-        if(placeAtFront):
-            self.queue.insert(0,songID)
-        else:
-            self.queue.append(songID)
+        with self.__lock:
+            if(placeAtFront):
+                self.queue.insert(0,songID)
+            else:
+                self.queue.append(songID)
     # Sets the currently active song, replacing the currently playing song.
     def setSong(self,songID : str):
-        self.__signalSetSong = songID
+        with self.__lock:
+            self.__signalSetSong = songID
     # Skips to the next song in the queue
     def skipSong(self):
-        self.__signalSkip = True
+        with self.__lock:
+            self.__signalSkip = True
 
     # Method to help set the mode for refreshing the queue.
     def setQueueMode(self,autoPopulate=True,autoPlay=True,shuffle=True,playEachOnce=True):
-        self.__autoPlay = autoPlay
-        self.__autoPopulate = autoPopulate
-        self.__playEachOnce = playEachOnce
-        self.__shuffle = shuffle
-        self.__hasBeenShuffled = False
+        with self.__lock:
+            self.__autoPlay = autoPlay
+            self.__autoPopulate = autoPopulate
+            self.__playEachOnce = playEachOnce
+            self.__shuffle = shuffle
+            self.__hasBeenShuffled = False
 
     #endregion === Radio Control ===
-
-
-
-
-
-
 
 
 r = Radio()
