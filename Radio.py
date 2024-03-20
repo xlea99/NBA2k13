@@ -1,0 +1,211 @@
+#region === Imports ===
+
+import BaseFunctions as b
+import os
+from datetime import datetime
+import time
+import json
+import threading
+import mutagen
+import random
+from audioplayer import AudioPlayer
+
+#vlc_path = "C:\\Program Files\\VideoLAN\\VLC"
+#os.environ["PYTHON_VLC_MODULE_PATH"] = vlc_path
+import vlc
+
+#endregion === Imports ===
+
+
+
+
+class Radio:
+
+    #region === Setup and Info ===
+
+    # Basic init method to set up members and read default songs.
+    def __init__(self,importAll = True):
+        self.__vlcInstance = vlc.Instance()
+        self.__player = self.__vlcInstance.media_player_new()
+
+        self.__activeSong = None
+        self.__signalPlay = False
+        self.__signalPause = False
+        self.__signalSetSong = None
+        self.__signalSetTime = -1
+        self.__currentSongTime = 0
+
+
+        self.queue = []
+        self.catalog = {}
+        # Import all songs in base music directory by default.
+        if(importAll):
+            for filePath in os.listdir(b.paths.music):
+                if(filePath.endswith(".json")):
+                    self.importSong(f"{b.paths.music}\\{filePath}")
+
+        # Queue helper members
+        self.__autoPopulate = True
+        self.__shuffle = True
+        self.__playEachOnce = True
+        self.__hasBeenShuffled = False
+
+        self.__thread = threading.Thread(target=self.__run).start()
+
+    # This method imports the song from the given JSON path, assuming it's
+    # a valid serialized song.
+    def importSong(self,songJSONPath):
+        with open(songJSONPath,"r") as f:
+            thisSong = json.load(f)
+        if(thisSong["type"] == "song"):
+            # Logic to verify and determine song path
+            finalSongPath = os.path.join(os.path.dirname(songJSONPath),thisSong["path"])
+            b.paths.validatePath(pathToValidate=finalSongPath)
+            thisSong["path"] = finalSongPath
+
+            # Logic to calculate audio file length
+            mutagenFileHandler = mutagen.File(finalSongPath)
+            if(mutagenFileHandler is not None and mutagenFileHandler.info.length):
+                thisSong["length"] = int(mutagenFileHandler.info.length * 1000)
+            else:
+                raise TypeError(f"Unsupported audio file type: '{finalSongPath}'")
+
+            self.catalog[thisSong["id"]] = thisSong
+            return True
+        else:
+            return False
+
+    # Gets the current song played, as a neat formatted string.
+    def currentSong(self):
+        return f"\"{self.catalog[self.__activeSong]['name']}\" - {self.catalog[self.__activeSong]['artist']}"
+
+    #endregion === Setup ===
+
+    #region === Looping ===
+
+    # Run loop for managing music playing
+    def __run(self):
+        while True:
+            # First we check if there's a change in song
+            if (self.__signalSetSong is not None):
+                self.__updateSetSong()
+                print(self.currentSong())
+
+            # Now we check main logic for playing/pausing/timestamping songs
+            if(self.__activeSong is not None):
+                self.__updateSongStatus()
+
+                # We check if the song has ended here, and handle assignment of the
+                # next song.
+                if(self.__player.get_time() >= self.catalog[self.__activeSong]["length"]):
+                    self.__signalNextQueueSong()
+                    self.__manageUpdateQueue()
+            # If there isn't a currently active song, we check to see if there is anything in the queue to play.
+            else:
+                self.__signalNextQueueSong()
+                self.__manageUpdateQueue()
+
+
+            # Wait at tickrate
+            time.sleep(0.03)
+    # This run loop method handles setting the signaled song as the playing song in the VLC player.
+    def __updateSetSong(self):
+        if (self.__signalSetSong not in self.catalog.keys()):
+            raise ValueError(f"Song with id '{self.__signalSetSong}' is not in catalog!")
+
+        continuePlaying = False
+        if (self.__player.is_playing()):
+            continuePlaying = True
+
+        self.__player.set_media(self.__vlcInstance.media_new(self.catalog[self.__signalSetSong]["path"]))
+        if (continuePlaying):
+            self.__player.play()
+        b.log.debug(f"Set active radio song to '{self.__signalSetSong}'")
+        self.__signalSetSong = None
+    # This run loop method handles checking for plays, pauses, and time sets.
+    def __updateSongStatus(self):
+        if (self.__signalSetTime >= 0):
+            self.__player.set_time(self.__signalSetTime)
+            b.log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetSong}'")
+            self.__signalSetTime = -1
+        elif (self.__signalPlay):
+            self.__signalPlay = False
+            if (not self.__player.is_playing()):
+                b.log.debug(f"Played/resumed radio at {self.__player.get_time()}")
+                self.__player.play()
+        elif (self.__signalPause):
+            self.__signalPause = False
+            if (self.__player.is_playing()):
+                b.log.debug(f"Paused radio at {self.__player.get_time()}")
+                self.__player.pause()
+    # This run loop method handles grabbing the next song from the queue and signaling it.
+    def __signalNextQueueSong(self):
+        if (self.queue):
+            nextSong = self.queue.pop(0)
+            self.__signalSetSong = nextSong
+            self.__activeSong = self.__signalSetSong
+        else:
+            self.__activeSong = None
+    # This run loop method handles dynamically adding new songs to the queue based on preferences.
+    def __manageUpdateQueue(self):
+        if(self.__autoPopulate):
+            if(self.__playEachOnce):
+                if(len(self.queue) == 0):
+                    self.queue = list(self.catalog.keys())
+            else:
+                allQueuedSongs = self.queue + [self.__activeSong]
+                for songID in self.catalog.keys():
+                    if(songID not in allQueuedSongs):
+                        if(self.__shuffle and len(self.queue) > 5):
+                            # Default to adding recently played songs at least 1 song away from the queue.
+                            self.queue.insert(random.randrange(1,len(self.queue) - 1),songID)
+                        else:
+                            self.queue.append(songID)
+
+        if(self.__shuffle and not self.__hasBeenShuffled):
+            random.shuffle(self.queue)
+
+    #endregion === Looping ===
+
+    #region === Radio Control ===
+
+    # Plays the currently selected song.
+    def play(self):
+        self.__signalPlay = True
+    # Pauses the currently selected song.
+    def pause(self):
+        self.__signalPause = True
+    # Sets the time to play from of the current song. #TODO do we really need support for songs longer than an hour?
+    def timestamp(self,timestamp):
+        thisTime = datetime.strptime(timestamp, "%M:%S")
+        milliseconds = ((thisTime.minute * 60) + thisTime.second) * 1000
+        self.__signalSetTime = milliseconds
+
+    # Adds the given song to the back (or front) of the queue.
+    def enqueueSong(self,songID,placeAtFront=False):
+        if(placeAtFront):
+            self.queue.insert(0,songID)
+        else:
+            self.queue.append(songID)
+    # Sets the currently active song, replacing the currently playing song.
+    def setSong(self,songID : str):
+        self.__signalSetSong = songID
+
+    # Method to help set the mode for refreshing the queue.
+    def setQueueMode(self,autoPopulate=True,shuffle=True,playEachOnce=True):
+        self.__autoPopulate = autoPopulate
+        self.__playEachOnce = playEachOnce
+        self.__shuffle = shuffle
+        self.__hasBeenShuffled = False
+
+    #endregion === Radio Control ===
+
+
+
+
+
+
+
+
+r = Radio()
+r.play()

@@ -1,4 +1,5 @@
 import os
+import sys
 import datetime
 import shutil
 import tomlkit
@@ -11,9 +12,15 @@ from tkinter import simpledialog, filedialog
 from pympler import asizeof
 import psutil
 import threading
-import pygame
 import logging
 from logging.handlers import RotatingFileHandler
+
+# Special pygame import to silence message
+original_stdout = sys.stdout
+sys.stdout = open(os.devnull, 'w')
+import pygame
+sys.stdout.close()
+sys.stdout = original_stdout
 
 
 # region === Config and Pathing Setup ===
@@ -61,6 +68,9 @@ class Paths:
         # Path to the graphics folder
         self.graphics = f"{self.programData}\\Graphics"
         self.validatePath(self.graphics)
+        # Path to the music folder
+        self.music = f"{self.programData}\\Music"
+        self.validatePath(self.music)
         # Path to the media folder
         self.media = f"{self.programData}\\Media"
         self.validatePath(self.media)
@@ -100,9 +110,14 @@ class Paths:
                      suppressErrors : bool = False  # Whether to suppress errors, and return True/False instead.
                      ):
 
-        # Create path, if missing, if specified
-        if(createPath):
-            os.makedirs(pathToValidate, exist_ok=True)
+
+        # Test that the path actually exists
+        if(not os.path.exists(pathToValidate)):
+            # Create path, if missing, if specified
+            if(createPath):
+                os.makedirs(pathToValidate)
+            else:
+                raise ValueError(f"Path '{pathToValidate}' does not exist!")
 
         # Set up accessibility flag to be tested
         flags = 0
@@ -112,6 +127,9 @@ class Paths:
             flags |= os.W_OK
         if (not execAccess):
             flags |= os.X_OK
+
+
+
 
         # Test accessibility of this path
         if (not os.access(pathToValidate, flags)):
