@@ -25,16 +25,20 @@ class Radio:
 
     # Basic init method to set up members and read default songs.
     def __init__(self,importAll = True):
-        self.__vlcInstance = vlc.Instance()
-        self.__player = self.__vlcInstance.media_player_new()
-
         self.__activeSong = None
         self.__signalPlay = False
         self.__signalPause = False
         self.__signalSetSong = None
         self.__signalSetTime = -1
-        self.__currentSongTime = 0
+        self.__signalSkip = False
+        self.__songIsEnded = False
+        def setSongIsEnded(event):
+            self.__songIsEnded = True
 
+        self.__vlcInstance = vlc.Instance()
+        self.__player = self.__vlcInstance.media_player_new()
+        self.__vlcEventManager = self.__player.event_manager()
+        self.__vlcEventManager.event_attach(vlc.EventType.MediaPlayerEndReached,setSongIsEnded)
 
         self.queue = []
         self.catalog = {}
@@ -45,6 +49,7 @@ class Radio:
                     self.importSong(f"{b.paths.music}\\{filePath}")
 
         # Queue helper members
+        self.__autoPlay = True
         self.__autoPopulate = True
         self.__shuffle = True
         self.__playEachOnce = True
@@ -86,7 +91,13 @@ class Radio:
     # Run loop for managing music playing
     def __run(self):
         while True:
-            # First we check if there's a change in song
+            # We check if a song skip has been requested.
+            if(self.__signalSkip):
+                self.__signalNextQueueSong()
+                self.__manageUpdateQueue()
+                self.__signalSkip = False
+
+            # We check if there's a change in song
             if (self.__signalSetSong is not None):
                 self.__updateSetSong()
                 print(self.currentSong())
@@ -95,9 +106,8 @@ class Radio:
             if(self.__activeSong is not None):
                 self.__updateSongStatus()
 
-                # We check if the song has ended here, and handle assignment of the
-                # next song.
-                if(self.__player.get_time() >= self.catalog[self.__activeSong]["length"]):
+                # We check if the song has ended here, and handle assignment of the next song.
+                if(self.__songIsEnded):
                     self.__signalNextQueueSong()
                     self.__manageUpdateQueue()
             # If there isn't a currently active song, we check to see if there is anything in the queue to play.
@@ -113,27 +123,32 @@ class Radio:
         if (self.__signalSetSong not in self.catalog.keys()):
             raise ValueError(f"Song with id '{self.__signalSetSong}' is not in catalog!")
 
-        continuePlaying = False
-        if (self.__player.is_playing()):
-            continuePlaying = True
-
         self.__player.set_media(self.__vlcInstance.media_new(self.catalog[self.__signalSetSong]["path"]))
-        if (continuePlaying):
+
+        if(self.__autoPlay):
             self.__player.play()
-        b.log.debug(f"Set active radio song to '{self.__signalSetSong}'")
+
+        b.log.debug(f"Set active radio song to '{self.__signalSetSong}' at time '{self.__player.get_time()}'")
         self.__signalSetSong = None
+        self.__songIsEnded = False
     # This run loop method handles checking for plays, pauses, and time sets.
     def __updateSongStatus(self):
+        # Detect setTime signal.
         if (self.__signalSetTime >= 0):
-            self.__player.set_time(self.__signalSetTime)
-            b.log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetSong}'")
+            if(self.__signalSetTime >= self.catalog[self.__activeSong]["length"]):
+                self.__player.set_time(self.catalog[self.__activeSong]["length"])
+            else:
+                self.__player.set_time(self.__signalSetTime)
+            b.log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetTime}'")
             self.__signalSetTime = -1
-        elif (self.__signalPlay):
+        # Detect play signal.
+        if (self.__signalPlay):
             self.__signalPlay = False
             if (not self.__player.is_playing()):
                 b.log.debug(f"Played/resumed radio at {self.__player.get_time()}")
                 self.__player.play()
-        elif (self.__signalPause):
+        # Detect pause signal.
+        if (self.__signalPause):
             self.__signalPause = False
             if (self.__player.is_playing()):
                 b.log.debug(f"Paused radio at {self.__player.get_time()}")
@@ -152,6 +167,7 @@ class Radio:
             if(self.__playEachOnce):
                 if(len(self.queue) == 0):
                     self.queue = list(self.catalog.keys())
+                    self.__hasBeenShuffled = False
             else:
                 allQueuedSongs = self.queue + [self.__activeSong]
                 for songID in self.catalog.keys():
@@ -164,6 +180,7 @@ class Radio:
 
         if(self.__shuffle and not self.__hasBeenShuffled):
             random.shuffle(self.queue)
+            self.__hasBeenShuffled = True
 
     #endregion === Looping ===
 
@@ -190,9 +207,13 @@ class Radio:
     # Sets the currently active song, replacing the currently playing song.
     def setSong(self,songID : str):
         self.__signalSetSong = songID
+    # Skips to the next song in the queue
+    def skipSong(self):
+        self.__signalSkip = True
 
     # Method to help set the mode for refreshing the queue.
-    def setQueueMode(self,autoPopulate=True,shuffle=True,playEachOnce=True):
+    def setQueueMode(self,autoPopulate=True,autoPlay=True,shuffle=True,playEachOnce=True):
+        self.__autoPlay = autoPlay
         self.__autoPopulate = autoPopulate
         self.__playEachOnce = playEachOnce
         self.__shuffle = shuffle
