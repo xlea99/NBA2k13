@@ -87,6 +87,16 @@ class Radio:
             returnString += f"{index + 1}. {self.getSong(queueSong)}\n"
         return returnString
 
+    # Gets the current time on the playing song.
+    def getTime(self):
+        with self.__lock:
+            seconds = int(self.__player.get_time() / 1000)
+            minutes = int(seconds / 60)
+            seconds -= (60 * minutes)
+
+            return f"{minutes}:{seconds:02}"
+
+
     #endregion === Setup ===
 
     #region === Looping ===
