@@ -8,10 +8,6 @@ import json
 import threading
 import mutagen
 import random
-from audioplayer import AudioPlayer
-
-#vlc_path = "C:\\Program Files\\VideoLAN\\VLC"
-#os.environ["PYTHON_VLC_MODULE_PATH"] = vlc_path
 import vlc
 
 #endregion === Imports ===
@@ -79,10 +75,17 @@ class Radio:
         else:
             return False
 
-    # Gets the current song played, as a neat formatted string.
-    def currentSong(self):
+    # Gets the current song played, a target song, OR the full queue.
+    def getSong(self,songID=None):
         with self.__lock:
-            return f"\"{self.catalog[self.__activeSong]['name']}\" - {self.catalog[self.__activeSong]['artist']}"
+            if(songID is None):
+                songID = self.__activeSong
+            return f"\"{self.catalog[songID]['name']}\" - {self.catalog[songID]['artist']}"
+    def getQueue(self):
+        returnString = ""
+        for index,queueSong in enumerate(self.queue):
+            returnString += f"{index + 1}. {self.getSong(queueSong)}\n"
+        return returnString
 
     #endregion === Setup ===
 
@@ -100,7 +103,7 @@ class Radio:
             # We check if there's a change in song
             if (self.__signalSetSong is not None):
                 self.__updateSetSong()
-                print(self.currentSong())
+                print(self.getSong())
 
             # Now we check main logic for playing/pausing/timestamping songs
             if(self.__activeSong is not None):
@@ -207,14 +210,16 @@ class Radio:
     # Adds the given song to the back (or front) of the queue.
     def enqueueSong(self,songID,placeAtFront=False):
         with self.__lock:
+            if (songID not in self.catalog.keys()):
+                raise ValueError(f"Song with id '{self.__signalSetSong}' is not in catalog!")
             if(placeAtFront):
                 self.queue.insert(0,songID)
             else:
                 self.queue.append(songID)
     # Sets the currently active song, replacing the currently playing song.
     def setSong(self,songID : str):
-        with self.__lock:
-            self.__signalSetSong = songID
+        self.enqueueSong(songID=songID,placeAtFront=True)
+        self.skipSong()
     # Skips to the next song in the queue
     def skipSong(self):
         with self.__lock:
