@@ -234,9 +234,7 @@ class Radio:
             self.__signalSetTime = milliseconds
     # Sets the volume of the radio.
     def volume(self,volume):
-        if(volume > 100):
-            volume = 100
-        elif(volume < 0):
+        if(volume < 0):
             volume = 0
         with self.__lock:
             self.__player.audio_set_volume(volume)
