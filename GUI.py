@@ -4,8 +4,11 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 import DataStorage as d
+import Player
 import Helpers
 import sys
+
+
 
 # Helper method to dynamically adjust font size depending on the label's maximum width.
 def dynamicallyResizeFont(label : QLabel):
@@ -17,7 +20,8 @@ def dynamicallyResizeFont(label : QLabel):
 
     # Initial font and font size
     font = label.font()  # Use the current font of the label
-    font.setPointSize(20)  # Start with an initial font size, adjust as needed
+    #TODO this method be broken????
+    #font.setPointSize(20)  # Start with an initial font size, adjust as needed
     label.setFont(font)
 
     # Create QFontMetrics for measuring text width
@@ -67,13 +71,19 @@ class MainWindow(QMainWindow):
         self.mainLayout.addWidget(self.mainContentOuter,3)  # Add to layout with stretch factor
 
         self.mainContent = MainContentWidget()
-        self.mainContent.setStyleSheet("border: 1px solid black;")  # TODO TEMP
+        self.mainContent.setObjectName("mainContentArea")
+        self.mainContent.setStyleSheet("#mainContentArea {border: 1px solid black;}")  # TODO TEMP
+        #self.mainContent.setStyleSheet("border: 1px solid black;")  # TODO TEMP
 
         self.bottomContent = QWidget()
-        self.bottomContent.setStyleSheet("border: 1px solid black;") #TODO TEMP
+        self.bottomContent.setObjectName("bottomContentArea")
+        self.bottomContent.setStyleSheet("#bottomContentArea {border: 1px solid black;}") #TODO TEMP
 
         self.mainContentOuterLayout.addWidget(self.mainContent,2)
         self.mainContentOuterLayout.addWidget(self.bottomContent,1)
+
+        self.leftSidebar.playerComboBox.currentIndexChanged.connect(
+            lambda index: self.mainContent.pickerMenuWidget.updateCurrentPlayerSelected(self.leftSidebar.currentPlayer["SpriteID"]))
 
         self.showMaximized()
 
@@ -164,7 +174,7 @@ class PlayerCreation(QWidget):
 # Class for providing the Picker Menu.
 class PickerMenu(QWidget):
 
-    def __init__(self,parent=None):
+    def __init__(self,parent=None,pickOrder = (0,1,5,6,2,3,7,8,4,9)):
         super().__init__(parent)
         self.layout = QHBoxLayout()
         self.layout.addStretch(1)
@@ -173,63 +183,92 @@ class PickerMenu(QWidget):
         self.playerSlots = {0 : None, 1 : None, 2 : None, 3 : None, 4 : None, # Ballerz
                             5 : None, 6 : None, 7 : None, 8 : None, 9 : None} # Ringers
 
+        self.currentSelectorSpriteID = None
 
+        self.currentPickIndex = 0
+        self.pickOrder = pickOrder
 
     def initUI(self):
-        # Main layout for the whole widget, with some spacing for aesthetics
+        # Mid-section Layout
+        self.midLayout = QVBoxLayout()
+        spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.midLayout.addSpacerItem(spacer)
+        self.selectedPlayerCard = PlayerCard()
+        self.midPlayerSelectButton = QPushButton("Select")
+        self.midPlayerSelectButton.clicked.connect(self.addSelectedPlayer)
+        self.midPlayerRemoveButton = QPushButton("Remove")
+        self.midPlayerRemoveButton.clicked.connect(self.removePreviousSelection)
+
+        self.midLayout.addWidget(self.selectedPlayerCard)
+        self.midLayout.addWidget(self.midPlayerSelectButton)
+        self.midLayout.addWidget(self.midPlayerRemoveButton)
+        self.midLayout.addSpacerItem(spacer)
 
 
         # Ballerz Team Layout
-        ballerzLayout = QVBoxLayout()
+        self.ballerzLayout = QVBoxLayout()
         ballerzHeader = QLabel("Ballerz")
         ballerzHeader.setAlignment(Qt.AlignCenter)
-        ballerzLayout.addWidget(ballerzHeader)
+        self.ballerzLayout.addWidget(ballerzHeader)
 
         # Ringers Team Layout
-        ringersLayout = QVBoxLayout()
+        self.ringersLayout = QVBoxLayout()
         ringersHeader = QLabel("Ringers")
         ringersHeader.setAlignment(Qt.AlignCenter)
-        ringersLayout.addWidget(ringersHeader)
+        self.ringersLayout.addWidget(ringersHeader)
 
         # Initialize and add player labels for Ballerz
-        self.ballerzLabels = [QLabel("Slot " + str(i + 1)) for i in range(5)]
-        for label in self.ballerzLabels:
-            label.setAlignment(Qt.AlignCenter)
-            ballerzLayout.addWidget(label)
+        self.ballerzCards = [PlayerCard() for i in range(5)]
+        for card in self.ballerzCards:
+            self.ballerzLayout.addWidget(card)
+
 
         # Initialize and add player labels for Ringers
-        self.ringersLabels = [QLabel("Slot " + str(i + 1)) for i in range(5)]
-        for label in self.ringersLabels:
-            label.setAlignment(Qt.AlignCenter)
-            ringersLayout.addWidget(label)
+        self.ringersCards = [PlayerCard() for i in range(5)]
+        for card in self.ringersCards:
+            self.ringersLayout.addWidget(card)
 
         # Adding team layouts to the main layout
-        self.layout.addLayout(ballerzLayout)
+        self.layout.addLayout(self.ballerzLayout)
         self.layout.addStretch(1)
-        self.layout.addLayout(ringersLayout)
+        self.layout.addLayout(self.midLayout)
+        self.layout.addStretch(1)
+        self.layout.addLayout(self.ringersLayout)
         self.layout.addStretch(1)
 
         self.setLayout(self.layout)
         self.setWindowTitle("Player Picker Menu")
         self.resize(500, 300)
 
-    # Attempts to add the given playerObject to the designated slotID.
-    def updatePlayerSlot(self, slotID, playerObject = None):
-        if(0 <= slotID < 10):
-            if(playerObject is None):
-                playerName = ""
-            else:
-                playerName = f"{playerObject['First_Name']} {playerObject['Last_Name']}"
-
-            if(slotID < 5):  # Ballerz
-                self.ballerzLabels[slotID].setText(playerName)
-            else:            # Ringers
-                self.ringersLabels[slotID - 5].setText(playerName)
-            self.playerSlots[slotID] = playerObject
+    # Method for updating the center player selection widget.
+    def updateCurrentPlayerSelected(self,spriteID = None):
+        self.currentSelectorSpriteID = spriteID
+        self.selectedPlayerCard.setSpriteID(spriteID)
+    # Method for adding a play to the given slot. MUST specify ballerz or ringers
+    def updatePlayerSlot(self,slot,spriteID : int = None):
+        if(spriteID is not None and spriteID in self.playerSlots.values()):
+            return False
         else:
-            raise ValueError(f"Invalid slotID provided: {slotID}")
+            if(slot < 5):
+                self.ballerzCards[slot].setSpriteID(spriteID)
+            else:
+                self.ringersCards[slot - 5].setSpriteID(spriteID)
+            self.playerSlots[slot] = spriteID
+            return True
 
-
+    # Driver method to facilitate adding the currently selected player to the NEXT slot on the pick
+    # order, and updating that pick order accordingly.
+    def addSelectedPlayer(self):
+        if(self.currentSelectorSpriteID is not None and self.currentPickIndex < len(self.pickOrder)):
+            nextSlotID = self.pickOrder[self.currentPickIndex]
+            self.currentPickIndex += 1
+            self.updatePlayerSlot(slot=nextSlotID,spriteID=self.currentSelectorSpriteID)
+            self.updateCurrentPlayerSelected(spriteID=None)
+    def removePreviousSelection(self):
+        if(self.currentPickIndex > 0):
+            self.currentPickIndex -= 1
+            slotRemoveID = self.pickOrder[self.currentPickIndex]
+            self.updatePlayerSlot(slot=slotRemoveID,spriteID=None)
 
 #endregion === Main Content ===
 
@@ -665,7 +704,167 @@ class PlayerStatsDisplay(QWidget):
 #endregion === Bottom Bar ===
 
 
+# Simple, classy widget for displaying a player's info in a compact way.
+class PlayerCard(QWidget):
+
+    # Basic setup init method.
+    def __init__(self,parent=None,spriteID = None):
+        super().__init__(parent)
+
+        self.setObjectName("playerCard")
+        self.setStyleSheet("border: 1px solid black;")
+
+        self.spriteID = spriteID
+
+        self.setMaximumHeight(80)
+        self.setMaximumWidth(200)
+
+        self.outerLayout = QVBoxLayout(self)
+        self.upperHalfLayout = QHBoxLayout()
+        self.lowerHalfLayout = QVBoxLayout()
+        self.outerLayout.addLayout(self.upperHalfLayout)
+        self.outerLayout.addLayout(self.lowerHalfLayout)
+
+        # Upper half config
+        self.playerLabelLayout = QHBoxLayout()
+        self.archetypeLabel = QLabel()
+        #self.archetypeLabel.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.nameLabel = QLabel()
+        #self.nameLabel.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.playerLabelLayout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.playerLabelLayout.addWidget(self.archetypeLabel)
+        self.playerLabelLayout.addWidget(self.nameLabel)
+        self.playerLabelLayout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.upperHalfLayout.addLayout(self.playerLabelLayout)
+
+        # Lower half config
+        self.statsLabelFirstRow = QLabel()
+        self.statsLabelFirstRow.setMaximumWidth(self.maximumWidth())
+        self.statsLabelFirstRow.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.statsLabelSecondRow = QLabel()
+        self.statsLabelSecondRow.setMaximumWidth(self.maximumWidth())
+        self.statsLabelSecondRow.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lowerHalfLayout.addWidget(self.statsLabelFirstRow)
+        self.lowerHalfLayout.addWidget(self.statsLabelSecondRow)
+
+        self.outerLayout.setContentsMargins(1, 1, 1, 1)
+        self.setSpriteID(self.spriteID)
+
+    archetypeStatsToShow = {"Slayer" : {""}}
+    # This method sets the player to the given SpriteID, and updates the contents.
+    def setSpriteID(self,spriteID):
+        self.spriteID = spriteID
+        if(self.spriteID is None):
+            self.archetypeLabel.setText("(N)")
+            self.nameLabel.setText("--------")
+            self.statsLabelFirstRow.setText("-----------------")
+            self.statsLabelSecondRow.setText("-----------------")
+        else:
+            archetypeName = d.d.players[spriteID]['Archetype_Name']
+            self.archetypeLabel.setText(f"({archetypeName[0]})")
+            self.nameLabel.setText(d.d.players[spriteID].getFullName())
+            if(archetypeName == "Slayer"):
+                try:
+                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
+                    stat2 = f"3Pt: {d.d.stats['Players'][spriteID]['Other']['ThreePercentage'] * 100:04.1f}%"
+                    stat3 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
+                except KeyError:
+                    stat1 = f"W/L: ???"
+                    stat2 = f"3Pt: ???"
+                    stat3 = f"PPG: ???"
+
+                stat4 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
+                stat5 = f"ShtOffD: {d.d.players[spriteID]['SShtOfD']:02}"
+                stat6 = f"Speed: {d.d.players[spriteID]['SSpeed']:02}"
+            elif(archetypeName == "Vigilante"):
+                try:
+                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
+                    stat2 = f"3Pt: {d.d.stats['Players'][spriteID]['Other']['ThreePercentage'] * 100:04.1f}%"
+                    stat3 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
+                except KeyError:
+                    stat1 = f"W/L: ???"
+                    stat2 = f"3Pt: ???"
+                    stat3 = f"PPG: ???"
+
+                stat4 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
+                stat5 = f"ShtTraff: {d.d.players[spriteID]['SShtInT']:02}"
+                stat6 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
+            elif(archetypeName == "Medic"):
+                try:
+                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
+                    stat2 = f"Reb: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:04.1f}%"
+                    stat3 = f"TPM:  {d.d.stats['Players'][spriteID]['Other']['TurnoversPerMinute']:<4.1f}%"
+                except:
+                    stat1 = f"W/L: ???"
+                    stat2 = f"Reb: ???"
+                    stat3 = f"TPM: ???"
+
+                stat4 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
+                stat5 = f"Speed: {d.d.players[spriteID]['SSpeed']:02}"
+                stat6 = f"Height: {d.d.players[spriteID]['HeightFt']:4}"
+            elif(archetypeName == "Guardian"):
+                try:
+                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
+                    stat2 = f"Reb: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:04.1f}%"
+                    stat3 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
+                except KeyError:
+                    stat1 = f"W/L: ???"
+                    stat2 = f"Reb: ???"
+                    stat3 = f"PPG: ???"
+
+                stat4 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
+                stat5 = f"Height: {d.d.players[spriteID]['HeightFt']:4}"
+                stat6 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
+            elif(archetypeName == "Engineer"):
+                try:
+                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
+                    stat2 = f"TPM: {d.d.stats['Players'][spriteID]['Other']['TurnoversPerMinute']:<4.1f}%"
+                    stat3 = f"Reb: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:04.1f}%"
+                except:
+                    stat1 = f"W/L: ???"
+                    stat2 = f"TPM: ???"
+                    stat3 = f"Reb: ???"
+
+                stat4 = f"BSecur: {d.d.players[spriteID]['SBallSec']:02}"
+                stat5 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
+                stat6 = f"Steal: {d.d.players[spriteID]['SSteal']:02}"
+            elif(archetypeName == "Director"):
+                try:
+                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
+                    stat2 = f"TPM: {d.d.stats['Players'][spriteID]['Other']['TurnoversPerMinute']:<4.1f}%"
+                    stat3 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
+                except KeyError:
+                    stat1 = f"W/L: ???"
+                    stat2 = f"TPM: ???"
+                    stat3 = f"PPG: ???"
+
+                stat4 = f"Speed: {d.d.players[spriteID]['SSpeed']:02}"
+                stat5 = f"Hands: {d.d.players[spriteID]['SHands']:02}"
+                stat6 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
+            else:
+                try:
+                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
+                    stat2 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
+                    stat3 = f"Reb: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:04.1f}%"
+                except KeyError:
+                    stat1 = f"W/L: ???"
+                    stat2 = f"PPG: ???"
+                    stat3 = f"Reb: ???"
+
+
+                stat4 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
+                stat5 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
+                stat6 = f"Speed: {d.d.players[spriteID]['SSpeed']:02}"
+
+            self.statsLabelFirstRow.setText(f"{stat1} | {stat2} | {stat3}")
+            self.statsLabelSecondRow.setText(f"{stat4} | {stat5} | {stat6}")
+            dynamicallyResizeFont(self.statsLabelFirstRow)
+            dynamicallyResizeFont(self.statsLabelSecondRow)
+
+
 app = QApplication()
+#thisPlayer = PlayerCard(spriteID=2)
+#thisPlayer.show()
 window = MainWindow()
 window.show()
 sys.exit(app.exec())

@@ -761,6 +761,9 @@ class Player:
     # Simple string method for quickly identifying the player object using only name and SpriteID.
     def __str__(self):
         return f"{self.__spriteID}| {self.vals['First_Name']} {self.vals['Last_Name']}"
+    # Simply method to get the player's name.
+    def getFullName(self):
+        return f"{self.vals['First_Name']} {self.vals['Last_Name']}"
     # String method for quickly displaying the full object.
     def getFullString(self):
         returnString = f"SpriteID: {self.__spriteID}"

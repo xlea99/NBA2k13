@@ -58,7 +58,8 @@ def generatePlayerGamesDict(dataStorageObject):
 # Given a dataStorageObject with a PlayerGamesDict, this method simply calculates a set of averages.
 def calculatePlayerAverages(dataStorageObject):
     for spriteID,playerStats in dataStorageObject.stats["Players"].items():
-        playerStats["Averages"] = {"Points" : 0,
+        playerStats["Averages"] = {"Wins": 0,
+                                   "Points" : 0,
                                    "DefensiveRebounds" : 0,
                                    "OffensiveRebounds" : 0,
                                    "PointsPerAssist" : 0,
@@ -90,6 +91,7 @@ def calculateExtraPlayerValues(dataStorageObject):
         playerStats["Other"]["ThreePercentage"] = round(playerStats["Totals"]["ThreesMade"] / playerStats["Totals"]["ThreesAttempted"],3) if playerStats["Totals"]["ThreesAttempted"] != 0 else 0
         playerStats["Other"]["ReboundBias"] = round(playerStats["Averages"]["OffensiveRebounds"] - playerStats["Averages"]["DefensiveRebounds"],3)
         playerStats["Other"]["AssistWorth"] = round(playerStats["Averages"]["PointsPerAssist"] / playerStats["Averages"]["AssistCount"],3) if playerStats["Averages"]["AssistCount"] != 0 else 0
+        playerStats["Other"]["TurnoversPerMinute"] = round(playerStats["Averages"]["Turnovers"] / (playerStats["Averages"]["BallHolding_InPlay"] / 60),3) if playerStats["Averages"]["BallHolding_InPlay"] != 0 else 0
     b.log.debug("Calculated extra/special stats for Player stats.")
 
 
