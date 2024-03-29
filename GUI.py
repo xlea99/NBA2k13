@@ -7,29 +7,36 @@ import DataStorage as d
 import Player
 import Helpers
 import sys
+from functools import partial
 
+ARCHETYPE_COLORS = {"Slayer" : "blue",
+                    "Vigilante" : "green",
+                    "Medic" : "red",
+                    "Guardian" : "yellow",
+                    "Engineer" : "orange",
+                    "Director" : "purple",
+                    "None" : "white"}
 
-
-# Helper method to dynamically adjust font size depending on the label's maximum width.
-def dynamicallyResizeFont(label : QLabel):
+# Helper method to dynamically resize font based on label width.
+def dynamicallyResizeFont(label: QLabel,baseFont = None):
     # Retrieve the text from the QLabel
     text = label.text()
 
-    # Maximum label width
-    max_width = label.maximumWidth()
+    # Use the current width of the label
+    current_width = label.maximumWidth()
 
     # Initial font and font size
-    font = label.font()  # Use the current font of the label
-    #TODO this method be broken????
-    #font.setPointSize(20)  # Start with an initial font size, adjust as needed
-    label.setFont(font)
+    if(baseFont):
+        label.setFont(baseFont)
+    font = label.font()
+
 
     # Create QFontMetrics for measuring text width
     fm = QFontMetrics(font)
 
-    # Check if the text width is within the bounds of maximum width
+    # Check if the text width is within the bounds of current width
     text_width = fm.horizontalAdvance(text)
-    while text_width > max_width and font.pointSize() > 1:  # Ensure the font size never goes below 1
+    while text_width > current_width and font.pointSize() > 1:  # Ensure the font size never goes below 1
         # Decrease font size
         font.setPointSize(font.pointSize() - 1)
         # Update QFontMetrics with the new font size
@@ -101,11 +108,11 @@ class MainContentWidget(QMainWindow):
         self.setCentralWidget(self.centralWidget)
         self.layout = QVBoxLayout(self.centralWidget)  # Main layout
 
-        #self.setStyleSheet("""
-        ##MainContentWidget {
-        #    background-color: #1e3059;
-        #}
-        #""")
+        self.setStyleSheet("""
+        #MainContentWidget {
+            background-color: #1e3059;
+        }
+        """)
 
         self.pickerMenuWidget = PickerMenu(self)
         self.layout.addWidget(self.pickerMenuWidget)
@@ -171,39 +178,31 @@ class PlayerCreation(QWidget):
         layout.addLayout(middleLayout)
         layout.addWidget(self.descriptionLabel)
 
-# Class for providing the Picker Menu.
+# Class for providing the Picker Menu
 class PickerMenu(QWidget):
+
+    pickOrder = [{"Name" : "Danny picks first 2","Picks" : (1,2)},{"Name" : "Alex picks first 2","Picks" : (1,2)}]
 
     def __init__(self,parent=None,pickOrder = (0,1,5,6,2,3,7,8,4,9)):
         super().__init__(parent)
         self.layout = QHBoxLayout()
         self.layout.addStretch(1)
 
-        self.initUI()
-        self.playerSlots = {0 : None, 1 : None, 2 : None, 3 : None, 4 : None, # Ballerz
-                            5 : None, 6 : None, 7 : None, 8 : None, 9 : None} # Ringers
-
-        self.currentSelectorSpriteID = None
-
-        self.currentPickIndex = 0
-        self.pickOrder = pickOrder
-
-    def initUI(self):
+        #region UI Init
         # Mid-section Layout
         self.midLayout = QVBoxLayout()
         spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
         self.midLayout.addSpacerItem(spacer)
         self.selectedPlayerCard = PlayerCard()
-        self.midPlayerSelectButton = QPushButton("Select")
-        self.midPlayerSelectButton.clicked.connect(self.addSelectedPlayer)
-        self.midPlayerRemoveButton = QPushButton("Remove")
-        self.midPlayerRemoveButton.clicked.connect(self.removePreviousSelection)
+        #self.midPlayerSelectButton = QPushButton("Select")
+        #self.midPlayerSelectButton.clicked.connect(self.addSelectedPlayer)
+        #self.midPlayerRemoveButton = QPushButton("Remove")
+        #self.midPlayerRemoveButton.clicked.connect(self.removePreviousSelection)
 
         self.midLayout.addWidget(self.selectedPlayerCard)
-        self.midLayout.addWidget(self.midPlayerSelectButton)
-        self.midLayout.addWidget(self.midPlayerRemoveButton)
+        #self.midLayout.addWidget(self.midPlayerSelectButton)
+        #self.midLayout.addWidget(self.midPlayerRemoveButton)
         self.midLayout.addSpacerItem(spacer)
-
 
         # Ballerz Team Layout
         self.ballerzLayout = QVBoxLayout()
@@ -217,16 +216,41 @@ class PickerMenu(QWidget):
         ringersHeader.setAlignment(Qt.AlignCenter)
         self.ringersLayout.addWidget(ringersHeader)
 
-        # Initialize and add player labels for Ballerz
-        self.ballerzCards = [PlayerCard() for i in range(5)]
-        for card in self.ballerzCards:
-            self.ballerzLayout.addWidget(card)
+        self.playerCardSections = [{} for i in range(10)]
+        for index,playerCardSection in enumerate(self.playerCardSections):
+            print(index)
+            playerCardSection["MainLayout"] = QHBoxLayout()
 
+            thisPlayerCard = PlayerCard()
+            thisBadgesLayout = QVBoxLayout()
 
-        # Initialize and add player labels for Ringers
-        self.ringersCards = [PlayerCard() for i in range(5)]
-        for card in self.ringersCards:
-            self.ringersLayout.addWidget(card)
+            thisActionsLayout = QVBoxLayout()
+            addPlayerButton = QPushButton("+")
+            addPlayerButton.clicked.connect(partial(self.updatePlayerSlot,index))
+            addPlayerButton.setMinimumWidth(0.08 * thisPlayerCard.width())
+            addPlayerButton.setMaximumWidth(0.08 * thisPlayerCard.width())
+            removePlayerButton = QPushButton("-")
+            removePlayerButton.clicked.connect(partial(self.removePlayerSlot,index))
+            removePlayerButton.setMinimumWidth(0.08 * thisPlayerCard.width())
+            removePlayerButton.setMaximumWidth(0.08 * thisPlayerCard.width())
+            thisActionsLayout.addWidget(addPlayerButton)
+            thisActionsLayout.addWidget(removePlayerButton)
+            thisActionsLayout.addStretch(1)
+
+            playerCardSection["PlayerCard"] = thisPlayerCard
+            playerCardSection["BadgesLayout"] = thisBadgesLayout
+            playerCardSection["ActionsLayout"] = thisActionsLayout
+
+            if(index < 5):
+                playerCardSection["MainLayout"].addLayout(playerCardSection["BadgesLayout"])
+                playerCardSection["MainLayout"].addWidget(playerCardSection["PlayerCard"])
+                playerCardSection["MainLayout"].addLayout(playerCardSection["ActionsLayout"])
+                self.ballerzLayout.addLayout(playerCardSection["MainLayout"])
+            else:
+                playerCardSection["MainLayout"].addLayout(playerCardSection["ActionsLayout"])
+                playerCardSection["MainLayout"].addWidget(playerCardSection["PlayerCard"])
+                playerCardSection["MainLayout"].addLayout(playerCardSection["BadgesLayout"])
+                self.ringersLayout.addLayout(playerCardSection["MainLayout"])
 
         # Adding team layouts to the main layout
         self.layout.addLayout(self.ballerzLayout)
@@ -239,36 +263,51 @@ class PickerMenu(QWidget):
         self.setLayout(self.layout)
         self.setWindowTitle("Player Picker Menu")
         self.resize(500, 300)
+        #endregion UI Init
+
+
+        self.currentSelectorSpriteID = None
+
+        self.currentPhase = 0
+        self.phaseOrder = pickOrder
+
 
     # Method for updating the center player selection widget.
     def updateCurrentPlayerSelected(self,spriteID = None):
         self.currentSelectorSpriteID = spriteID
         self.selectedPlayerCard.setSpriteID(spriteID)
-    # Method for adding a play to the given slot. MUST specify ballerz or ringers
-    def updatePlayerSlot(self,slot,spriteID : int = None):
-        if(spriteID is not None and spriteID in self.playerSlots.values()):
+    # Method for adding a play to the given slot.
+    def updatePlayerSlot(self,slot):
+        if(self.currentSelectorSpriteID is not None and self.currentSelectorSpriteID in [playerCardSection["PlayerCard"].spriteID for playerCardSection in self.playerCardSections]):
             return False
         else:
-            if(slot < 5):
-                self.ballerzCards[slot].setSpriteID(spriteID)
-            else:
-                self.ringersCards[slot - 5].setSpriteID(spriteID)
-            self.playerSlots[slot] = spriteID
+            self.playerCardSections[slot]["PlayerCard"].setSpriteID(self.currentSelectorSpriteID)
             return True
+    # Method for removing a player from the given slot.
+    def removePlayerSlot(self,slot):
+        self.playerCardSections[slot]["PlayerCard"].setSpriteID(None)
 
-    # Driver method to facilitate adding the currently selected player to the NEXT slot on the pick
-    # order, and updating that pick order accordingly.
-    def addSelectedPlayer(self):
-        if(self.currentSelectorSpriteID is not None and self.currentPickIndex < len(self.pickOrder)):
-            nextSlotID = self.pickOrder[self.currentPickIndex]
-            self.currentPickIndex += 1
-            self.updatePlayerSlot(slot=nextSlotID,spriteID=self.currentSelectorSpriteID)
-            self.updateCurrentPlayerSelected(spriteID=None)
-    def removePreviousSelection(self):
-        if(self.currentPickIndex > 0):
-            self.currentPickIndex -= 1
-            slotRemoveID = self.pickOrder[self.currentPickIndex]
-            self.updatePlayerSlot(slot=slotRemoveID,spriteID=None)
+
+
+# Helper class to represent a PickerMenu slot.
+class PickerSlot():
+
+    def __init__(self,spriteID = None):
+        # Currently assigned player
+        self.spriteID = spriteID
+
+        # Whether this slot is "locked" meaning it can't be added to or removed from.
+        self.isLocked = True
+
+
+    # A helper method that attempts to add the given player to this slot. If it is successful (dependent
+    # on conditional logic of this particular PickerSlot) it returns True, otherwise False.
+    def setSpriteID(self,spriteID):
+        if(not self.isLocked):
+            self.spriteID = spriteID
+            return True
+        return False
+
 
 #endregion === Main Content ===
 
@@ -707,47 +746,77 @@ class PlayerStatsDisplay(QWidget):
 # Simple, classy widget for displaying a player's info in a compact way.
 class PlayerCard(QWidget):
 
+    NAME_FONT = QFont("Arial",24)
+    NAME_FONT.setUnderline(True)
+    GAMES_FONT = QFont("Arial",7)
+
     # Basic setup init method.
     def __init__(self,parent=None,spriteID = None):
         super().__init__(parent)
 
         self.setObjectName("playerCard")
-        self.setStyleSheet("border: 1px solid black;")
+        self.setAttribute(Qt.WA_StyledBackground, True)
+        self.backgroundColor = "grey"
+        self.borderColor = "black"
 
         self.spriteID = spriteID
 
-        self.setMaximumHeight(80)
-        self.setMaximumWidth(200)
+        self.setMinimumHeight(120)
+        self.setMaximumHeight(120)
+        self.setMinimumWidth(300)
+        self.setMaximumWidth(300)
 
         self.outerLayout = QVBoxLayout(self)
-        self.upperHalfLayout = QHBoxLayout()
+        self.upperHalfLayout = QVBoxLayout()
         self.lowerHalfLayout = QVBoxLayout()
         self.outerLayout.addLayout(self.upperHalfLayout)
         self.outerLayout.addLayout(self.lowerHalfLayout)
 
         # Upper half config
         self.playerLabelLayout = QHBoxLayout()
+        self.playerLabelLayout.setContentsMargins(4,1,4,1)
         self.archetypeLabel = QLabel()
-        #self.archetypeLabel.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.archetypeLabel.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.heightLabel = QLabel()
+        self.heightLabel.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self.nameLayout = QVBoxLayout()
+        self.nameLayout.setSpacing(0)
         self.nameLabel = QLabel()
-        #self.nameLabel.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        self.playerLabelLayout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.nameLabel.setMaximumWidth(0.817 * self.width())
+        self.nameLabel.setFont(self.NAME_FONT)
+        self.nameLabel.setStyleSheet("color: black")
+        self.nameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
+        self.gamesLabel = QLabel()
+        self.gamesLabel.setMaximumWidth(self.nameLabel.maximumWidth())
+        self.gamesLabel.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
+        self.gamesLabel.setFont(self.GAMES_FONT)
+        self.nameLayout.addWidget(self.nameLabel)
+        self.nameLayout.addWidget(self.gamesLabel)
         self.playerLabelLayout.addWidget(self.archetypeLabel)
-        self.playerLabelLayout.addWidget(self.nameLabel)
         self.playerLabelLayout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.playerLabelLayout.addLayout(self.nameLayout)
+        self.playerLabelLayout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
+        self.playerLabelLayout.addWidget(self.heightLabel)
+
         self.upperHalfLayout.addLayout(self.playerLabelLayout)
 
         # Lower half config
-        self.statsLabelFirstRow = QLabel()
-        self.statsLabelFirstRow.setMaximumWidth(self.maximumWidth())
-        self.statsLabelFirstRow.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.statsLabelSecondRow = QLabel()
-        self.statsLabelSecondRow.setMaximumWidth(self.maximumWidth())
-        self.statsLabelSecondRow.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lowerHalfLayout.addWidget(self.statsLabelFirstRow)
-        self.lowerHalfLayout.addWidget(self.statsLabelSecondRow)
+        self.statsLabel = QLabel()
+        self.statsLabel.setMaximumWidth(self.maximumWidth())
+        self.statsLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        self.outerLayout.setContentsMargins(1, 1, 1, 1)
+        self.attributeLabel = QLabel()
+        self.attributeLabel.setMaximumWidth(self.maximumWidth())
+        self.attributeLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.lowerHalfLayout.addWidget(self.statsLabel)
+        self.lowerHalfLayout.addWidget(self.attributeLabel)
+        self.lowerHalfLayout.setContentsMargins(1,0,1,1)
+
+
+        self.outerLayout.setContentsMargins(1, 1, 1, 2)
+        self.configureStyle()
         self.setSpriteID(self.spriteID)
 
     archetypeStatsToShow = {"Slayer" : {""}}
@@ -755,111 +824,95 @@ class PlayerCard(QWidget):
     def setSpriteID(self,spriteID):
         self.spriteID = spriteID
         if(self.spriteID is None):
-            self.archetypeLabel.setText("(N)")
-            self.nameLabel.setText("--------")
-            self.statsLabelFirstRow.setText("-----------------")
-            self.statsLabelSecondRow.setText("-----------------")
+            self.archetypeLabel.setText("N")
+            self.heightLabel.setText("")
+            self.nameLabel.setText("")
+            self.gamesLabel.setText("---")
+            self.statsLabel.setText("")
+            self.attributeLabel.setText("")
+            self.configureStyle(borderColor="grey")
         else:
+            try:
+                statStrings = {"W/L": f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%",
+                               "Games": f"{d.d.stats['Players'][spriteID]['Totals']['GamesPlayed']} Games, {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}% W/L",
+                               "PPG": f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}",
+                               "3P%": f"3P%: {d.d.stats['Players'][spriteID]['Other']['ThreePercentage'] * 100:04.1f}%",
+                               "RPG": f"RPG: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:3.1f}",
+                               "TPT": f"TPT: {b.getTimeString(d.d.stats['Players'][spriteID]['Other']['TimePerTurnover'])}",
+                               "SPG": f"SPG: {d.d.stats['Players'][spriteID]['Averages']['Steals']:.1f}",
+                               "APG": f"APG: {d.d.stats['Players'][spriteID]['Averages']['AssistCount']:.1f}",
+                               "3PA": f"3PA: {d.d.stats['Players'][spriteID]['Averages']['ThreesAttempted']:.1f}"}
+            except KeyError:
+                statStrings = {"W/L": "W/L: ???",
+                               "Games": "Games: ???",
+                               "PPG": "PPG: ???",
+                               "3P%": "3P%: ???",
+                               "RPG": "RPG: ???",
+                               "TPT": "TPT: ???",
+                               "SPG": "SPG: ???",
+                               "APG": "APG: ???",
+                               "3PA": "3PA: ???"}
+            attributeStrings = {"Sht3PT": f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}",
+                                "ShtOffD": f"ShtOffD: {d.d.players[spriteID]['SShtOfD']:02}",
+                                "ShtTraff": f"ShtTraff: {d.d.players[spriteID]['SShtInT']:02}",
+                                "Speed": f"Speed: {d.d.players[spriteID]['SSpeed']:02}",
+                                "OReb": f"OReb: {d.d.players[spriteID]['SOReb']:02}",
+                                "DReb": f"DReb: {d.d.players[spriteID]['SDReb']:02}",
+                                "BSecure": f"BSecure: {d.d.players[spriteID]['SBallSec']:02}",
+                                "Hands": f"Hands: {d.d.players[spriteID]['SHands']:02}",
+                                "Consis": f"Consis: {d.d.players[spriteID]['SConsis']:02}",
+                                "DAware": f"DAware: {d.d.players[spriteID]['SDAwar']:02}",
+                                "OAware": f"OAware: {d.d.players[spriteID]['SOAwar']:02}",
+                                "Steal": f"Steal: {d.d.players[spriteID]['SSteal']:02}",
+                                "Strength": f"Strength: {d.d.players[spriteID]['SStrength']:02}",
+                                "Vertical": f"Vertical: {d.d.players[spriteID]['SVertical']:02}"}
+
+            archetypeStatLabels = {"Slayer" : ("PPG","3P%","3PA","TPT"),
+                                   "Vigilante" : ("PPG","3P%","RPG","TPT"),
+                                   "Medic" : ("PPG","RPG","APG","TPT"),
+                                   "Guardian" : ("PPG","RPG","3P%","TPT"),
+                                   "Engineer" : ("PPG","RPG","APG","TPT"),
+                                   "Director" : ("PPG","3P%","APG","TPT"),
+                                   "None" : ("PPG","3P%","RPG","TPT")}
+            archetypeAttributeLabels = {"Slayer" : ("Sht3PT","ShtOffD","Consis","Speed"),
+                                        "Vigilante" : ("Sht3PT","ShtTraff","OReb","DReb"),
+                                        "Medic" : ("OReb","DReb","Speed","Vertical"),
+                                        "Guardian" : ("OReb","DReb","Sht3PT","Speed"),
+                                        "Engineer" : ("BSecure","Steal","Speed","Vertical"),
+                                        "Director" : ("Speed","BSecure","Steal","Sht3PT"),
+                                        "None" : ("Sht3PT","Speed","OReb","DReb")}
+
             archetypeName = d.d.players[spriteID]['Archetype_Name']
-            self.archetypeLabel.setText(f"({archetypeName[0]})")
+
+            self.archetypeLabel.setText(f"{archetypeName[0]}")
+            self.archetypeLabel.setStyleSheet(f"color: {ARCHETYPE_COLORS[archetypeName]}")
+            self.configureStyle(borderColor=ARCHETYPE_COLORS[archetypeName])
+
+            self.heightLabel.setText(f"{d.d.players[spriteID]['HeightFt']}")
+
             self.nameLabel.setText(d.d.players[spriteID].getFullName())
-            if(archetypeName == "Slayer"):
-                try:
-                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
-                    stat2 = f"3Pt: {d.d.stats['Players'][spriteID]['Other']['ThreePercentage'] * 100:04.1f}%"
-                    stat3 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
-                except KeyError:
-                    stat1 = f"W/L: ???"
-                    stat2 = f"3Pt: ???"
-                    stat3 = f"PPG: ???"
+            dynamicallyResizeFont(self.nameLabel,baseFont=self.NAME_FONT)
 
-                stat4 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
-                stat5 = f"ShtOffD: {d.d.players[spriteID]['SShtOfD']:02}"
-                stat6 = f"Speed: {d.d.players[spriteID]['SSpeed']:02}"
-            elif(archetypeName == "Vigilante"):
-                try:
-                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
-                    stat2 = f"3Pt: {d.d.stats['Players'][spriteID]['Other']['ThreePercentage'] * 100:04.1f}%"
-                    stat3 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
-                except KeyError:
-                    stat1 = f"W/L: ???"
-                    stat2 = f"3Pt: ???"
-                    stat3 = f"PPG: ???"
+            try:
+                self.gamesLabel.setText(f"Games: {d.d.stats['Players'][spriteID]['Totals']['GamesPlayed']} (<i>{d.d.stats['Players'][spriteID]['Averages']['Wins']*100:.1f}%</i> W/L)")
+            except KeyError:
+                self.gamesLabel.setText(f"0 <i>(0.0%)</i>")
+            dynamicallyResizeFont(self.gamesLabel,baseFont=self.GAMES_FONT)
 
-                stat4 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
-                stat5 = f"ShtTraff: {d.d.players[spriteID]['SShtInT']:02}"
-                stat6 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
-            elif(archetypeName == "Medic"):
-                try:
-                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
-                    stat2 = f"Reb: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:04.1f}%"
-                    stat3 = f"TPM:  {d.d.stats['Players'][spriteID]['Other']['TurnoversPerMinute']:<4.1f}%"
-                except:
-                    stat1 = f"W/L: ???"
-                    stat2 = f"Reb: ???"
-                    stat3 = f"TPM: ???"
+            self.statsLabel.setText(" | ".join(statStrings[statType] for statType in archetypeStatLabels[archetypeName]))
+            self.attributeLabel.setText(" | ".join(attributeStrings[attributeType] for attributeType in archetypeAttributeLabels[archetypeName]))
+            dynamicallyResizeFont(self.statsLabel)
+            dynamicallyResizeFont(self.attributeLabel)
 
-                stat4 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
-                stat5 = f"Speed: {d.d.players[spriteID]['SSpeed']:02}"
-                stat6 = f"Height: {d.d.players[spriteID]['HeightFt']:4}"
-            elif(archetypeName == "Guardian"):
-                try:
-                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
-                    stat2 = f"Reb: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:04.1f}%"
-                    stat3 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
-                except KeyError:
-                    stat1 = f"W/L: ???"
-                    stat2 = f"Reb: ???"
-                    stat3 = f"PPG: ???"
-
-                stat4 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
-                stat5 = f"Height: {d.d.players[spriteID]['HeightFt']:4}"
-                stat6 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
-            elif(archetypeName == "Engineer"):
-                try:
-                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
-                    stat2 = f"TPM: {d.d.stats['Players'][spriteID]['Other']['TurnoversPerMinute']:<4.1f}%"
-                    stat3 = f"Reb: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:04.1f}%"
-                except:
-                    stat1 = f"W/L: ???"
-                    stat2 = f"TPM: ???"
-                    stat3 = f"Reb: ???"
-
-                stat4 = f"BSecur: {d.d.players[spriteID]['SBallSec']:02}"
-                stat5 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
-                stat6 = f"Steal: {d.d.players[spriteID]['SSteal']:02}"
-            elif(archetypeName == "Director"):
-                try:
-                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
-                    stat2 = f"TPM: {d.d.stats['Players'][spriteID]['Other']['TurnoversPerMinute']:<4.1f}%"
-                    stat3 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
-                except KeyError:
-                    stat1 = f"W/L: ???"
-                    stat2 = f"TPM: ???"
-                    stat3 = f"PPG: ???"
-
-                stat4 = f"Speed: {d.d.players[spriteID]['SSpeed']:02}"
-                stat5 = f"Hands: {d.d.players[spriteID]['SHands']:02}"
-                stat6 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
-            else:
-                try:
-                    stat1 = f"W/L: {d.d.stats['Players'][spriteID]['Averages']['Wins'] * 100:04.1f}%"
-                    stat2 = f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}"
-                    stat3 = f"Reb: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:04.1f}%"
-                except KeyError:
-                    stat1 = f"W/L: ???"
-                    stat2 = f"PPG: ???"
-                    stat3 = f"Reb: ???"
-
-
-                stat4 = f"Sht3PT: {d.d.players[spriteID]['SSht3PT']:02}"
-                stat5 = f"OReb: {d.d.players[spriteID]['SOReb']:02}, DReb: {d.d.players[spriteID]['SDReb']:02}"
-                stat6 = f"Speed: {d.d.players[spriteID]['SSpeed']:02}"
-
-            self.statsLabelFirstRow.setText(f"{stat1} | {stat2} | {stat3}")
-            self.statsLabelSecondRow.setText(f"{stat4} | {stat5} | {stat6}")
-            dynamicallyResizeFont(self.statsLabelFirstRow)
-            dynamicallyResizeFont(self.statsLabelSecondRow)
+    # Helper method to reconfigure the stylesheet of the PlayerCard.
+    def configureStyle(self,backgroundColor=None,borderColor=None):
+        if(backgroundColor):
+            self.backgroundColor = backgroundColor
+        if(borderColor):
+            self.borderColor = borderColor
+        self.setStyleSheet(f".PlayerCard#playerCard {{ border: 3px solid {self.borderColor}; "
+                           f"background: {self.backgroundColor}; "
+                           f"padding: 3px; }}")
 
 
 app = QApplication()

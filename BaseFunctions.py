@@ -319,6 +319,17 @@ def getKeyFromValue(dictionary, targetValue):
             return key
     raise ValueError(f"Value does not exist in the dictionary: '{targetValue}'")
 
+# Converts an integer representing a time in seconds into a neatly formatted time string.
+def getTimeString(seconds : int):
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+
+    if hours > 0:
+        return f"{hours}:{minutes:02d}:{seconds:02d}"
+    else:
+        return f"{minutes}:{seconds:02d}"
+
 # This method simply selects a value or values randomly from a given file of words.
 # Each word in this file should be separated by newlines - one selection per line.
 # -filePath can be a string containing a single file path, or an array of file paths.

@@ -91,7 +91,7 @@ def calculateExtraPlayerValues(dataStorageObject):
         playerStats["Other"]["ThreePercentage"] = round(playerStats["Totals"]["ThreesMade"] / playerStats["Totals"]["ThreesAttempted"],3) if playerStats["Totals"]["ThreesAttempted"] != 0 else 0
         playerStats["Other"]["ReboundBias"] = round(playerStats["Averages"]["OffensiveRebounds"] - playerStats["Averages"]["DefensiveRebounds"],3)
         playerStats["Other"]["AssistWorth"] = round(playerStats["Averages"]["PointsPerAssist"] / playerStats["Averages"]["AssistCount"],3) if playerStats["Averages"]["AssistCount"] != 0 else 0
-        playerStats["Other"]["TurnoversPerMinute"] = round(playerStats["Averages"]["Turnovers"] / (playerStats["Averages"]["BallHolding_InPlay"] / 60),3) if playerStats["Averages"]["BallHolding_InPlay"] != 0 else 0
+        playerStats["Other"]["TimePerTurnover"] = round((playerStats["Totals"]["BallHolding_InPlay"] / playerStats["Totals"]["Turnovers"]),3) if playerStats["Averages"]["BallHolding_InPlay"] != 0 else 0
     b.log.debug("Calculated extra/special stats for Player stats.")
 
 
