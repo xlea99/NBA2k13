@@ -218,7 +218,6 @@ class PickerMenu(QWidget):
 
         self.playerCardSections = [{} for i in range(10)]
         for index,playerCardSection in enumerate(self.playerCardSections):
-            print(index)
             playerCardSection["MainLayout"] = QHBoxLayout()
 
             thisPlayerCard = PlayerCard()
