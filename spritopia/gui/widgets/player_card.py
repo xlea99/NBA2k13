@@ -5,16 +5,19 @@ from spritopia.data_storage import data_storage as d
 from spritopia.utilities import misc
 from spritopia.gui import const
 from spritopia.gui import utils
+from spritopia.gui.widgets.auto_resize_label import AutoResizeLabel
+
+NAME_FONT_WIDE = QFont("Arial", 24)
+NAME_FONT_WIDE.setUnderline(True)
+NAME_FONT_ICON = QFont("Arial", 16)
+NAME_FONT_ICON.setBold(True)
+GAMES_FONT = QFont("Arial", 7)
 
 # Simple, classy widget for displaying a player's info in a compact way.
 class PlayerCard(QWidget):
 
-    NAME_FONT = QFont("Arial",24)
-    NAME_FONT.setUnderline(True)
-    GAMES_FONT = QFont("Arial",7)
-
     # Basic setup init method.
-    def __init__(self,parent=None,spriteID = None):
+    def __init__(self,parent=None,spriteID = None,size = "Wide"):
         super().__init__(parent)
 
         self.setObjectName("playerCard")
@@ -24,11 +27,6 @@ class PlayerCard(QWidget):
 
         self.spriteID = spriteID
 
-        self.setMinimumHeight(120)
-        self.setMaximumHeight(120)
-        self.setMinimumWidth(300)
-        self.setMaximumWidth(300)
-
         self.outerLayout = QVBoxLayout(self)
         self.upperHalfLayout = QVBoxLayout()
         self.lowerHalfLayout = QVBoxLayout()
@@ -37,25 +35,23 @@ class PlayerCard(QWidget):
 
         # Upper half config
         self.playerLabelLayout = QHBoxLayout()
-        self.playerLabelLayout.setContentsMargins(4,1,4,1)
-        self.archetypeLabel = QLabel()
+        self.archetypeLabel = AutoResizeLabel()
+        self.heightLabel = AutoResizeLabel()
         self.archetypeLabel.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.heightLabel = QLabel()
         self.heightLabel.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.nameLayout = QVBoxLayout()
         self.nameLayout.setSpacing(0)
-        self.nameLabel = QLabel()
-        self.nameLabel.setMaximumWidth(0.817 * self.width())
-        self.nameLabel.setFont(self.NAME_FONT)
+        self.nameLabel = AutoResizeLabel()
         self.nameLabel.setStyleSheet("color: black")
         self.nameLabel.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignBottom)
-        self.gamesLabel = QLabel()
+        self.gamesLabel = AutoResizeLabel()
         self.gamesLabel.setMaximumWidth(self.nameLabel.maximumWidth())
         self.gamesLabel.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignTop)
-        self.gamesLabel.setFont(self.GAMES_FONT)
+        self.gamesLabel.setFont(GAMES_FONT)
         self.nameLayout.addWidget(self.nameLabel)
         self.nameLayout.addWidget(self.gamesLabel)
+
         self.playerLabelLayout.addWidget(self.archetypeLabel)
         self.playerLabelLayout.addSpacerItem(QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum))
         self.playerLabelLayout.addLayout(self.nameLayout)
@@ -75,12 +71,56 @@ class PlayerCard(QWidget):
 
         self.lowerHalfLayout.addWidget(self.statsLabel)
         self.lowerHalfLayout.addWidget(self.attributeLabel)
-        self.lowerHalfLayout.setContentsMargins(1,0,1,1)
 
-
-        self.outerLayout.setContentsMargins(1, 1, 1, 2)
+        self.__size = None
+        self.setSize(size)
         self.configureStyle()
         self.setSpriteID(self.spriteID)
+
+    def __setToWideSize(self):
+        self.setMinimumHeight(120)
+        self.setMaximumHeight(120)
+        self.setMinimumWidth(300)
+        self.setMaximumWidth(300)
+
+        self.playerLabelLayout.setContentsMargins(4, 1, 4, 1)
+        self.playerLabelLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.archetypeLabel.show()
+        self.heightLabel.show()
+
+        self.nameLabel.setMaximumWidth(0.817 * self.width())
+        self.nameLabel.setFont(NAME_FONT_WIDE)
+
+        self.gamesLabel.show()
+        self.statsLabel.show()
+        self.attributeLabel.show()
+
+        self.lowerHalfLayout.setContentsMargins(1,0,1,1)
+        self.outerLayout.setContentsMargins(1, 1, 1, 2)
+
+        self.__size = "wide"
+    def __setToIconSize(self):
+        self.setMinimumHeight(64)
+        self.setMaximumHeight(64)
+        self.setMinimumWidth(64)
+        self.setMaximumWidth(64)
+
+        self.playerLabelLayout.setContentsMargins(1, 1, 1, 1)
+        self.playerLabelLayout.setAlignment(Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter)
+        self.archetypeLabel.hide()
+        self.heightLabel.hide()
+
+        self.nameLabel.setMaximumWidth(0.9 * self.width())
+        self.nameLabel.setFont(NAME_FONT_ICON)
+
+        self.gamesLabel.hide()
+        self.statsLabel.hide()
+        self.attributeLabel.hide()
+
+        self.lowerHalfLayout.setContentsMargins(0,0,0,0)
+        self.outerLayout.setContentsMargins(0,0,0,0)
+
+        self.__size = "icon"
 
     archetypeStatsToShow = {"Slayer" : {""}}
     # This method sets the player to the given SpriteID, and updates the contents.
@@ -153,19 +193,19 @@ class PlayerCard(QWidget):
 
             self.heightLabel.setText(f"{d.d.players[spriteID]['HeightFt']}")
 
-            self.nameLabel.setText(d.d.players[spriteID].getFullName())
-            utils.dynamicallyResizeFont(self.nameLabel,baseFont=self.NAME_FONT)
+            if(self.__size.lower() == "wide"):
+                self.nameLabel.setText(d.d.players[spriteID].getFullName())
+            elif(self.__size.lower() == "icon"):
+                self.nameLabel.setText(d.d.players[spriteID].getFullName().replace(" ","\n"))
+
 
             try:
                 self.gamesLabel.setText(f"Games: {d.d.stats['Players'][spriteID]['Totals']['GamesPlayed']} (<i>{d.d.stats['Players'][spriteID]['Averages']['Wins']*100:.1f}%</i> W/L)")
             except KeyError:
                 self.gamesLabel.setText(f"0 <i>(0.0%)</i>")
-            utils.dynamicallyResizeFont(self.gamesLabel,baseFont=self.GAMES_FONT)
 
             self.statsLabel.setText(" | ".join(statStrings[statType] for statType in archetypeStatLabels[archetypeName]))
             self.attributeLabel.setText(" | ".join(attributeStrings[attributeType] for attributeType in archetypeAttributeLabels[archetypeName]))
-            utils.dynamicallyResizeFont(self.statsLabel)
-            utils.dynamicallyResizeFont(self.attributeLabel)
 
     # Helper method to reconfigure the stylesheet of the PlayerCard.
     def configureStyle(self,backgroundColor=None,borderColor=None):
@@ -176,3 +216,14 @@ class PlayerCard(QWidget):
         self.setStyleSheet(f".PlayerCard#playerCard {{ border: 3px solid {self.borderColor}; "
                            f"background: {self.backgroundColor}; "
                            f"padding: 3px; }}")
+
+    # Sets the "size" of this player card. Sizes are preconfigured modes to display
+    # more or less data depending on spatial needs.
+    def setSize(self,size):
+        if(size.lower() == "wide"):
+            self.__setToWideSize()
+        elif(size.lower() == "icon"):
+            self.__setToIconSize()
+        else:
+            raise ValueError(f"Invalid size type: '{size}'")
+        self.setSpriteID(self.spriteID)

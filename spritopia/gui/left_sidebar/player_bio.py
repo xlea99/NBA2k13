@@ -2,7 +2,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.common.paths import paths
-from spritopia.gui import utils
+from spritopia.gui.widgets.auto_resize_label import AutoResizeLabel
 
 
 
@@ -19,7 +19,7 @@ class PlayerBio(QWidget):
         topLayout = QHBoxLayout()
         self.factionImage = QLabel()
         self.factionImage.setFixedSize(75, 75)  # Fixed small size for images
-        self.playerName = QLabel()
+        self.playerName = AutoResizeLabel()
         playerNameFont = QFont("Arial", 20)
         playerNameFont.setBold(True)
         self.playerName.setFont(playerNameFont)
@@ -77,7 +77,6 @@ class PlayerBio(QWidget):
 
         # Set player name
         self.playerName.setText(f"{playerObj['First_Name']} {playerObj['Last_Name']}")
-        utils.dynamicallyResizeFont(self.playerName)
         # Update Archetype with coloring based on value
         archetype = playerObj["Archetype_Name"]
         self.archetypeLabel.setText(f"<i>{archetype}</i>")

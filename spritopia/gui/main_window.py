@@ -12,9 +12,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # Set the window title and size
-        #self.setWindowTitle("Spritopia Presents")
-        #self.setGeometry(100, 100, 1200, 900)
+        self.setWindowTitle("Spritopia Presents")
 
         # Central widget and layout
         self.centralWidget = QWidget(self)
