@@ -72,7 +72,7 @@ class PlayerBio(QWidget):
                     artifactPMod = pmod
                     break
         if(artifactPMod is not None):
-            artifactPixmap = QPixmap(paths["graphics"] / artifactPMod["Images"])
+            artifactPixmap = QPixmap(paths["graphics"] / artifactPMod["Image"])
             self.artifactImage.setPixmap(artifactPixmap.scaled(75,75,Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
         # Set player name
