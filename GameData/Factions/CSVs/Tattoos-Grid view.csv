@@ -1,8 +1,0 @@
-﻿Name,Max ID,Symmetry
-CAP_T_LftN,37,
-CAP_T_LftS,27,CAP_T_RgtB
-CAP_T_RgtS,60,CAP_T_LftF
-CAP_T_LftB,59,CAP_T_RgtF
-CAP_T_RgtB,27,CAP_T_LftS
-CAP_T_LftF,60,CAP_T_RgtS
-CAP_T_RgtF,59,CAP_T_LftB

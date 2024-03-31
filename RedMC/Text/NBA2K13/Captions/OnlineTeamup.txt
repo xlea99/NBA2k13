@@ -1,3 +1,0 @@
-General:2
-TeamID1;TeamID1;
-TeamID2;TeamID2;
