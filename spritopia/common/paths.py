@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import tkinter
 from tkinter import simpledialog, filedialog
+from spritopia.common.config import config
 
 # Helper method for testing the validity of a given pathToValidate in different ways.
 def validatePath(pathToValidate: Path,  # The path to actually attempt to validate.
@@ -120,6 +121,18 @@ paths["data"] = paths["root"] / "data"
 paths["templates"] = paths["data"] / "templates"
 paths["factions"] = paths["data"] / "factions"
 paths["randGen"] = paths["data"] / "rand_gen"
+
+# Registers the data folder given in the config in global paths
+paths["saveFolder"] = config["paths"]["saveFolder"]
+paths["logs"] = paths["saveFolder"] / "logs"
+paths["backups"] = paths["saveFolder"] / "backups"
+paths["rosterCSVs"] = paths["saveFolder"] / "roster_csvs"
+paths["saveDBs"] = paths["saveFolder"] / "db"
+
+# Registers the NBA2K13 game data and roaming folder in the config in global paths.
+paths["gameInstall"] = config["paths"]["gameInstall"]
+paths["gameRoaming"] = paths["appdata"] / "2K Sports/NBA 2K13"
+paths["gameRosters"] = paths["gameRoaming"] / "Saves"
 
 # Assets path
 paths["assets"] = paths["root"] / "assets"

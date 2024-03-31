@@ -1,6 +1,7 @@
 import random
-import BaseFunctions as b
 import math
+from spritopia.common.logger import log
+from spritopia.common.config import config
 from spritopia.players import archetypes, factions, artifacts
 from spritopia.utilities import weighted_dict, misc
 
@@ -821,7 +822,7 @@ class Player:
                 return self.vals["Height"]
             else:
                 error = ValueError(f"Invalid Height getter: '{key}'")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
         # Testing for special handedness accessor.
         elif(key == "HandName"):
@@ -836,7 +837,7 @@ class Player:
                 return self.idMap[cleanKey][self.vals[cleanKey]]
             else:
                 error = ValueError(f"'{cleanKey}' has no accessible mapped value using _Name.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
         else:
             return self.vals[key]
@@ -851,7 +852,7 @@ class Player:
                 self.__spriteID = int(value)
             else:
                 error = ValueError("Can not attempt to change SpriteID of an existing player!!")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
         # Testing if the key is an ExtraValue.
         elif(key in self.extraValuesMap.keys()):
@@ -875,7 +876,7 @@ class Player:
                     self["Archetype"] = None
                 else:
                     error = ValueError(f"Invalid archetype name: '{value}'")
-                    b.log.exception(error)
+                    log.exception(error)
                     raise error
             elif(type(value) is archetypes.Archetype):
                 self.vals["Archetype"] = value
@@ -888,7 +889,7 @@ class Player:
                 self.vals["Archetype"] = None
             else:
                 error = TypeError(f"Invalid type for Archetype setter: '{value}', with type '{type(value)}'")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
         # Testing if the key is a height represented in some form. (Default form is in inches)
         elif(key.startswith("Height")):
@@ -903,7 +904,7 @@ class Player:
                 self.vals["Height"] = int(value)
             else:
                 error = ValueError(f"Invalid Height setter: '{key}'")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
         # Testing if the key is handedness
         elif(key == "Hand"):
@@ -915,7 +916,7 @@ class Player:
                 self.vals["Hand"] = value
             else:
                 error = ValueError(f"Invalid setter for Handedness: '{value}'")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
         # Testing if the key is a mapped value
         elif(key in self.idMap.keys() or key.endswith("_Name")):
@@ -926,11 +927,11 @@ class Player:
                 self.vals[cleanKey] = value
             elif(key.endswith("_Name")):
                 error = ValueError(f"'{cleanKey}' is not a mapped value, and can not be accessed using _Name.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
             else:
                 error = ValueError(f"Invalid value given for {cleanKey}: '{value}'")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
         # Test if it's an attribute:
         elif(key in ["SShtIns","SShtCls","SShtMed","SSht3PT","SShtFT","SLayUp","SDunk","SStdDunk","SShtInT","SPstFdaway","SPstHook","SShtOfD","SBallHndl","SOffHDrib","SBallSec","SPass","SBlock","SSteal","SHands","SOnBallD","SOReb","SDReb","SOLowPost","SDLowPost","SOAwar","SDAwar","SConsis","SStamina","SSpeed","SQuick","SStrength","SVertical","SHustle","SDurab","SPOT","SEmotion"]):
@@ -950,7 +951,7 @@ class Player:
                 self.vals[key] = value
             else:
                 error = ValueError(f"Key does not exist in player object: '{key}'")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
 
         self.hasPendingUpdates = True
@@ -970,11 +971,11 @@ class Player:
     # Randomly sets a rarity, based on config chances.
     def genRarity(self):
         rarityWeightedDict = weighted_dict.WeightedDict()
-        rarityWeightedDict.add("Common", int(b.config["rarities"]["commonChance"] * 100))
-        rarityWeightedDict.add("Rare", int(b.config["rarities"]["rareChance"] * 100))
-        rarityWeightedDict.add("Epic", int(b.config["rarities"]["epicChance"] * 100))
-        rarityWeightedDict.add("Legendary", int(b.config["rarities"]["legendaryChance"] * 100))
-        rarityWeightedDict.add("Godlike", int(b.config["rarities"]["godlikeChance"] * 100))
+        rarityWeightedDict.add("Common", int(config["rarities"]["commonChance"] * 100))
+        rarityWeightedDict.add("Rare", int(config["rarities"]["rareChance"] * 100))
+        rarityWeightedDict.add("Epic", int(config["rarities"]["epicChance"] * 100))
+        rarityWeightedDict.add("Legendary", int(config["rarities"]["legendaryChance"] * 100))
+        rarityWeightedDict.add("Godlike", int(config["rarities"]["godlikeChance"] * 100))
         self.vals["Rarity"] = rarityWeightedDict.pull()
         self.hasPendingUpdates = True
     # Generates all attributes based on the given archetype.
@@ -982,7 +983,7 @@ class Player:
         if(archetype is None):
             if(self.vals["Archetype"] is None):
                 error = ValueError("Must specify an archetype if the Player's default archetype is None.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
             else:
                 archetype = self.vals["Archetype"]
@@ -1029,7 +1030,7 @@ class Player:
         if(archetype is None):
             if(self.vals["Archetype"] is None):
                 error = ValueError("Must specify an archetype if the Player's default archetype is None.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
             else:
                 archetype = self.vals["Archetype"]
@@ -1110,7 +1111,7 @@ class Player:
         if(archetype is None):
             if(self.vals["Archetype"] is None):
                 error = ValueError("Must specify an archetype if the Player's default archetype is None.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
             else:
                 archetype = self.vals["Archetype"]
@@ -1216,7 +1217,7 @@ class Player:
         if(archetype is None):
             if(self.vals["Archetype"] is None):
                 error = ValueError("Must specify an archetype if the Player's default archetype is None.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
             else:
                 archetype = self.vals["Archetype"]
@@ -1228,7 +1229,7 @@ class Player:
         if(archetype is None):
             if(self.vals["Archetype"] is None):
                 error = ValueError("Must specify an archetype if the Player's default archetype is None.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
             else:
                 archetype = self.vals["Archetype"]
@@ -1322,7 +1323,7 @@ class Player:
         if(archetype is None):
             if(self.vals["Archetype"] is None):
                 error = ValueError("Must specify an archetype if the Player's default archetype is None.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
             else:
                 archetype = self.vals["Archetype"]
@@ -1401,7 +1402,7 @@ class Player:
         if(archetype is None):
             if(self.vals["Archetype"] is None):
                 error = ValueError("Must specify an archetype if the Player's default archetype is None.")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
             else:
                 archetype = self.vals["Archetype"]
@@ -1428,7 +1429,7 @@ class Player:
             if(archetype is None):
                 if(self.vals["Archetype"] is None):
                     error = ValueError("Must specify an archetype if the Player's default archetype is None.")
-                    b.log.exception(error)
+                    log.exception(error)
                     raise error
                 else:
                     archetype = self["Archetype_Name"]
@@ -1436,7 +1437,7 @@ class Player:
             if(rarity is None):
                 if(self.vals["Rarity"] is None):
                     error = ValueError("Must specify a rarity if the Player's default rarity is None.")
-                    b.log.exception(error)
+                    log.exception(error)
                     raise error
                 else:
                     rarity = self.vals["Rarity"]
@@ -1445,7 +1446,7 @@ class Player:
                 if(rarity == "Godlike"):
                     isArchetypeArtifact = False
                 else:
-                    isArchetypeArtifact = b.config["rarities"]["archetypeBasedArtifactChance"] > random.random()
+                    isArchetypeArtifact = config["rarities"]["archetypeBasedArtifactChance"] > random.random()
                 if(isArchetypeArtifact):
                     targetArtifact = random.choice(artifacts.ARTIFACTS[archetype][rarity])
                 else:
@@ -1486,7 +1487,7 @@ class Player:
                 self[modification["Key"]] = modification["Value"]
             else:
                 error = ValueError(f"Incorrect PMod operation type: '{modification['Operation']}'")
-                b.log.exception(error)
+                log.exception(error)
                 raise error
         pmod["Compiled"] = True
         self.pmods.append(pmod)

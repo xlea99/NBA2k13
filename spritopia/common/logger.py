@@ -1,6 +1,7 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
+from spritopia.common.paths import paths
 import datetime
 
 # Setup of custom logger for program-wide use.
@@ -31,7 +32,7 @@ def setupSpriteLogger(logDirectory : str, level : int = logging.NOTSET,
 
     # Setup handler
     handler = RotatingFileHandler(
-        f"{paths.logs}\\{logName}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log",
+        paths["logs"] / f"{logName}_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.log",
         maxBytes=maxSingleFileSize, backupCount=maxFileCount - 1, delay=True)
     handler.setLevel(level)
     _logger.addHandler(handler)
@@ -47,5 +48,5 @@ def setupSpriteLogger(logDirectory : str, level : int = logging.NOTSET,
     # Return actual logger.
     return _logger
 
-log = setupSpriteLogger(logDirectory=paths.logs,level=logging.DEBUG,logName="log")
+log = setupSpriteLogger(logDirectory=paths["logs"],level=logging.DEBUG,logName="log")
 log.info("Initialized logger.")

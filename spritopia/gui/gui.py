@@ -1,9 +1,10 @@
-from spritopia.players import archetypes
-import BaseFunctions as b
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
+from spritopia.players import archetypes
 from spritopia.data_storage import data_storage as d
+from spritopia.common.paths import paths
+from spritopia.utilities import misc
 import sys
 from functools import partial
 
@@ -310,7 +311,7 @@ class PickerMenu(QWidget):
     def removePlayerSlot(self,slot):
         self.playerCardSlots[slot]["PlayerCard"].setSpriteID(None)
 
-    badges = {"Padlock" : {"Path" : f"{b.paths.graphics}\\GUI\\padlock.png", "Priority": 100}}
+    badges = {"Padlock" : {"Path" : paths["Graphics"] / "GUI/padlock.png", "Priority": 100}}
     # Helper methods to add and remove the given badge to the given slotID
     def addBadge(self,slotID,badgeName):
         if (badgeName not in self.playerCardSlots[slotID]["Badges"].keys()):
@@ -501,7 +502,7 @@ class PlayerBio(QWidget):
         layout.addWidget(self.descriptionLabel)
 
     def update_player_bio(self, playerObj):
-        factionPixmap = QPixmap(f"{b.paths.graphics}\\FactionIcons\\{playerObj['Faction']}.png") # Assume you get a QPixmap for the faction
+        factionPixmap = QPixmap(paths["graphics"] / f"FactionIcons/{playerObj['Faction']}.png")
         self.factionImage.setPixmap(factionPixmap.scaled(75, 75, Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
         # Set artifact image here.
@@ -513,7 +514,7 @@ class PlayerBio(QWidget):
                     artifactPMod = pmod
                     break
         if(artifactPMod is not None):
-            artifactPixmap = QPixmap(f"{b.paths.graphics}\\{artifactPMod['Image']}")
+            artifactPixmap = QPixmap(paths["graphics"] / artifactPMod["Images"])
             self.artifactImage.setPixmap(artifactPixmap.scaled(75,75,Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
         # Set player name
@@ -899,7 +900,7 @@ class PlayerCard(QWidget):
                                "PPG": f"PPG: {d.d.stats['Players'][spriteID]['Averages']['Points']:<4.1f}",
                                "3P%": f"3P%: {d.d.stats['Players'][spriteID]['Other']['ThreePercentage'] * 100:04.1f}%",
                                "RPG": f"RPG: {d.d.stats['Players'][spriteID]['Averages']['OffensiveRebounds'] + d.d.stats['Players'][spriteID]['Averages']['DefensiveRebounds']:3.1f}",
-                               "TPT": f"TPT: {b.getTimeString(d.d.stats['Players'][spriteID]['Other']['TimePerTurnover'])}",
+                               "TPT": f"TPT: {misc.getTimeString(d.d.stats['Players'][spriteID]['Other']['TimePerTurnover'])}",
                                "SPG": f"SPG: {d.d.stats['Players'][spriteID]['Averages']['Steals']:.1f}",
                                "APG": f"APG: {d.d.stats['Players'][spriteID]['Averages']['AssistCount']:.1f}",
                                "3PA": f"3PA: {d.d.stats['Players'][spriteID]['Averages']['ThreesAttempted']:.1f}"}

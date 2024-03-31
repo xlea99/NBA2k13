@@ -1,8 +1,10 @@
-import BaseFunctions as b
 import csv
 import sqlite3
 import os
 import random
+from spritopia.common.paths import paths
+from spritopia.common.logger import log
+from spritopia.utilities import rsuite
 
 #region === Database Maintenance ===
 
@@ -190,14 +192,14 @@ def genBlankFactionsDatabase(dbPath):
     cursor.execute(query)
 
     conn.commit()
-    b.log.info("Built new Factions.db database")
+    log.info("Built new Factions.db database")
 # Helper methods for updating the Factions.db file with the CSV files stored at Factions/CSVs.
 def updateRaces():
-    with open(f"{b.paths.factions}\\CSVs\\New Day of 2K - Races.csv") as f:
+    with open(paths["factions"] / "CSVs/New Day of 2K - Races.csv") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty races table
@@ -235,11 +237,11 @@ def updateRaces():
     conn.commit()
     conn.close()
 def updateGearTypes():
-    with open(f"{b.paths.factions}\\CSVs\\Gear Types-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Gear Types-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -266,11 +268,11 @@ def updateGearTypes():
     conn.commit()
     conn.close()
 def updateGearItems():
-    with open(f"{b.paths.factions}\\CSVs\\Gear Items-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Gear Items-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -297,11 +299,11 @@ def updateGearItems():
     conn.commit()
     conn.close()
 def updateGearSets():
-    with open(f"{b.paths.factions}\\CSVs\\Gear Sets-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Gear Sets-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -336,11 +338,11 @@ def updateGearSets():
     conn.commit()
     conn.close()
 def updateFactions():
-    with open(f"{b.paths.factions}\\CSVs\\Factions-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Factions-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / f"Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -385,11 +387,11 @@ def updateFactions():
     conn.commit()
     conn.close()
 def updateNameLists():
-    with open(f"{b.paths.factions}\\CSVs\\Name Lists-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / f"CSVs/Name Lists-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / f"Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -419,11 +421,11 @@ def updateNameLists():
     conn.commit()
     conn.close()
 def updateHair():
-    with open(f"{b.paths.factions}\\CSVs\\Hair-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Hair-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -452,11 +454,11 @@ def updateHair():
     conn.commit()
     conn.close()
 def updateTattoo():
-    with open(f"{b.paths.factions}\\CSVs\\Tattoos-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / f"CSVs/Tattoos-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -490,11 +492,11 @@ def updateTattoo():
     conn.commit()
     conn.close()
 def updateHairColor():
-    with open(f"{b.paths.factions}\\CSVs\\Hair Color-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Hair Color-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -523,11 +525,11 @@ def updateHairColor():
     conn.commit()
     conn.close()
 def updateGoatee():
-    with open(f"{b.paths.factions}\\CSVs\\Goatee-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Goatee-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -556,11 +558,11 @@ def updateGoatee():
     conn.commit()
     conn.close()
 def updateMoustache():
-    with open(f"{b.paths.factions}\\CSVs\\Moustache-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Moustache-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -589,11 +591,11 @@ def updateMoustache():
     conn.commit()
     conn.close()
 def updateBeard():
-    with open(f"{b.paths.factions}\\CSVs\\Beard-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Beard-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -622,11 +624,11 @@ def updateBeard():
     conn.commit()
     conn.close()
 def updateFacialHairColor():
-    with open(f"{b.paths.factions}\\CSVs\\Facial Hair Color-Grid view.csv","r",encoding="utf-8-sig") as f:
+    with open(paths["factions"] / "CSVs/Facial Hair Color-Grid view.csv","r",encoding="utf-8-sig") as f:
         reader = csv.DictReader(f)
         data = [row for row in reader]
 
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     cursor = conn.cursor()
 
     # Empty and refill the table
@@ -655,7 +657,7 @@ def updateFacialHairColor():
     conn.commit()
     conn.close()
 
-#genBlankFactionsDatabase(f"{b.paths.factions}\\Factions.db")
+#genBlankFactionsDatabase(paths["factions"] / "Factions.db")
 updateRaces()
 updateGearTypes()
 updateGearItems()
@@ -669,7 +671,7 @@ updateMoustache()
 updateBeard()
 updateFacialHairColor()
 updateFactions()
-b.log.debug("Set up and updated all Faction info from Airtable CSVs")
+log.debug("Set up and updated all Faction info from Airtable CSVs")
 
 #endregion === Database Maintenance ===
 
@@ -678,7 +680,7 @@ b.log.debug("Set up and updated all Faction info from Airtable CSVs")
 # This method builds the entire Factions.db into a simple Python dict, for quick and easy
 # access and to prevent a bunch of unnecessary SQL queries.
 def buildDatabaseDict():
-    conn = sqlite3.connect(f"{b.paths.factions}\\Factions.db")
+    conn = sqlite3.connect(paths["factions"] / "Factions.db")
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
 
@@ -1047,8 +1049,8 @@ def genFactionName(faction : str,player):
         chosenFirstNameList = symmetricalFirstName
     firstNameListPath = dbDict["NameLists"][chosenFirstNameList]["Value"].replace("$NL_PATH", "\\WordLists\\NameLists")
     lastNameListPath = dbDict["NameLists"][chosenLastNameList]["Value"].replace("$NL_PATH", "\\WordLists\\NameLists")
-    player["First_Name"] = b.rStringProcess(firstNameListPath)
-    player["Last_Name"] = b.rStringProcess(lastNameListPath)
+    player["First_Name"] = rsuite.rString(firstNameListPath)
+    player["Last_Name"] = rsuite.rString(lastNameListPath)
 
 
 # Helper method for randomly choosing a faction to generate based on all generatable factions.
