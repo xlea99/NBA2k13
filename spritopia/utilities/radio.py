@@ -1,6 +1,5 @@
 #region === Imports ===
 
-import BaseFunctions as b
 import os
 from datetime import datetime
 import time
@@ -10,6 +9,9 @@ import threading
 import mutagen
 import random
 import vlc
+from pathlib import Path
+from spritopia.common import paths
+from spritopia.common.logger import log
 
 #endregion === Imports ===
 
@@ -41,9 +43,9 @@ class Radio:
         self.catalog = {}
         # Import all songs in base music directory by default.
         if(importAll):
-            for filePath in os.listdir(b.paths.music):
+            for filePath in os.listdir(paths.paths["media"] / "music"):
                 if(filePath.endswith(".json")):
-                    self.importSong(f"{b.paths.music}\\{filePath}")
+                    self.importSong(paths.paths["media"] / f"music/{filePath}")
 
         # Queue helper members
         self.__autoPlay = True
@@ -58,13 +60,16 @@ class Radio:
     # This method imports the song from the given JSON path, assuming it's
     # a valid serialized song.
     def importSong(self,songJSONPath):
+        if(type(songJSONPath) is not Path):
+            songJSONPath = Path(songJSONPath)
         with open(songJSONPath,"r") as f:
             thisSong = json.load(f)
         if(thisSong["type"] == "song"):
             # Logic to verify and determine song path
-            finalSongPath = os.path.join(os.path.dirname(songJSONPath),thisSong["path"])
-            b.paths.validatePath(pathToValidate=finalSongPath)
-            thisSong["path"] = finalSongPath
+
+            finalSongPath = songJSONPath.parent / thisSong["path"]
+            paths.validatePath(finalSongPath)
+            thisSong["path"] = str(finalSongPath)
 
             # Logic to calculate audio file length
             mutagenFileHandler = mutagen.File(finalSongPath)
@@ -143,7 +148,7 @@ class Radio:
             if(self.__autoPlay):
                 self.__player.play()
 
-            b.log.debug(f"Set active radio song to '{self.__signalSetSong}' at time '{self.__player.get_time()}'")
+            log.debug(f"Set active radio song to '{self.__signalSetSong}' at time '{self.__player.get_time()}'")
             self.__signalSetSong = None
             self.__songIsEnded = False
     # This run loop method handles checking for plays, pauses, and time sets.
@@ -155,19 +160,19 @@ class Radio:
                     self.__player.set_time(self.catalog[self.__activeSong]["length"])
                 else:
                     self.__player.set_time(self.__signalSetTime)
-                b.log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetTime}'")
+                log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetTime}'")
                 self.__signalSetTime = -1
             # Detect play signal.
             if (self.__signalPlay):
                 self.__signalPlay = False
                 if (not self.__player.is_playing()):
-                    b.log.debug(f"Played/resumed radio at {self.__player.get_time()}")
+                    log.debug(f"Played/resumed radio at {self.__player.get_time()}")
                     self.__player.play()
             # Detect pause signal.
             if (self.__signalPause):
                 self.__signalPause = False
                 if (self.__player.is_playing()):
-                    b.log.debug(f"Paused radio at {self.__player.get_time()}")
+                    log.debug(f"Paused radio at {self.__player.get_time()}")
                     self.__player.pause()
     # This run loop method handles grabbing the next song from the queue and signaling it.
     def __signalNextQueueSong(self):
