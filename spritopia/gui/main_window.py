@@ -46,10 +46,6 @@ class MainWindow(QMainWindow):
         self.mainContentOuterLayout.addWidget(self.mainContent,2)
         self.mainContentOuterLayout.addWidget(self.bottomContent,1)
 
-        self.leftSidebar.playerComboBox.currentIndexChanged.connect(
-            lambda index: self.mainContent.pickerMenuWidget.updateCurrentPlayerSelected(self.leftSidebar.currentPlayer["SpriteID"]))
-        self.mainContent.pickerMenuWidget.updateCurrentPlayerSelected(self.leftSidebar.currentPlayer["SpriteID"])
-
         self.showMaximized()
 
 

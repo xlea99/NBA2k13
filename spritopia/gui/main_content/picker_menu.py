@@ -4,6 +4,7 @@ from PySide6.QtWidgets import *
 from spritopia.common.paths import paths
 from spritopia.gui import const
 from spritopia.gui.widgets.player_card import PlayerCard
+from spritopia.gui.app_state import globalAppState
 from functools import partial
 
 MID_TITLE_HEADER_FONT = QFont("Arial",42)
@@ -29,10 +30,12 @@ DEFAULT_PHASE_ORDER = ({"Desc": "Danny Bans 2", "BallerzBans": 2},
 class PickerMenu(QWidget):
 
     # Initialize UI and tracking variables
-    def __init__(self,parent=None,phaseOrder = DEFAULT_PHASE_ORDER):
+    def __init__(self,parent=None,phaseOrder = DEFAULT_PHASE_ORDER,gameMode=4):
         super().__init__(parent)
         self.layout = QHBoxLayout()
         self.layout.addStretch(1)
+
+        self.gameMode = gameMode
 
 
         #region Base Setup UI
@@ -114,12 +117,18 @@ class PickerMenu(QWidget):
 
         self.playerCardSlots = [{} for i in range(10)]
         for index,playerCardSlot in enumerate(self.playerCardSlots):
-            playerCardSlot["MainLayout"] = QHBoxLayout()
+            playerCardSlot["MainContainer"] = QWidget()
+            playerCardSlot["MainLayout"] = QHBoxLayout(playerCardSlot["MainContainer"])
             playerCardSlot["IsLocked"] = False
             playerCardSlot["Actions"] = {}
             playerCardSlot["Badges"] = {}
 
+            playerCardContainer = QWidget()
+            playerCardLayout = QVBoxLayout(playerCardContainer)
+            playerCardLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
+            playerCardLayout.setContentsMargins(0,0,0,0)
             thisPlayerCard = PlayerCard()
+            playerCardLayout.addWidget(thisPlayerCard)
 
             thisBadgesContainerWidget = QWidget()
             thisBadgesContainerWidget.setMinimumWidth(BADGE_SIZE)
@@ -149,21 +158,27 @@ class PickerMenu(QWidget):
             thisActionsLayout.addStretch(1)
 
             playerCardSlot["PlayerCard"] = thisPlayerCard
+            playerCardSlot["PlayerCardLayout"] = playerCardLayout
+            playerCardSlot["PlayerCardContainer"] = playerCardContainer
             playerCardSlot["BadgesLayout"] = thisBadgesLayout
+            playerCardSlot["BadgesContainer"] = thisBadgesContainerWidget
             playerCardSlot["ActionsLayout"] = thisActionsLayout
+            playerCardSlot["ActionsContainer"] = thisActionsContainerWidget
             playerCardSlot["Actions"]["AddPlayerButton"] = addPlayerButton
             playerCardSlot["Actions"]["RemovePlayerButton"] = removePlayerButton
 
             if(index < 5):
                 playerCardSlot["MainLayout"].addWidget(thisBadgesContainerWidget)
-                playerCardSlot["MainLayout"].addWidget(thisPlayerCard)
+                playerCardSlot["MainLayout"].addWidget(playerCardContainer)
                 playerCardSlot["MainLayout"].addWidget(thisActionsContainerWidget)
-                self.ballerzLayout.addLayout(playerCardSlot["MainLayout"])
+                self.ballerzLayout.addWidget(playerCardSlot["MainContainer"])
             else:
                 playerCardSlot["MainLayout"].addWidget(thisActionsContainerWidget)
-                playerCardSlot["MainLayout"].addWidget(thisPlayerCard)
+                playerCardSlot["MainLayout"].addWidget(playerCardContainer)
                 playerCardSlot["MainLayout"].addWidget(thisBadgesContainerWidget)
-                self.ringersLayout.addLayout(playerCardSlot["MainLayout"])
+                self.ringersLayout.addWidget(playerCardSlot["MainContainer"])
+        self.adjustPlayerCardsToGameMode(self.gameMode)
+
 
         #endregion Player Card Slots UI
 
@@ -210,6 +225,10 @@ class PickerMenu(QWidget):
         self.setWindowTitle("Player Picker Menu")
         self.resize(500, 300)
 
+        # Connect to global spriteID
+        globalAppState.currentSpriteIDChanged.connect(self.updateCurrentPlayerSelected)
+        self.updateCurrentPlayerSelected(globalAppState.currentSpriteID)
+
         self.currentSelectorSpriteID = None
         self.ballerzBans = {}
         self.ballerzBansRemaining = 2
@@ -218,7 +237,19 @@ class PickerMenu(QWidget):
         self.currentPhase = 0
         self.phases = phaseOrder
 
-        self.setPhase(1)
+        self.setPhase(2)
+
+    # Helper method to adjust player slots to fit the given game mode.
+    def adjustPlayerCardsToGameMode(self,gameMode):
+        for index,playerCardSlot in enumerate(self.playerCardSlots):
+            if (0 <= index <= gameMode - 1 or 5 <= index <= gameMode + 4):
+                playerCardSlot["PlayerCard"].show()
+                playerCardSlot["BadgesContainer"].show()
+                playerCardSlot["ActionsContainer"].show()
+            else:
+                playerCardSlot["PlayerCard"].hide()
+                playerCardSlot["BadgesContainer"].hide()
+                playerCardSlot["ActionsContainer"].hide()
 
     # Method for updating the center player selection widget.
     def updateCurrentPlayerSelected(self,spriteID = None):
@@ -321,7 +352,6 @@ class PickerMenu(QWidget):
 
     # Method to lock and unlock the given slot, setting its interactivity
     def lockSlot(self,slotID):
-        print(slotID)
         if(not self.playerCardSlots[slotID]["IsLocked"]):
             self.playerCardSlots[slotID]["IsLocked"] = True
             self.playerCardSlots[slotID]["Actions"]["AddPlayerButton"].setEnabled(False)

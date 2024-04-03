@@ -2,7 +2,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.data_storage import data_storage as d
-
+from spritopia.gui.app_state import globalAppState
 
 
 # This combo box provides a simple player selection menu, with the SpriteID of the given player accessible
@@ -13,6 +13,7 @@ class PlayerSelectionBox(QComboBox):
         self.populate()
         self.currentIndexChanged.connect(self.onPlayerSelected)
         self.spriteID = self.currentData()
+        self.onPlayerSelected(self.spriteID)
 
     def populate(self):
         # Populate with players' names and spriteIDs.
@@ -24,3 +25,4 @@ class PlayerSelectionBox(QComboBox):
 
     def onPlayerSelected(self,index):
         self.spriteID = self.currentData()
+        globalAppState.currentSpriteID = self.spriteID
