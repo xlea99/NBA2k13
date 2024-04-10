@@ -5,6 +5,7 @@ from spritopia.data_storage.data_storage import d
 from spritopia.gui.app_state import globalAppState
 from spritopia.gui.widgets.input_combo_box import InputComboBox
 from spritopia.gui.widgets.player_filter_menu import PlayerFilterMenu
+from spritopia.data_storage.player_filter import filterSpriteIDs
 
 
 # This input combo box provides a simple player selection menu, with the SpriteID of the given player accessible
@@ -24,6 +25,7 @@ class PlayerSelectionBox(QWidget):
         # Filter button (THIS BUTTON SHOULD GENERATE A NEW PlayerFilterMenu to the RIGHT of this
         # entire widget for customization)
         self.filterMenu = PlayerFilterMenu(self)
+        self.filterMenu.filterApplied.connect(self.applyFilter)
         self.filterButton = QPushButton()
         self.filterButton.setText("▼")
         self.filterButton.setMaximumWidth(40)
@@ -35,7 +37,11 @@ class PlayerSelectionBox(QWidget):
 
 
 
+
     # Populate with players' names and spriteIDs.
+    def applyFilter(self,filterDict):
+        spriteIDs = filterSpriteIDs(condition=filterDict)
+        self.populate(spriteIDs=spriteIDs)
     def populate(self,spriteIDs : list):
         self.playerInputComboBox.clear()
         for spriteID in spriteIDs:

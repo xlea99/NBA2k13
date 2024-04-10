@@ -606,7 +606,7 @@ class Player:
         self.vals = {"First_Name": "",
                     "Last_Name": "",
                     "NickName": "",
-                    "Archetype": None, # Default to none - archetype MUST be set.
+                    "Archetype": archetypes.ARCH_NONE, # Default to none.
                     "Rarity": "Common", # Default to common rarity
                     "CAP_Nick": 0,
                     "Hand": 1, # Default is right
@@ -1209,7 +1209,7 @@ class Player:
                 elif(value.lower() == "director"):
                     self["Archetype"] = archetypes.ARCH_DIRECTOR
                 elif(value.lower() == "none" or value is None):
-                    self["Archetype"] = None
+                    self["Archetype"] = archetypes.ARCH_NONE
                 else:
                     error = ValueError(f"Invalid archetype name: '{value}'")
                     log.exception(error)

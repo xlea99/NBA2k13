@@ -9,15 +9,11 @@ from spritopia.players.players import Player
 from spritopia.data_storage import player_filter
 from spritopia.players.factions import dbDict as factions
 from spritopia.common.localization import LOCALIZATION_PLAYERS, LOCALIZATION_STATS
+from spritopia.utilities.misc import getMemorySizeOf
 
 
 #region === Field Map Construction ===
 
-EMPTY_FIELD_DICT = {"Icon": "",
-                   "Category": "",
-                   "Domain": None,
-                   "Subdomain": None,
-                   "Value": ""}
 FIELDS = []
 # Load initial "top" vals
 for specialVal in player_filter.specialConditionTypeDict.keys():
@@ -114,8 +110,17 @@ SORT_FIELDS = {
 
 # Maps to which operators are available to which fields.
 OPERATOR_MAP = {
-    "Default" : ["==","!=",">",">=","<","<=","in","not in"],
+    "Default" : ["==","!=",">",">=","<","<=","contains","does not contain"],
     "IsOnRoster": ["==","!="]
+}
+OPERATOR_LOCALIZED = {
+    "==": "equals",
+    "!=": "does_not_equal",
+    ">": "greater_than",
+    ">=": "greater_than_or_equal_to",
+    "<": "less_than",
+    "<=": "less_than_or_equal_to",
+    "contains": "contains"
 }
 # A list of values to provide as a combo box, dependent on certain selected fields.
 VALUE_COMBO_MAP = {
@@ -130,11 +135,14 @@ VALUE_COMBO_MAP = {
 
 
 class PlayerFilterMenu(QDialog):
+    # Signal for apply button.
+    filterApplied = Signal(dict)
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.currentFilterDict = {}
         self.currentFieldFilter = "All"
-
 
         self.setWindowTitle("Filter Preferences")
         self.setMinimumWidth(340)
@@ -189,7 +197,7 @@ class PlayerFilterMenu(QDialog):
         separator.setFrameShadow(QFrame.Sunken)
         separator.setStyleSheet("color: rgba(0, 0, 0, 50);")  # Adjust the color and opacity for faded effect
         self.applyButton = QPushButton("Apply Filters")
-        self.applyButton.clicked.connect(self.apply_filters)
+        self.applyButton.clicked.connect(self.apply)
 
         self.layout.addWidget(self.headerContainer)
         self.layout.addWidget(self.rulesTable)
@@ -198,11 +206,53 @@ class PlayerFilterMenu(QDialog):
         self.layout.addWidget(self.applyButton)
         self.setLayout(self.layout)
 
+        self.applyButton.clicked.connect(self.onApplyClicked)
 
-    def apply_filters(self):
+    #region === Filter Generation ===
 
-        # Close the dialog after applying filters
+    # Applies (returns) the condition dictionary created by the GUI and closes the filter.
+    def apply(self):
+        self.currentFilterDict = self.getCurrentFilterDict()
         self.accept()
+    def onApplyClicked(self):
+        self.filterApplied.emit(self.currentFilterDict)
+    # This method converts the full rule table into a single player_filter dictionary.
+    def getCurrentFilterDict(self):
+        newRuleDict = {"type": "and","conditions": []}
+        for row in range(self.rulesTable.rowCount()):
+            thisFieldDict = self.rulesTable.cellWidget(row,0).getCurrentItemData()
+            thisOperator = self.rulesTable.cellWidget(row,1).currentText()
+
+            thisValueElement = self.rulesTable.cellWidget(row,2)
+            if(thisValueElement):
+                thisValue = thisValueElement.currentText()
+            else:
+                thisValue = self.rulesTable.item(row,2).text()
+
+            thisCondition = {
+                    "type": OPERATOR_LOCALIZED[thisOperator],
+                    "domain": thisFieldDict["Domain"],
+                    "subdomain": thisFieldDict["Subdomain"],
+                    "field": thisFieldDict["Value"],
+                    "value": thisValue
+                }
+            if(thisFieldDict["Value"] == "IsOnRoster"):
+                thisCondition["type"] = "special"
+                if(thisOperator == "!="):
+                    newRuleDict["conditions"].append({"type": "not", "condition": thisCondition})
+                else:
+                    newRuleDict["conditions"].append(thisCondition)
+            elif(thisOperator == "does not contain"):
+                newRuleDict["conditions"].append({"type": "not","condition": thisCondition})
+            else:
+                newRuleDict["conditions"].append(thisCondition)
+
+        print(newRuleDict)
+        return newRuleDict
+
+    #endregion === Filter Generation ===
+
+    #region === Table Manipulation ===
 
     # Methods for adding and removing rules visually from the rule table.
     def addRuleRow(self):
@@ -214,8 +264,16 @@ class PlayerFilterMenu(QDialog):
         conditionComboBox = InputComboBox()
         valueComboBox = InputComboBox()
 
-        # Default empty values.
-        fieldComboBox.addItem("", EMPTY_FIELD_DICT)
+
+        # Get the first valid field for the currently set category.
+        defaultField = FIELDS[0]
+        if(self.currentFieldFilter != "Any"):
+            for field in FIELDS:
+                if(field["Category"] == self.currentFieldFilter):
+                    defaultField = field
+                    break
+        # Default values.
+        fieldComboBox.addItem("", defaultField)
         conditionComboBox.addItem("", "")
         valueComboBox.addItem("", "")
 
@@ -238,6 +296,10 @@ class PlayerFilterMenu(QDialog):
         for row in range(self.rulesTable.rowCount()):
             self.removeRuleRow(0)
 
+    #endregion === Table Manipulation ===
+
+    #region === Category Filtering ===
+
     # Updates the field filter, and the field selection combo box.
     def updateFieldFilter(self,index):
         self.currentFieldFilter = self.showOnlyComboBox.currentText()
@@ -257,10 +319,18 @@ class PlayerFilterMenu(QDialog):
             currentEntry = thisFieldComboBox.getCurrentItemData()
             thisFieldComboBox.clear()
 
-            if(currentEntry and any(choice["Value"] == currentEntry["Value"] for choice in choices)):
+
+            if(currentEntry != ""):
                 retainCurrentEntry = True
+                setCurrentEntry = True
+                for choice in choices:
+                    if(choice["Value"] == currentEntry["Value"]):
+                        retainCurrentEntry = False
+                        break
             else:
                 retainCurrentEntry = False
+                setCurrentEntry = False
+
 
             if(retainCurrentEntry):
                 thisFieldComboBox.addItem(icon=currentEntry["Icon"],text=currentEntry)
@@ -270,9 +340,13 @@ class PlayerFilterMenu(QDialog):
 
             thisFieldComboBox.currentTextChanged.connect(partial(self.updateFieldRelationships,row=row))
 
-            if(retainCurrentEntry):
+            if(setCurrentEntry):
                 thisFieldComboBox.setItemByDictKey(key="Value",value=currentEntry["Value"])
             self.updateFieldRelationships(index=0,row=row)
+
+    #endregion === Category Filtering ===
+
+    #region === Rule Row Updating ===
 
     # Single method to handle all field relationship updates.
     def updateFieldRelationships(self,index,row):
@@ -343,3 +417,4 @@ class PlayerFilterMenu(QDialog):
             else:
                 pass
 
+    #endregion === Rule Row Updating ===
