@@ -22,7 +22,7 @@ thisFilter = {
         {
             # Filters only for spriteIDs which exist on the given roster
             "type": "special",
-            "field": "is_on_roster",
+            "field": "IsOnRoster",
             "value": "Premier"
         }
     ]
@@ -61,14 +61,14 @@ conditionTypeDict = {
 
 #region === Special Condition Types ===
 
-def is_on_roster(value,spriteID):
+def IsOnRoster(value,spriteID):
     thisRosterDict = d.rosters.get(value,None)
     if(thisRosterDict):
         return spriteID in thisRosterDict["SpriteIDs"].values()
     else:
         return False
 specialConditionTypeDict = {
-    "is_on_roster": is_on_roster
+    "IsOnRoster": IsOnRoster
 }
 
 #endregion === Special Condition Types ===

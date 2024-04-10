@@ -138,6 +138,7 @@ paths["gameRosters"] = paths["gameRoaming"] / "Saves"
 paths["assets"] = paths["root"] / "assets"
 paths["graphics"] = paths["assets"] / "graphics"
 paths["media"] = paths["assets"] / "media"
+paths["localization"] = paths["assets"] / "localization"
 
 # Tools path
 paths["tools"] = paths["root"] / "tools"
