@@ -1,34 +1,5 @@
 from spritopia.data_storage.data_storage import d
 
-'''
-thisFilter = {
-    "type": "and",
-    "conditions": [
-        {
-            # Filters only for spriteIDs who have >= 30 Hesitation Tendency
-            "type": "greater_than_or_equal_to",
-            "domain": "Players",
-            "field": "THesitat",
-            "value": 30
-        },
-        {
-            # Filters only for spriteIDs which have > 0.8 average steal
-            "type": "greater_than",
-            "domain": "Stats",
-            "subdomain": "Averages",
-            "field": "Steals",
-            "value": 0.8
-        },
-        {
-            # Filters only for spriteIDs which exist on the given roster
-            "type": "special",
-            "field": "IsOnRoster",
-            "value": "Premier"
-        }
-    ]
-}
-'''
-
 
 #region === Condition Types ===
 

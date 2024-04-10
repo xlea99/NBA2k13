@@ -9,7 +9,7 @@ from spritopia.players.players import Player
 from spritopia.data_storage import player_filter
 from spritopia.players.factions import dbDict as factions
 from spritopia.common.localization import LOCALIZATION_PLAYERS, LOCALIZATION_STATS
-from spritopia.utilities.misc import getMemorySizeOf
+from spritopia.utilities.misc import isNumber
 
 
 #region === Field Map Construction ===
@@ -36,6 +36,12 @@ for attributeVal in Player.valCategories["Attributes"]:
                    "Value": attributeVal})
 
 # Load all stat vals
+for otherStatVal in LOCALIZATION_STATS["Other"].keys():
+    FIELDS.append({"Icon": LOCALIZATION_STATS["Other"][otherStatVal],
+                   "Category": "Stats",
+                   "Domain": "Stats",
+                   "Subdomain": "Other",
+                   "Value": otherStatVal})
 for totalStatVal in LOCALIZATION_STATS["Totals"].keys():
     FIELDS.append({"Icon": LOCALIZATION_STATS["Totals"][totalStatVal],
                    "Category": "Stats",
@@ -48,12 +54,6 @@ for averageStatVal in LOCALIZATION_STATS["Averages"].keys():
                    "Domain": "Stats",
                    "Subdomain": "Averages",
                    "Value": averageStatVal})
-for otherStatVal in LOCALIZATION_STATS["Other"].keys():
-    FIELDS.append({"Icon": LOCALIZATION_STATS["Other"][otherStatVal],
-                   "Category": "Stats",
-                   "Domain": "Stats",
-                   "Subdomain": "Other",
-                   "Value": otherStatVal})
 
 # Load rest of the player vals
 for tendencyVal in Player.valCategories["Tendencies"]:
@@ -233,9 +233,15 @@ class PlayerFilterMenu(QDialog):
                     "type": OPERATOR_LOCALIZED[thisOperator],
                     "domain": thisFieldDict["Domain"],
                     "subdomain": thisFieldDict["Subdomain"],
-                    "field": thisFieldDict["Value"],
-                    "value": thisValue
+                    "field": thisFieldDict["Value"]
                 }
+            if(isNumber(thisValue)):
+                if("." in thisValue):
+                    thisCondition["value"] = float(thisValue)
+                else:
+                    thisCondition["value"] = int(thisValue)
+            else:
+                thisCondition["value"] = thisValue
             if(thisFieldDict["Value"] == "IsOnRoster"):
                 thisCondition["type"] = "special"
                 if(thisOperator == "!="):
@@ -247,7 +253,6 @@ class PlayerFilterMenu(QDialog):
             else:
                 newRuleDict["conditions"].append(thisCondition)
 
-        print(newRuleDict)
         return newRuleDict
 
     #endregion === Filter Generation ===

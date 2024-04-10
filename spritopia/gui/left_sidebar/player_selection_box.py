@@ -22,8 +22,7 @@ class PlayerSelectionBox(QWidget):
         self.spriteID = self.playerInputComboBox.currentData()
         self.onPlayerSelected(self.spriteID)
 
-        # Filter button (THIS BUTTON SHOULD GENERATE A NEW PlayerFilterMenu to the RIGHT of this
-        # entire widget for customization)
+        # Filter button
         self.filterMenu = PlayerFilterMenu(self)
         self.filterMenu.filterApplied.connect(self.applyFilter)
         self.filterButton = QPushButton()
