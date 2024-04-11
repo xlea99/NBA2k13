@@ -268,6 +268,14 @@ class Archetype:
         # Return NotImplemented when comparing with other types
         return NotImplemented
 
+    # "Overloads" on methods that may be called on archetypes thinking its a string, simply
+    # for ease of use.
+    def lower(self):
+        return self.archetypeName.lower()
+    def upper(self):
+        return self.archetypeName.upper()
+    def capitalize(self):
+        return self.archetypeName.capitalize()
 
     # STATS/SKILLS
 
