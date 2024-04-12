@@ -15,25 +15,31 @@ from spritopia.utilities.misc import isNumber
 #region === Field Map Construction ===
 
 FIELDS = []
-# Load initial "top" vals
-for specialVal in player_filter.specialConditionTypeDict.keys():
-    FIELDS.append({"Icon": specialVal,
-                   "Category": "Special",
-                   "Domain": None,
-                   "Subdomain": None,
-                   "Value": specialVal})
+# Load initial "top" vals manually
+FIELDS.append({"Icon": "Roster",
+               "Category": "Special",
+               "Domain": None,
+               "Subdomain": None,
+               "Value": "IsOnRoster",
+               "Operators": "EqualityOnly"})
 for basicVal in Player.valCategories["Basic Info"]:
-    FIELDS.append({"Icon": LOCALIZATION_PLAYERS[basicVal],
+    thisDict = {"Icon": LOCALIZATION_PLAYERS[basicVal],
                    "Category": "Basic Info",
                    "Domain": "Players",
                    "Subdomain": None,
-                   "Value": basicVal})
+                   "Value": basicVal}
+    if(basicVal in ["Hand","Height","Weight","NmOrder"]):
+        thisDict["Operators"] = "Default"
+    else:
+        thisDict["Operators"] = "TextOnly"
+    FIELDS.append(thisDict)
 for attributeVal in Player.valCategories["Attributes"]:
     FIELDS.append({"Icon": LOCALIZATION_PLAYERS[attributeVal],
                    "Category": "Attributes",
                    "Domain": "Players",
                    "Subdomain": None,
-                   "Value": attributeVal})
+                   "Value": attributeVal,
+                   "Operators": "NumericOnly"})
 
 # Load all stat vals
 for otherStatVal in LOCALIZATION_STATS["Other"].keys():
@@ -41,19 +47,22 @@ for otherStatVal in LOCALIZATION_STATS["Other"].keys():
                    "Category": "Stats",
                    "Domain": "Stats",
                    "Subdomain": "Other",
-                   "Value": otherStatVal})
+                   "Value": otherStatVal,
+                   "Operators": "NumericOnly"})
 for totalStatVal in LOCALIZATION_STATS["Totals"].keys():
     FIELDS.append({"Icon": LOCALIZATION_STATS["Totals"][totalStatVal],
                    "Category": "Stats",
                    "Domain": "Stats",
                    "Subdomain": "Totals",
-                   "Value": totalStatVal})
+                   "Value": totalStatVal,
+                   "Operators": "NumericOnly"})
 for averageStatVal in LOCALIZATION_STATS["Averages"].keys():
     FIELDS.append({"Icon": LOCALIZATION_STATS["Averages"][averageStatVal],
                    "Category": "Stats",
                    "Domain": "Stats",
                    "Subdomain": "Averages",
-                   "Value": averageStatVal})
+                   "Value": averageStatVal,
+                   "Operators": "NumericOnly"})
 
 # Load rest of the player vals
 for tendencyVal in Player.valCategories["Tendencies"]:
@@ -61,37 +70,43 @@ for tendencyVal in Player.valCategories["Tendencies"]:
                    "Category": "Tendencies",
                    "Domain": "Players",
                    "Subdomain": None,
-                   "Value": tendencyVal})
+                   "Value": tendencyVal,
+                   "Operators": "NumericOnly"})
 for hotspotVal in Player.valCategories["Hotspots"]:
     FIELDS.append({"Icon": LOCALIZATION_PLAYERS[hotspotVal],
                    "Category": "Hotspots",
                    "Domain": "Players",
                    "Subdomain": None,
-                   "Value": hotspotVal})
+                   "Value": hotspotVal,
+                   "Operators": "NumericOnly"})
 for hotzoneVal in Player.valCategories["Hotzones"]:
     FIELDS.append({"Icon": LOCALIZATION_PLAYERS[hotzoneVal],
                    "Category": "Hotzones",
                    "Domain": "Players",
                    "Subdomain": None,
-                   "Value": hotzoneVal})
+                   "Value": hotzoneVal,
+                   "Operators": "NumericOnly"})
 for appearanceVal in Player.valCategories["Appearance"]:
     FIELDS.append({"Icon": LOCALIZATION_PLAYERS[appearanceVal],
                    "Category": "Appearance",
                    "Domain": "Players",
                    "Subdomain": None,
-                   "Value": appearanceVal})
+                   "Value": appearanceVal,
+                   "Operators": "NumericOnly"})
 for animationVal in Player.valCategories["Animations"]:
     FIELDS.append({"Icon": LOCALIZATION_PLAYERS[animationVal],
                    "Category": "Animations",
                    "Domain": "Players",
                    "Subdomain": None,
-                   "Value": animationVal})
+                   "Value": animationVal,
+                   "Operators": "NumericOnly"})
 for extraVal in Player.extraValuesMap.keys():
     FIELDS.append({"Icon": LOCALIZATION_PLAYERS[extraVal],
                    "Category": "Animations",
                    "Domain": "Players",
                    "Subdomain": None,
-                   "Value": extraVal})
+                   "Value": extraVal,
+                   "Operators": "Default"})
 
 SORT_FIELDS = {
     "Basic Info" : {"IsBold" : True},
@@ -111,7 +126,9 @@ SORT_FIELDS = {
 # Maps to which operators are available to which fields.
 OPERATOR_MAP = {
     "Default" : ["==","!=",">",">=","<","<=","contains","does not contain"],
-    "IsOnRoster": ["==","!="]
+    "NumericOnly" : ["==","!=",">",">=","<","<="],
+    "TextOnly": ["==","!=","contains","does not contain"],
+    "EqualityOnly": ["==","!="]
 }
 OPERATOR_LOCALIZED = {
     "==": "equals",
@@ -120,7 +137,8 @@ OPERATOR_LOCALIZED = {
     ">=": "greater_than_or_equal_to",
     "<": "less_than",
     "<=": "less_than_or_equal_to",
-    "contains": "contains"
+    "contains": "contains",
+    "does not contain": "does not contain",
 }
 # A list of values to provide as a combo box, dependent on certain selected fields.
 VALUE_COMBO_MAP = {
@@ -138,6 +156,26 @@ class PlayerFilterMenu(QDialog):
     # Signal for apply button.
     filterApplied = Signal(dict)
 
+    checkboxColWidth = 30
+    fieldColWidth = 120
+    operatorColWidth = 60
+    valueColWidth = 120
+    col_checkbox = 0
+    col_field = 1
+    col_operator = 2
+    col_value = 3
+
+    internalComboBoxStyle = """
+        QComboBox {
+            padding: 2px;  /* Reduce padding */
+            margin: 1px;  /* Reduce margin */
+            border: 1px solid gray;  /* Add a subtle border */
+        }
+    """
+
+    removeRuleButtonWidth = 40
+
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -145,16 +183,23 @@ class PlayerFilterMenu(QDialog):
         self.currentFieldFilter = "All"
 
         self.setWindowTitle("Filter Preferences")
-        self.setMinimumWidth(340)
+        self.setMinimumWidth(self.checkboxColWidth + self.fieldColWidth + self.operatorColWidth + self.valueColWidth + 24)
 
         # Use QVBoxLayout for simple vertical layout
         self.layout = QVBoxLayout()
 
         # Setup actual rules table.
         self.rulesTable = QTableWidget()
-        self.rulesTable.setMaximumWidth(313) #TODO adjust
-        self.rulesTable.setColumnCount(3)
-        self.rulesTable.setHorizontalHeaderLabels(['Field', 'Condition', 'Value'])
+        self.rulesTable.setStyleSheet("""
+            QHeaderView::section:selected {
+                background-color: #b0c4de;  /* Light Steel Blue */
+            }
+        """)
+        self.rulesTable.setSelectionBehavior(QTableWidget.SelectRows)  # or QTableWidget.SelectColumns
+        self.rulesTable.setSelectionMode(QTableWidget.MultiSelection)  # or QTableWidget.MultiSelection
+        #self.rulesTable.setMaximumWidth(313) #TODO adjust
+        self.rulesTable.setColumnCount(4)
+        self.rulesTable.setHorizontalHeaderLabels(["","Field", "Condition", "Value"])
 
         # Header and "showOnly" combo box.
         self.headerContainer = QWidget()
@@ -184,12 +229,15 @@ class PlayerFilterMenu(QDialog):
         # Setup rule operator buttons
         self.ruleOperatorContainer = QWidget()
         self.ruleOperatorLayout = QHBoxLayout(self.ruleOperatorContainer)
-        self.newRowButton = QPushButton("Add Rule")
+        self.newRowButton = QPushButton("Add")
         self.newRowButton.clicked.connect(self.addRuleRow)
-        self.clearAllButton = QPushButton("Clear Rules")
+        self.deleteSelectedRowsButton = QPushButton("Remove")
+        self.deleteSelectedRowsButton.clicked.connect(self.clearSelectedRuleRows)
+        self.clearAllButton = QPushButton("Clear")
         self.clearAllButton.clicked.connect(self.clearAllRuleRows)
-        self.ruleOperatorLayout.addWidget(self.newRowButton)
-        self.ruleOperatorLayout.addWidget(self.clearAllButton)
+        self.ruleOperatorLayout.addWidget(self.newRowButton,stretch=2)
+        self.ruleOperatorLayout.addWidget(self.deleteSelectedRowsButton,stretch=2)
+        self.ruleOperatorLayout.addWidget(self.clearAllButton,stretch=1)
 
         # Add apply button, as well as separator.
         separator = QFrame()
@@ -197,7 +245,7 @@ class PlayerFilterMenu(QDialog):
         separator.setFrameShadow(QFrame.Sunken)
         separator.setStyleSheet("color: rgba(0, 0, 0, 50);")  # Adjust the color and opacity for faded effect
         self.applyButton = QPushButton("Apply Filters")
-        self.applyButton.clicked.connect(self.apply)
+        self.applyButton.clicked.connect(self.onApplyClicked)
 
         self.layout.addWidget(self.headerContainer)
         self.layout.addWidget(self.rulesTable)
@@ -206,28 +254,31 @@ class PlayerFilterMenu(QDialog):
         self.layout.addWidget(self.applyButton)
         self.setLayout(self.layout)
 
-        self.applyButton.clicked.connect(self.onApplyClicked)
+        self.rulesTable.setColumnWidth(self.col_checkbox,self.checkboxColWidth)
+        self.rulesTable.setColumnWidth(self.col_field,self.fieldColWidth)
+        self.rulesTable.setColumnWidth(self.col_operator,self.operatorColWidth)
+        self.rulesTable.setColumnWidth(self.col_value,self.valueColWidth)
+        self.rulesTable.verticalHeader().setVisible(False)
 
     #region === Filter Generation ===
 
     # Applies (returns) the condition dictionary created by the GUI and closes the filter.
-    def apply(self):
-        self.currentFilterDict = self.getCurrentFilterDict()
-        self.accept()
     def onApplyClicked(self):
+        self.currentFilterDict = self.getCurrentFilterDict()
         self.filterApplied.emit(self.currentFilterDict)
+        self.accept()
     # This method converts the full rule table into a single player_filter dictionary.
     def getCurrentFilterDict(self):
         newRuleDict = {"type": "and","conditions": []}
         for row in range(self.rulesTable.rowCount()):
-            thisFieldDict = self.rulesTable.cellWidget(row,0).getCurrentItemData()
-            thisOperator = self.rulesTable.cellWidget(row,1).currentText()
+            thisFieldDict = self.rulesTable.cellWidget(row,self.col_field).getCurrentItemData()
+            thisOperator = self.rulesTable.cellWidget(row,self.col_operator).currentText()
 
-            thisValueElement = self.rulesTable.cellWidget(row,2)
+            thisValueElement = self.rulesTable.cellWidget(row,self.col_value)
             if(thisValueElement):
                 thisValue = thisValueElement.currentText()
             else:
-                thisValue = self.rulesTable.item(row,2).text()
+                thisValue = self.rulesTable.item(row,self.col_value).text()
 
             thisCondition = {
                     "type": OPERATOR_LOCALIZED[thisOperator],
@@ -235,6 +286,8 @@ class PlayerFilterMenu(QDialog):
                     "subdomain": thisFieldDict["Subdomain"],
                     "field": thisFieldDict["Value"]
                 }
+
+            # Converting the value to its actual type, if needed.
             if(isNumber(thisValue)):
                 if("." in thisValue):
                     thisCondition["value"] = float(thisValue)
@@ -242,6 +295,8 @@ class PlayerFilterMenu(QDialog):
                     thisCondition["value"] = int(thisValue)
             else:
                 thisCondition["value"] = thisValue
+
+            # Dealing with special logic cases
             if(thisFieldDict["Value"] == "IsOnRoster"):
                 thisCondition["type"] = "special"
                 if(thisOperator == "!="):
@@ -249,10 +304,12 @@ class PlayerFilterMenu(QDialog):
                 else:
                     newRuleDict["conditions"].append(thisCondition)
             elif(thisOperator == "does not contain"):
+                thisCondition["type"] = "contains"
                 newRuleDict["conditions"].append({"type": "not","condition": thisCondition})
             else:
                 newRuleDict["conditions"].append(thisCondition)
 
+        print(newRuleDict)
         return newRuleDict
 
     #endregion === Filter Generation ===
@@ -264,11 +321,22 @@ class PlayerFilterMenu(QDialog):
         rowPosition = self.rulesTable.rowCount()
         self.rulesTable.insertRow(rowPosition)
 
+        # Create a checkbox widget
+        checkBoxWidget = QWidget()
+        checkBox = QCheckBox()
+        checkBoxLayout = QHBoxLayout(checkBoxWidget)
+        checkBoxLayout.addWidget(checkBox)
+        checkBoxLayout.setAlignment(Qt.AlignCenter)
+        checkBoxLayout.setContentsMargins(0, 0, 0, 0)
+        checkBoxWidget.setLayout(checkBoxLayout)
+
+
         # Create InputComboBox instances for each cell that needs it
         fieldComboBox = InputComboBox()
-        conditionComboBox = InputComboBox()
+        fieldComboBox.setStyleSheet(self.internalComboBoxStyle)
+        operatorComboBox = InputComboBox()
+        operatorComboBox.setStyleSheet(self.internalComboBoxStyle)
         valueComboBox = InputComboBox()
-
 
         # Get the first valid field for the currently set category.
         defaultField = FIELDS[0]
@@ -279,18 +347,27 @@ class PlayerFilterMenu(QDialog):
                     break
         # Default values.
         fieldComboBox.addItem("", defaultField)
-        conditionComboBox.addItem("", "")
+        operatorComboBox.addItem("", "")
         valueComboBox.addItem("", "")
+
+
 
         # Connect each fieldComboBox to get valid operators.
         fieldComboBox.currentTextChanged.connect(partial(self.updateFieldRelationships,row=rowPosition))
 
         # Set combo boxes as cell widgets
-        self.rulesTable.setCellWidget(rowPosition, 0, fieldComboBox)
-        self.rulesTable.setCellWidget(rowPosition, 1, conditionComboBox)
-        self.rulesTable.setItem(rowPosition, 2, QTableWidgetItem(""))
+        self.rulesTable.setCellWidget(rowPosition,self.col_checkbox,checkBoxWidget)
+        self.rulesTable.setCellWidget(rowPosition, self.col_field, fieldComboBox)
+        self.rulesTable.setCellWidget(rowPosition, self.col_operator, operatorComboBox)
+        self.rulesTable.setItem(rowPosition, self.col_value, QTableWidgetItem(""))
 
         self.updateFieldFilter(0)
+        checkBox.stateChanged.connect(lambda state, row=rowPosition: self.onCheckboxStateChanged(state, row))
+
+        print(f"Checkbox: {self.rulesTable.columnWidth(0)}")
+        print(f"Field: {self.rulesTable.columnWidth(1)}")
+        print(f"Operator: {self.rulesTable.columnWidth(2)}")
+        print(f"Value: {self.rulesTable.columnWidth(3)}")
     def removeRuleRow(self, rowPosition):
         # Check if the position is valid before attempting to remove
         if 0 <= rowPosition < self.rulesTable.rowCount():
@@ -300,6 +377,16 @@ class PlayerFilterMenu(QDialog):
     def clearAllRuleRows(self):
         for row in range(self.rulesTable.rowCount()):
             self.removeRuleRow(0)
+    def clearSelectedRuleRows(self):
+        selectedRows = self.rulesTable.selectionModel().selectedRows()
+
+        rowsToRemove = []
+        for selectedRow in selectedRows:
+            rowsToRemove.append(selectedRow.row())
+
+        rowsToRemove.sort(reverse=True)
+        for rowToRemove in rowsToRemove:
+            self.removeRuleRow(rowPosition=rowToRemove)
 
     #endregion === Table Manipulation ===
 
@@ -318,7 +405,7 @@ class PlayerFilterMenu(QDialog):
             self.updateFieldComboBoxChoices(sortedFields)
     def updateFieldComboBoxChoices(self,choices : list):
         for row in range(self.rulesTable.rowCount()):
-            thisFieldComboBox = self.rulesTable.cellWidget(row,0)
+            thisFieldComboBox = self.rulesTable.cellWidget(row,self.col_field)
             thisFieldComboBox.currentTextChanged.disconnect()
 
             currentEntry = thisFieldComboBox.getCurrentItemData()
@@ -353,21 +440,38 @@ class PlayerFilterMenu(QDialog):
 
     #region === Rule Row Updating ===
 
+    # Method to handle row selection using the checkbox.
+    def onCheckboxStateChanged(self, state, row):
+        selectionModel = self.rulesTable.selectionModel()
+        checkbox_state = Qt.CheckState(state)  # Convert integer to Qt.CheckState enum
+
+        print(f"Converted State: {checkbox_state}, Expected: {Qt.CheckState.Checked}")
+
+        if checkbox_state == Qt.CheckState.Checked:
+            print("Selection: CHECKED")
+            selectionModel.select(self.rulesTable.model().index(row, 0),
+                                  QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        else:
+            print("Selection: UNCHECKED")
+            selectionModel.select(self.rulesTable.model().index(row, 0),
+                                  QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
     # Single method to handle all field relationship updates.
     def updateFieldRelationships(self,index,row):
-        currentFieldItem = self.rulesTable.cellWidget(row,0).getCurrentItemData()
+        currentFieldItem = self.rulesTable.cellWidget(row,self.col_field).getCurrentItemData()
         if(currentFieldItem is None):
             currentFieldValue = ""
+            currentFieldOperatorFilter = "Default"
         else:
             currentFieldValue = currentFieldItem["Value"]
-        self.updateOperatorFilter(currentFieldValue=currentFieldValue,row=row)
+            currentFieldOperatorFilter = currentFieldItem.get("Operators",None)
+        self.updateOperatorFilter(currentFieldValue=currentFieldValue,row=row,operatorFilter=currentFieldOperatorFilter)
         self.updateValueFilter(currentFieldValue=currentFieldValue,row=row)
     # Updates an operator combo box with valid operators.
-    def updateOperatorFilter(self,currentFieldValue,row):
-        validOperators = OPERATOR_MAP.get(currentFieldValue,OPERATOR_MAP["Default"])
+    def updateOperatorFilter(self,currentFieldValue,row,operatorFilter):
+        validOperators = OPERATOR_MAP.get(operatorFilter,OPERATOR_MAP["Default"])
         self.updateOperatorComboBoxChoices(row=row,choices=validOperators)
     def updateOperatorComboBoxChoices(self,row,choices : list):
-        thisOperatorComboBox = self.rulesTable.cellWidget(row,1)
+        thisOperatorComboBox = self.rulesTable.cellWidget(row,self.col_operator)
         currentText = thisOperatorComboBox.currentText()
 
         thisOperatorComboBox.clear()
@@ -386,10 +490,10 @@ class PlayerFilterMenu(QDialog):
     def updateValueCellType(self,row,setAsComboBox = False,choices : list = None,isSorted = True):
         # First, test if the current element is a combo box or input value field.
         isExistingCellComboBox = True
-        currentCellElement = self.rulesTable.cellWidget(row,2)
+        currentCellElement = self.rulesTable.cellWidget(row,self.col_value)
         if(not currentCellElement):
             isExistingCellComboBox = False
-            currentCellElement = self.rulesTable.item(row,2)
+            currentCellElement = self.rulesTable.item(row,self.col_value)
 
         # Get existing value
         if(isExistingCellComboBox):
@@ -405,17 +509,20 @@ class PlayerFilterMenu(QDialog):
                 currentCellElement.clear()
                 for choice in choices:
                     currentCellElement.addItem(choice,choice)
+                if(existingCellValue in choices):
+                    currentCellElement.setCurrentText(existingCellValue)
             else:
                 newComboBox = InputComboBox()
+                newComboBox.setStyleSheet(self.internalComboBoxStyle)
                 for choice in choices:
                     newComboBox.addItem(choice, choice)
-                self.rulesTable.setCellWidget(row,2,newComboBox)
+                self.rulesTable.setCellWidget(row,self.col_value,newComboBox)
                 del currentCellElement
         # Or we simply update it to a value element.
         else:
             if(isExistingCellComboBox):
-                self.rulesTable.removeCellWidget(row,2)
-                self.rulesTable.setItem(row, 2, QTableWidgetItem(""))
+                self.rulesTable.removeCellWidget(row,self.col_value)
+                self.rulesTable.setItem(row, self.col_value, QTableWidgetItem(""))
                 del currentCellElement
             # We don't need to change ANYTHING in this case, as it's already a simple QTableWidgetItem and
             # already contains the previous value.

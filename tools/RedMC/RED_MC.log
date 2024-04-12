@@ -3,3 +3,5 @@
 	Thread ID 41276	15	 (i)  Buffered mode: 0
 	Thread ID 41276	15	 (M)  Service thread started
 	Thread ID 24748	30187	 (i)  Service context queue task depleted
+	Thread ID 24748	16791593	 (i)  Logged fatal_errors: 0, errors: 0, warnings: 0, notices: 1, info: 4, debug: 0
+	Thread ID 24748	16791593	 (i)  Log session shutdown

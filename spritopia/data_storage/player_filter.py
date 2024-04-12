@@ -5,9 +5,15 @@ from spritopia.data_storage.data_storage import d
 
 # All possible conditions.
 def equals(playerValue,testValue):
-    return playerValue == testValue
+    if(type(testValue) is str):
+        return playerValue.lower() == testValue.lower()
+    else:
+        return playerValue == testValue
 def does_not_equal(playerValue,testValue):
-    return playerValue != testValue
+    if (type(testValue) is str):
+        return playerValue.lower() != testValue.lower()
+    else:
+        return playerValue != testValue
 def greater_than(playerValue,testValue):
     return playerValue > testValue
 def greater_than_or_equal_to(playerValue,testValue):
@@ -17,7 +23,7 @@ def less_than(playerValue,testValue):
 def less_than_or_equal_to(playerValue,testValue):
     return playerValue <= testValue
 def contains(playerValue,testValue):
-    return testValue in playerValue
+    return testValue.lower() in playerValue.lower()
 conditionTypeDict = {
     "equals": equals,
     "does_not_equal": does_not_equal,
@@ -46,8 +52,11 @@ specialConditionTypeDict = {
 
 # Function to evaluate a single condition against the given spriteID
 def evalCondition(condition : dict,spriteID):
+    # An empty condition dict always evaluates to true.
+    if(condition == {}):
+        return True
     # Specifically for operator conditions such as "and" or "or".
-    if(condition["type"] == "and"):
+    elif(condition["type"] == "and"):
         conditionTruth = True
         for subCondition in condition["conditions"]:
             if(not evalCondition(condition=subCondition,spriteID=spriteID)):
