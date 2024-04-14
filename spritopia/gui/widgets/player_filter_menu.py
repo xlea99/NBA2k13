@@ -165,13 +165,6 @@ class PlayerFilterMenu(QDialog):
     col_operator = 2
     col_value = 3
 
-    internalComboBoxStyle = """
-        QComboBox {
-            padding: 2px;  /* Reduce padding */
-            margin: 1px;  /* Reduce margin */
-            border: 1px solid gray;  /* Add a subtle border */
-        }
-    """
 
     removeRuleButtonWidth = 40
 
@@ -195,18 +188,21 @@ class PlayerFilterMenu(QDialog):
                 background-color: #b0c4de;  /* Light Steel Blue */
             }
         """)
-        self.rulesTable.setSelectionBehavior(QTableWidget.SelectRows)  # or QTableWidget.SelectColumns
-        self.rulesTable.setSelectionMode(QTableWidget.MultiSelection)  # or QTableWidget.MultiSelection
-        #self.rulesTable.setMaximumWidth(313) #TODO adjust
+        self.rulesTable.setSelectionBehavior(QTableWidget.SelectRows)
+        self.rulesTable.setSelectionMode(QTableWidget.NoSelection)
         self.rulesTable.setColumnCount(4)
         self.rulesTable.setHorizontalHeaderLabels(["","Field", "Condition", "Value"])
+
+        # List of all rule rows, in the order they appear in the table.
+        self.ruleRows = []
 
         # Header and "showOnly" combo box.
         self.headerContainer = QWidget()
         self.headerLayout = QHBoxLayout(self.headerContainer)
         self.showOnlyLabel = QLabel("Show Only: ")
         self.showOnlyComboBox = QComboBox()
-        self.showOnlyComboBox.currentIndexChanged.connect(self.updateFieldFilter)
+        self.showOnlyComboBox.currentTextChanged.connect(self.applyFilter)
+        #self.showOnlyComboBox.currentIndexChanged.connect(self.updateFieldFilter)
         showOnlyComboBoxItemModel = QStandardItemModel()
         # First, add the top "All" option.
         topItem = QStandardItem("All")
@@ -227,17 +223,17 @@ class PlayerFilterMenu(QDialog):
         self.headerLayout.addWidget(self.showOnlyComboBox)
 
         # Setup rule operator buttons
-        self.ruleOperatorContainer = QWidget()
-        self.ruleOperatorLayout = QHBoxLayout(self.ruleOperatorContainer)
+        self.ruleButtonsContainer = QWidget()
+        self.ruleButtonsLayout = QHBoxLayout(self.ruleButtonsContainer)
         self.newRowButton = QPushButton("Add")
         self.newRowButton.clicked.connect(self.addRuleRow)
         self.deleteSelectedRowsButton = QPushButton("Remove")
         self.deleteSelectedRowsButton.clicked.connect(self.clearSelectedRuleRows)
         self.clearAllButton = QPushButton("Clear")
         self.clearAllButton.clicked.connect(self.clearAllRuleRows)
-        self.ruleOperatorLayout.addWidget(self.newRowButton,stretch=2)
-        self.ruleOperatorLayout.addWidget(self.deleteSelectedRowsButton,stretch=2)
-        self.ruleOperatorLayout.addWidget(self.clearAllButton,stretch=1)
+        self.ruleButtonsLayout.addWidget(self.newRowButton,stretch=2)
+        self.ruleButtonsLayout.addWidget(self.deleteSelectedRowsButton,stretch=2)
+        self.ruleButtonsLayout.addWidget(self.clearAllButton,stretch=1)
 
         # Add apply button, as well as separator.
         separator = QFrame()
@@ -249,7 +245,7 @@ class PlayerFilterMenu(QDialog):
 
         self.layout.addWidget(self.headerContainer)
         self.layout.addWidget(self.rulesTable)
-        self.layout.addWidget(self.ruleOperatorContainer)
+        self.layout.addWidget(self.ruleButtonsContainer)
         self.layout.addWidget(separator)
         self.layout.addWidget(self.applyButton)
         self.setLayout(self.layout)
@@ -259,6 +255,8 @@ class PlayerFilterMenu(QDialog):
         self.rulesTable.setColumnWidth(self.col_operator,self.operatorColWidth)
         self.rulesTable.setColumnWidth(self.col_value,self.valueColWidth)
         self.rulesTable.verticalHeader().setVisible(False)
+
+        #self.updateRowSelectionButtons()
 
     #region === Filter Generation ===
 
@@ -270,15 +268,10 @@ class PlayerFilterMenu(QDialog):
     # This method converts the full rule table into a single player_filter dictionary.
     def getCurrentFilterDict(self):
         newRuleDict = {"type": "and","conditions": []}
-        for row in range(self.rulesTable.rowCount()):
-            thisFieldDict = self.rulesTable.cellWidget(row,self.col_field).getCurrentItemData()
-            thisOperator = self.rulesTable.cellWidget(row,self.col_operator).currentText()
-
-            thisValueElement = self.rulesTable.cellWidget(row,self.col_value)
-            if(thisValueElement):
-                thisValue = thisValueElement.currentText()
-            else:
-                thisValue = self.rulesTable.item(row,self.col_value).text()
+        for ruleRow in self.ruleRows:
+            thisFieldDict = ruleRow.getFieldVal()
+            thisOperator = ruleRow.getOperatorVal()
+            thisValue = ruleRow.getValueVal()
 
             thisCondition = {
                     "type": OPERATOR_LOCALIZED[thisOperator],
@@ -309,7 +302,7 @@ class PlayerFilterMenu(QDialog):
             else:
                 newRuleDict["conditions"].append(thisCondition)
 
-        print(newRuleDict)
+
         return newRuleDict
 
     #endregion === Filter Generation ===
@@ -321,62 +314,25 @@ class PlayerFilterMenu(QDialog):
         rowPosition = self.rulesTable.rowCount()
         self.rulesTable.insertRow(rowPosition)
 
-        # Create a checkbox widget
-        checkBoxWidget = QWidget()
-        checkBox = QCheckBox()
-        checkBoxLayout = QHBoxLayout(checkBoxWidget)
-        checkBoxLayout.addWidget(checkBox)
-        checkBoxLayout.setAlignment(Qt.AlignCenter)
-        checkBoxLayout.setContentsMargins(0, 0, 0, 0)
-        checkBoxWidget.setLayout(checkBoxLayout)
+        newRuleRow = RuleRow(rowPosition=rowPosition,filterStr=self.currentFieldFilter)
+        self.ruleRows.append(newRuleRow)
 
+        self.rulesTable.setCellWidget(newRuleRow.rowPosition, self.col_checkbox, newRuleRow.checkBoxWidget)
+        self.rulesTable.setCellWidget(newRuleRow.rowPosition, self.col_field, newRuleRow.fieldWidget)
+        self.rulesTable.setCellWidget(newRuleRow.rowPosition, self.col_operator, newRuleRow.operatorWidget)
+        self.rulesTable.setCellWidget(newRuleRow.rowPosition, self.col_value, newRuleRow.valueWidget)
 
-        # Create InputComboBox instances for each cell that needs it
-        fieldComboBox = InputComboBox()
-        fieldComboBox.setStyleSheet(self.internalComboBoxStyle)
-        operatorComboBox = InputComboBox()
-        operatorComboBox.setStyleSheet(self.internalComboBoxStyle)
-        valueComboBox = InputComboBox()
-
-        # Get the first valid field for the currently set category.
-        defaultField = FIELDS[0]
-        if(self.currentFieldFilter != "Any"):
-            for field in FIELDS:
-                if(field["Category"] == self.currentFieldFilter):
-                    defaultField = field
-                    break
-        # Default values.
-        fieldComboBox.addItem("", defaultField)
-        operatorComboBox.addItem("", "")
-        valueComboBox.addItem("", "")
-
-
-
-        # Connect each fieldComboBox to get valid operators.
-        fieldComboBox.currentTextChanged.connect(partial(self.updateFieldRelationships,row=rowPosition))
-
-        # Set combo boxes as cell widgets
-        self.rulesTable.setCellWidget(rowPosition,self.col_checkbox,checkBoxWidget)
-        self.rulesTable.setCellWidget(rowPosition, self.col_field, fieldComboBox)
-        self.rulesTable.setCellWidget(rowPosition, self.col_operator, operatorComboBox)
-        self.rulesTable.setItem(rowPosition, self.col_value, QTableWidgetItem(""))
-
-        self.updateFieldFilter(0)
-        checkBox.stateChanged.connect(lambda state, row=rowPosition: self.onCheckboxStateChanged(state, row))
-
-        print(f"Checkbox: {self.rulesTable.columnWidth(0)}")
-        print(f"Field: {self.rulesTable.columnWidth(1)}")
-        print(f"Operator: {self.rulesTable.columnWidth(2)}")
-        print(f"Value: {self.rulesTable.columnWidth(3)}")
+        newRuleRow.checkboxStateChanged.connect(self.onCheckboxStateChanged)
+        self.updateRowSelectionButtons()
     def removeRuleRow(self, rowPosition):
-        # Check if the position is valid before attempting to remove
-        if 0 <= rowPosition < self.rulesTable.rowCount():
-            self.rulesTable.removeRow(rowPosition)
-        else:
-            print("Invalid row position: ", rowPosition)
+        self.rulesTable.removeRow(rowPosition)
+        for ruleRowToUpdate in self.ruleRows[rowPosition:]:
+            ruleRowToUpdate.rowPosition -= 1
+        del self.ruleRows[rowPosition]
     def clearAllRuleRows(self):
         for row in range(self.rulesTable.rowCount()):
             self.removeRuleRow(0)
+        self.updateRowSelectionButtons()
     def clearSelectedRuleRows(self):
         selectedRows = self.rulesTable.selectionModel().selectedRows()
 
@@ -387,146 +343,220 @@ class PlayerFilterMenu(QDialog):
         rowsToRemove.sort(reverse=True)
         for rowToRemove in rowsToRemove:
             self.removeRuleRow(rowPosition=rowToRemove)
+        self.updateRowSelectionButtons()
 
     #endregion === Table Manipulation ===
 
-    #region === Category Filtering ===
+    #region === Rule Row Updating ===
+
+    # Applies the "show only" filter to all rule rows.
+    def applyFilter(self,filterText):
+        for ruleRow in self.ruleRows:
+            ruleRow.setFieldFilter(filterText)
+
+    # Method to handle row selection using the checkbox.
+    def onCheckboxStateChanged(self, rowPosition,isChecked):
+        selectionModel = self.rulesTable.selectionModel()
+        if (isChecked):
+            selectionModel.select(self.rulesTable.model().index(rowPosition, 0),QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        else:
+            selectionModel.select(self.rulesTable.model().index(rowPosition, 0),QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
+        self.updateRowSelectionButtons()
+    # Method to update all buttons that rely on row selection.
+    def updateRowSelectionButtons(self):
+        allSelectedRowIndices = []
+        for selectedRow in self.rulesTable.selectionModel().selectedRows():
+            allSelectedRowIndices.append(selectedRow.row())
+
+        if(len(allSelectedRowIndices) == 0):
+            self.deleteSelectedRowsButton.setText("Remove (0)")
+            self.deleteSelectedRowsButton.setDisabled(True)
+        else:
+            self.deleteSelectedRowsButton.setText(f"Remove ({len(allSelectedRowIndices)})")
+            self.deleteSelectedRowsButton.setDisabled(False)
+
+    #endregion === Rule Row Updating ===
+
+
+class RuleRow(QObject):
+
+    checkboxStateChanged = Signal(int,bool)
+    internalComboBoxStyle = """
+            QComboBox {
+                padding: 2px;  /* Reduce padding */
+                margin: 1px;  /* Reduce margin */
+                border: 1px solid gray;  /* Add a subtle border */
+            }
+        """
+
+    # Setup for rule row
+    def __init__(self,rowPosition,filterStr = "Any"):
+        super().__init__()
+
+        self.rowPosition = rowPosition
+        self.__fieldFilter = filterStr
+
+        # Checkbox setup
+        self.checkBoxWidget = QWidget()
+        self.__checkBox = QCheckBox()
+        self.__checkBox.stateChanged.connect(self.__checkboxStateChanged)
+        self.__checkBoxLayout = QHBoxLayout(self.checkBoxWidget)
+        self.__checkBoxLayout.setAlignment(Qt.AlignCenter)
+        self.__checkBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.__checkBoxLayout.addWidget(self.__checkBox)
+        self.__isCheckBoxChecked = False
+
+        # Field element setup
+        self.fieldWidget = QWidget()
+        self.__fieldLayout = QHBoxLayout(self.fieldWidget)
+        self.__fieldLayout.setContentsMargins(0,0,0,0)
+        self.__fieldComboBox = InputComboBox()
+        self.__fieldComboBox.setStyleSheet(self.internalComboBoxStyle)
+        self.__fieldComboBox.currentTextChanged.connect(self.__updateFieldRelationships)
+        self.__fieldLayout.addWidget(self.__fieldComboBox)
+        defaultField = FIELDS[0]
+        if(self.__fieldFilter != "Any"):
+            for field in FIELDS:
+                if(field["Category"] == self.__fieldFilter):
+                    defaultField = field
+                    break
+        self.__fieldComboBox.addItem("", defaultField)
+        # Operator element setup
+        self.operatorWidget = QWidget()
+        self.__operatorLayout = QHBoxLayout(self.operatorWidget)
+        self.__operatorLayout.setContentsMargins(0,0,0,0)
+        self.__operatorComboBox = InputComboBox()
+        self.__operatorComboBox.setStyleSheet(self.internalComboBoxStyle)
+        self.__operatorLayout.addWidget(self.__operatorComboBox)
+        # Value element setup
+        self.valueWidget = QWidget()
+        self.__valueLayout = QHBoxLayout(self.valueWidget)
+        self.__valueLayout.setContentsMargins(0,0,0,0)
+        self.__valueComboBox = InputComboBox()
+        self.__valueComboBox.setStyleSheet(self.internalComboBoxStyle)
+        self.__valueSimpleItem = QLineEdit()
+        self.__valueLayout.addWidget(self.__valueComboBox)
+        self.__valueLayout.addWidget(self.__valueSimpleItem)
+        self.__isSimpleValue = True
+
+        # Run setup updates
+        self.__checkBox.isChecked()
+        self.setFieldFilter(self.__fieldFilter)
+
+    # Simply returns the values of each column of the rule row.
+    def getCheckboxState(self):
+        return self.__isCheckBoxChecked
+    def getFieldVal(self):
+        return self.__fieldComboBox.getCurrentItemData()
+    def getOperatorVal(self):
+        return self.__operatorComboBox.currentText()
+    def getValueVal(self):
+        if(self.__isSimpleValue):
+            return self.__valueSimpleItem.text()
+        else:
+            return self.__valueComboBox.currentText()
+
+    # Updates checkbox information.
+    def __checkboxStateChanged(self,state):
+        self.__isCheckBoxChecked = Qt.CheckState(state) == Qt.CheckState.Checked
+        self.checkboxStateChanged.emit(self.rowPosition,self.__isCheckBoxChecked)
 
     # Updates the field filter, and the field selection combo box.
-    def updateFieldFilter(self,index):
-        self.currentFieldFilter = self.showOnlyComboBox.currentText()
-        if(self.currentFieldFilter == "All"):
-            self.updateFieldComboBoxChoices(FIELDS)
+    def setFieldFilter(self,filterStr):
+        self.__fieldFilter = filterStr
+        if(self.__fieldFilter == "All"):
+            self.__updateFieldComboBoxChoices(FIELDS)
         else:
             sortedFields = []
             for field in FIELDS:
-                if(field["Category"] == self.currentFieldFilter):
+                if(field["Category"] == self.__fieldFilter):
                     sortedFields.append(field)
-            self.updateFieldComboBoxChoices(sortedFields)
-    def updateFieldComboBoxChoices(self,choices : list):
-        for row in range(self.rulesTable.rowCount()):
-            thisFieldComboBox = self.rulesTable.cellWidget(row,self.col_field)
-            thisFieldComboBox.currentTextChanged.disconnect()
+            self.__updateFieldComboBoxChoices(sortedFields)
+    def __updateFieldComboBoxChoices(self,choices : list):
+        self.__fieldComboBox.currentTextChanged.disconnect()
 
-            currentEntry = thisFieldComboBox.getCurrentItemData()
-            thisFieldComboBox.clear()
+        currentEntry = self.__fieldComboBox.getCurrentItemData()
+        self.__fieldComboBox.clear()
 
-
-            if(currentEntry != ""):
-                retainCurrentEntry = True
-                setCurrentEntry = True
-                for choice in choices:
-                    if(choice["Value"] == currentEntry["Value"]):
-                        retainCurrentEntry = False
-                        break
-            else:
-                retainCurrentEntry = False
-                setCurrentEntry = False
-
-
-            if(retainCurrentEntry):
-                thisFieldComboBox.addItem(icon=currentEntry["Icon"],text=currentEntry)
-
-            for newFieldChoice in choices:
-                thisFieldComboBox.addItem(icon=newFieldChoice["Icon"],text=newFieldChoice)
-
-            thisFieldComboBox.currentTextChanged.connect(partial(self.updateFieldRelationships,row=row))
-
-            if(setCurrentEntry):
-                thisFieldComboBox.setItemByDictKey(key="Value",value=currentEntry["Value"])
-            self.updateFieldRelationships(index=0,row=row)
-
-    #endregion === Category Filtering ===
-
-    #region === Rule Row Updating ===
-
-    # Method to handle row selection using the checkbox.
-    def onCheckboxStateChanged(self, state, row):
-        selectionModel = self.rulesTable.selectionModel()
-        checkbox_state = Qt.CheckState(state)  # Convert integer to Qt.CheckState enum
-
-        print(f"Converted State: {checkbox_state}, Expected: {Qt.CheckState.Checked}")
-
-        if checkbox_state == Qt.CheckState.Checked:
-            print("Selection: CHECKED")
-            selectionModel.select(self.rulesTable.model().index(row, 0),
-                                  QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        if(currentEntry != ""):
+            retainCurrentEntry = True
+            setCurrentEntry = True
+            for choice in choices:
+                if(choice.get("Value",None) == currentEntry["Value"]):
+                    retainCurrentEntry = False
+                    break
         else:
-            print("Selection: UNCHECKED")
-            selectionModel.select(self.rulesTable.model().index(row, 0),
-                                  QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
+            retainCurrentEntry = False
+            setCurrentEntry = False
+
+        if(retainCurrentEntry):
+            self.__fieldComboBox.addItem(icon=currentEntry["Icon"],text=currentEntry)
+
+        for newFieldChoice in choices:
+            self.__fieldComboBox.addItem(icon=newFieldChoice["Icon"],text=newFieldChoice)
+
+        self.__fieldComboBox.currentTextChanged.connect(self.__updateFieldRelationships)
+
+        if(setCurrentEntry):
+            self.__fieldComboBox.setItemByDictKey(key="Value",value=currentEntry["Value"])
+        self.__updateFieldRelationships(index=0)
+
     # Single method to handle all field relationship updates.
-    def updateFieldRelationships(self,index,row):
-        currentFieldItem = self.rulesTable.cellWidget(row,self.col_field).getCurrentItemData()
+    def __updateFieldRelationships(self,index):
+        currentFieldItem = self.__fieldComboBox.getCurrentItemData()
         if(currentFieldItem is None):
             currentFieldValue = ""
             currentFieldOperatorFilter = "Default"
         else:
             currentFieldValue = currentFieldItem["Value"]
             currentFieldOperatorFilter = currentFieldItem.get("Operators",None)
-        self.updateOperatorFilter(currentFieldValue=currentFieldValue,row=row,operatorFilter=currentFieldOperatorFilter)
-        self.updateValueFilter(currentFieldValue=currentFieldValue,row=row)
+        self.__updateOperatorFilter(operatorFilter=currentFieldOperatorFilter)
+        self.__updateValueFilter(currentFieldValue=currentFieldValue)
     # Updates an operator combo box with valid operators.
-    def updateOperatorFilter(self,currentFieldValue,row,operatorFilter):
+    def __updateOperatorFilter(self,operatorFilter):
         validOperators = OPERATOR_MAP.get(operatorFilter,OPERATOR_MAP["Default"])
-        self.updateOperatorComboBoxChoices(row=row,choices=validOperators)
-    def updateOperatorComboBoxChoices(self,row,choices : list):
-        thisOperatorComboBox = self.rulesTable.cellWidget(row,self.col_operator)
-        currentText = thisOperatorComboBox.currentText()
+        self.__updateOperatorComboBoxChoices(choices=validOperators)
+    def __updateOperatorComboBoxChoices(self,choices : list):
+        currentText = self.__operatorComboBox.currentText()
 
-        thisOperatorComboBox.clear()
+        self.__operatorComboBox.clear()
         for choice in choices:
-            thisOperatorComboBox.addItem(icon=choice,text=choice)
+            self.__operatorComboBox.addItem(icon=choice,text=choice)
 
         if(currentText in choices):
-            thisOperatorComboBox.setCurrentText(currentText)
+            self.__operatorComboBox.setCurrentText(currentText)
     # Updates a value box with a new element, dependent on whether it should be a combo box or not (based on field)
-    def updateValueFilter(self,currentFieldValue,row):
+    def __updateValueFilter(self,currentFieldValue):
         allChoices = VALUE_COMBO_MAP.get(currentFieldValue,None)
         if(allChoices is None):
-            self.updateValueCellType(row=row,setAsComboBox=False)
+            self.__updateValueWidgetType(setAsComboBox=False)
         else:
-            self.updateValueCellType(row=row,setAsComboBox=True,choices=allChoices["Values"],isSorted=allChoices["Sorted"])
-    def updateValueCellType(self,row,setAsComboBox = False,choices : list = None,isSorted = True):
-        # First, test if the current element is a combo box or input value field.
-        isExistingCellComboBox = True
-        currentCellElement = self.rulesTable.cellWidget(row,self.col_value)
-        if(not currentCellElement):
-            isExistingCellComboBox = False
-            currentCellElement = self.rulesTable.item(row,self.col_value)
-
-        # Get existing value
-        if(isExistingCellComboBox):
-            existingCellValue = currentCellElement.currentText()
-        else:
-            existingCellValue = currentCellElement.text()
-
-        # Now we can actually update the element if it's supposed to be a combo box.
+            self.__updateValueWidgetType(setAsComboBox=True,choices=allChoices["Values"],isSorted=allChoices["Sorted"])
+    def __updateValueWidgetType(self,setAsComboBox = False,choices : list = None,isSorted = True):
         if(setAsComboBox):
             if(isSorted):
                 choices.sort()
-            if(isExistingCellComboBox):
-                currentCellElement.clear()
+            if(self.__isSimpleValue):
+                self.__valueComboBox.clear()
                 for choice in choices:
-                    currentCellElement.addItem(choice,choice)
-                if(existingCellValue in choices):
-                    currentCellElement.setCurrentText(existingCellValue)
+                    self.__valueComboBox.addItem(choice, choice)
+                self.__valueSimpleItem.hide()
+                self.__valueComboBox.show()
             else:
-                newComboBox = InputComboBox()
-                newComboBox.setStyleSheet(self.internalComboBoxStyle)
+                existingValue = self.__valueComboBox.currentText()
+                self.__valueComboBox.clear()
                 for choice in choices:
-                    newComboBox.addItem(choice, choice)
-                self.rulesTable.setCellWidget(row,self.col_value,newComboBox)
-                del currentCellElement
+                    self.__valueComboBox.addItem(choice,choice)
+                if(existingValue in choices):
+                    self.__valueComboBox.setCurrentText(existingValue)
+            self.__isSimpleValue = False
         # Or we simply update it to a value element.
         else:
-            if(isExistingCellComboBox):
-                self.rulesTable.removeCellWidget(row,self.col_value)
-                self.rulesTable.setItem(row, self.col_value, QTableWidgetItem(""))
-                del currentCellElement
             # We don't need to change ANYTHING in this case, as it's already a simple QTableWidgetItem and
             # already contains the previous value.
-            else:
+            if(self.__isSimpleValue):
                 pass
-
-    #endregion === Rule Row Updating ===
+            else:
+                self.__valueComboBox.hide()
+                self.__valueSimpleItem.show()
+            self.__isSimpleValue = True
