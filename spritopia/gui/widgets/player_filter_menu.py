@@ -302,7 +302,6 @@ class PlayerFilterMenu(QDialog):
             else:
                 newRuleDict["conditions"].append(thisCondition)
 
-
         return newRuleDict
 
     #endregion === Filter Generation ===

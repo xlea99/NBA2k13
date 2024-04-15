@@ -6,12 +6,12 @@ from spritopia.data_storage.data_storage import d
 # All possible conditions.
 def equals(playerValue,testValue):
     if(type(testValue) is str):
-        return playerValue.lower() == testValue.lower()
+        return str(playerValue).lower() == testValue.lower()
     else:
         return playerValue == testValue
 def does_not_equal(playerValue,testValue):
     if (type(testValue) is str):
-        return playerValue.lower() != testValue.lower()
+        return str(playerValue).lower() != testValue.lower()
     else:
         return playerValue != testValue
 def greater_than(playerValue,testValue):
@@ -23,7 +23,7 @@ def less_than(playerValue,testValue):
 def less_than_or_equal_to(playerValue,testValue):
     return playerValue <= testValue
 def contains(playerValue,testValue):
-    return testValue.lower() in playerValue.lower()
+    return testValue.lower() in str(playerValue).lower()
 conditionTypeDict = {
     "equals": equals,
     "does_not_equal": does_not_equal,
