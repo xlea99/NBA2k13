@@ -3,7 +3,7 @@
   "id": "pop",
   "name": "Pop Station",
   "songChances": {
-    "1812" : 1.0,
+    "1812": 1.0,
     "apology": 1.0,
     "archetypal_obsession": 0.85,
     "meep_mop": 1.0,
