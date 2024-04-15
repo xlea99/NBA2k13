@@ -1,5 +1,6 @@
 from pympler import asizeof
 import psutil
+import random
 
 # === NUMBER FUNCTIONS ===
 
@@ -81,6 +82,38 @@ def averageOfList(thisList):
             sumOfList += item
             counter += 1
     return sumOfList / counter
+# This method performs a "constrained shuffle", meant for lists that contain duplicates and
+# ensuring that these duplicates are kept at least minimumDistance apart from each other.
+def constrainedShuffle(thisList, minimumDistance):
+    n = len(thisList)
+
+    # Start with a random shuffle of the list
+    random.shuffle(thisList)
+
+    def is_violation(pos, element):
+        # Checks for violation within the minimumDistance window
+        start = max(0, pos - minimumDistance)
+        end = min(n, pos + minimumDistance + 1)
+        for i in range(start, end):
+            if i != pos and thisList[i] == element:
+                return True
+        return False
+
+    # Attempt to resolve violations in the list
+    for _ in range(10):  # limit the number of total iterations to avoid infinite loops
+        violations = False
+        for i in range(n):
+            if is_violation(i, thisList[i]):
+                violations = True
+                # Find a non-violating position to swap with
+                for j in range(n):
+                    if not is_violation(j, thisList[i]) and not is_violation(i, thisList[j]):
+                        thisList[i], thisList[j] = thisList[j], thisList[i]
+                        break
+        if not violations:
+            break  # Exit if no violations were found in the last pass
+
+    return thisList
 
 
 # === DICT FUNCTIONS ===
