@@ -1,6 +1,6 @@
 {
   "type": "station",
-  "id": "rap_station",
+  "id": "rap",
   "name": "Rap Station",
   "songChances": {
     "ceddy_c" : 1.0,

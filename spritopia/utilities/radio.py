@@ -44,12 +44,8 @@ class Radio:
         self.currentStation = None
         # Import all songs in base music directory by default.
         if(importAll):
-            for filePath in os.listdir(paths.paths["musicData"] / "songs"):
-                if(filePath.endswith(".json")):
-                    self.importSong(paths.paths["musicData"] / f"songs/{filePath}")
-            for filePath in os.listdir(paths.paths["musicData"] / "stations"):
-                if(filePath.endswith(".json")):
-                    self.importStation(paths.paths["musicData"] / f"stations/{filePath}")
+            self.loadAllSongs()
+            self.loadAllStations()
 
         # Queue helper members
         self.__autoPlay = True
@@ -62,6 +58,19 @@ class Radio:
         self.__lock = threading.Lock()
         self.__thread = threading.Thread(target=self.__run).start()
 
+    # Attempts to load all songs and all stations present in the songs and stations data folders,
+    # as well as all subdirectories.
+    def loadAllSongs(self):
+        for root,dirs,files in os.walk(paths.paths["musicData"] / "songs"):
+            for file in files:
+                if (file.endswith(".json")):
+                    self.importSong(os.path.join(root,file))
+    def loadAllStations(self):
+        for root,dirs,files in os.walk(paths.paths["musicData"] / "stations"):
+            for file in files:
+                if (file.endswith(".json")):
+                    self.importStation(os.path.join(root,file))
+
     # Methods to import both songs and radios from respective JSON paths.
     def importSong(self,songJSONPath):
         if(type(songJSONPath) is not Path):
@@ -70,7 +79,6 @@ class Radio:
             thisSong = json.load(f)
         if(thisSong["type"] == "song"):
             # Logic to verify and determine song path
-
             finalSongPath = paths.paths["media"] / f"music/{thisSong['path']}"
             paths.validatePath(finalSongPath)
             thisSong["path"] = str(finalSongPath)

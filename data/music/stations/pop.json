@@ -1,6 +1,6 @@
 {
   "type": "station",
-  "id": "pop_station",
+  "id": "pop",
   "name": "Pop Station",
   "songChances": {
     "1812" : 1.0,
