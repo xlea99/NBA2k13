@@ -121,6 +121,7 @@ paths["data"] = paths["root"] / "data"
 paths["templates"] = paths["data"] / "templates"
 paths["factions"] = paths["data"] / "factions"
 paths["randGen"] = paths["data"] / "rand_gen"
+paths["musicData"] = paths["data"] / "music"
 
 # Registers the data folder given in the config in global paths
 paths["saveFolder"] = config["paths"]["saveFolder"]
@@ -138,6 +139,7 @@ paths["gameRosters"] = paths["gameRoaming"] / "Saves"
 paths["assets"] = paths["root"] / "assets"
 paths["graphics"] = paths["assets"] / "graphics"
 paths["media"] = paths["assets"] / "media"
+paths["localization"] = paths["assets"] / "localization"
 
 # Tools path
 paths["tools"] = paths["root"] / "tools"

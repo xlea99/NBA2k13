@@ -1,7 +1,8 @@
 import pyautogui
 import time
 import os
-import BaseFunctions as b
+from spritopia.common.paths import paths
+from spritopia.common.logger import log
 
 
 REDMC_WINDOW_NAME = "RED Modding Center"
@@ -21,7 +22,7 @@ class RedMC:
             raise RedMCAlreadyOpenException
 
 
-        os.startfile(f"{b.paths.redMC}\\RED_MC.exe")
+        os.startfile(paths["redMC"] / "RED_MC.exe")
         validWindows = []
         for i in range(10):
             validWindows = pyautogui.getWindowsWithTitle(REDMC_WINDOW_NAME)
@@ -37,14 +38,14 @@ class RedMC:
         self.redMCWindow.activate()
         self.isRedMCOpen = True
 
-        b.log.debug("Opened RedMC")
+        log.debug("Opened RedMC")
 
     @staticmethod
     # Uses the open RedMC program to load the given rosterName.
     def loadRoster(rosterName):
         if (".ROS" not in rosterName):
             rosterName += ".ROS"
-        fullRosterPath = f"{b.paths.rosters}\\{rosterName}"
+        fullRosterPath = str(paths["gameRosters"] / rosterName)
         if(not os.path.exists(fullRosterPath)):
             raise RosterDoesNotExistException(fullRosterPath)
 
@@ -59,7 +60,7 @@ class RedMC:
         pyautogui.write(fullRosterPath)
         pyautogui.press("enter")
 
-        b.log.debug(f"Loaded roster '{rosterName}' in RedMC")
+        log.debug(f"Loaded roster '{rosterName}' in RedMC")
 
     @staticmethod
     # Simply saves the currently loaded roster.
@@ -69,7 +70,7 @@ class RedMC:
         pyautogui.keyUp("ctrlleft")
         pyautogui.keyUp("s")
 
-        b.log.debug("Saved roster in RedMC")
+        log.debug("Saved roster in RedMC")
 
     # Simply quits out of RedMC. THE FILE MUST BE SAVED BEFORE DOING THIS.
     def closeRedMC(self):
@@ -79,7 +80,7 @@ class RedMC:
         pyautogui.press("enter")
 
         self.isRedMCOpen = False
-        b.log.debug("Closed RedMC")
+        log.debug("Closed RedMC")
 
     @staticmethod
     # Uses the open RedMC program window to export the currently loaded Roster's
@@ -94,7 +95,7 @@ class RedMC:
         pyautogui.press("enter")
 
         pyautogui.press("up")
-        pyautogui.write(f"{b.paths.rosterCSVs}\\{rosterName}")
+        pyautogui.write(str(paths["gameRosters"] / rosterName))
         pyautogui.press("tab")
 
         pyautogui.press("tab")
@@ -108,7 +109,7 @@ class RedMC:
         pyautogui.press("tab")
         pyautogui.press("space")
 
-        b.log.debug(f"Exported all CSVs for roster '{rosterName}' from RedMC")
+        log.debug(f"Exported all CSVs for roster '{rosterName}' from RedMC")
 
     @staticmethod
     # Uses the open RedMC program window to import the last exported CSV file set in
@@ -122,7 +123,7 @@ class RedMC:
         pyautogui.press("enter")
 
         pyautogui.press("up")
-        pyautogui.write(f"{b.paths.rosterCSVs}\\{rosterName}")
+        pyautogui.write(rosterName)
         pyautogui.press("tab")
 
         pyautogui.press("tab")
@@ -137,7 +138,7 @@ class RedMC:
         pyautogui.press("tab")
         pyautogui.press("space")
 
-        b.log.debug(f"Imported all CSVs for roster '{rosterName}' to RedMC")
+        log.debug(f"Imported all CSVs for roster '{rosterName}' to RedMC")
 
     @staticmethod
     # This method simply tests that RedMC is closed for timeoutTime amount of time.

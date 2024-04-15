@@ -1,8 +1,10 @@
 from pymem import *
 from pymem.process import *
-import BaseFunctions as b
 import time
 from spritopia.data_storage import data_storage
+from spritopia.common.logger import log
+from spritopia.common.paths import paths
+from spritopia.utilities import async_sound
 import threading
 
 
@@ -42,7 +44,7 @@ class Tracker:
         # When a game ends, all ripped stats are temporarily stored here for use elsewhere.
         self.rippedGames = {}
 
-        b.log.debug("Initialized Tracker object")
+        log.debug("Initialized Tracker object")
 
     # Ensuring tracking shuts down correctly on delete.
     def __del__(self):
@@ -130,7 +132,7 @@ class Tracker:
                 else:
                     return "None"
         except Exception as e:
-            b.log.exception(e)
+            log.exception(e)
             raise e
 
     #endregion === Setup and Tools ===
@@ -147,20 +149,20 @@ class Tracker:
         with self.lock:
             if(self.location == "InGame"):
                 if(self.gameStatus == "OutOfGame"):
-                    b.log.info("Started new blacktop game")
+                    log.info("Started new blacktop game")
                 if (self.gameStatus != "Won"):
                     if(self.isGamePaused()):
                         if(self.gameStatus != "Paused"):
-                            b.log.debug("Blacktop game paused")
+                            log.debug("Blacktop game paused")
                         self.gameStatus = "Paused"
                     else:
                         if (self.testIfGameIsWon()):
                             self.gameStatus = "Won"
-                            b.log.info("Found that blacktop game has been won. Doing final rip.")
+                            log.info("Found that blacktop game has been won. Doing final rip.")
                             #TODO COIN MANAGEMENT CLEAN UP GOES HERE?
                         else:
                             if(self.gameStatus == "Paused"):
-                                b.log.debug("Resumed blacktop game after being paused")
+                                log.debug("Resumed blacktop game after being paused")
                             self.gameStatus = "Running"
             else:
                 if(self.gameStatus != "OutOfGame"):
@@ -171,7 +173,7 @@ class Tracker:
                     self.haveFinalStatsBeenRipped = False
                     self.ballHolding = {}
                     self.canCalcBallHolding = False
-                    b.log.debug("Exited blacktop game, cleaned up Tracker object after finished game")
+                    log.debug("Exited blacktop game, cleaned up Tracker object after finished game")
 
     # Method that tracks the current ball holder of the game.
     def updateBallHolding(self):
@@ -212,15 +214,15 @@ class Tracker:
                                                            rippedStats=thisStatRip,iValueTimes=self.ballHolding)
                             if(ballHoldingTimes):
                                 if(not self.canCalcBallHolding):
-                                    b.log.debug("All PIDs ripped, can now correctly calculate ball holding times.")
+                                    log.debug("All PIDs ripped, can now correctly calculate ball holding times.")
                                 self.canCalcBallHolding = True
                         if(self.gameStatus == "Won"):
                             if(ballHoldingTimes is None):
-                                b.playsoundAsync(f"{b.paths.media}\\Ehrmantraut\\ball_handling_not_complete.mp3")
-                                b.log.warning(f"Successfully ripped finished game stats, but ball holding times COULD NOT be calculated.")
+                                async_sound.playsoundAsync(paths["media"] / "Ehrmantraut/ball_handling_not_complete.mp3")
+                                log.warning(f"Successfully ripped finished game stats, but ball holding times COULD NOT be calculated.")
                             else:
-                                b.playsoundAsync(f"{b.paths.media}\\Ehrmantraut\\game_rip_successful.mp3")
-                                b.log.info(f"Successfully ripped finished game stats")
+                                async_sound.playsoundAsync(paths["media"] / "Ehrmantraut/game_rip_successful.mp3")
+                                log.info(f"Successfully ripped finished game stats")
                             self.haveFinalStatsBeenRipped = True
                             thisStatRip["Final"] = True
                         else:
@@ -246,11 +248,11 @@ class Tracker:
             if(runAsDaemon):
                 self.trackingThread.daemon = True  # This makes sure the thread will not prevent the program from exiting.
             self.trackingThread.start()
-            b.log.info(f"Started Tracker (daemon = {runAsDaemon})")
+            log.info(f"Started Tracker (daemon = {runAsDaemon})")
     # This method stops the tracking process.
     def stopTracker(self):
         self.trackerRunning = False
-        b.log.info("Stopped tracker")
+        log.info("Stopped tracker")
 
     #endregion === Tracking and Operation ===
 

@@ -1,0 +1,30 @@
+{
+  "type": "station",
+  "id": "nba",
+  "name": "NBA Beats by Jay-Z",
+  "songChances": {
+    "1901": 1.0,
+    "ali_jungle": 1.0,
+    "amazing": 1.0,
+    "around_the_world": 1.0,
+    "blow_the_whistle": 1.0,
+    "elevation": 1.0,
+    "h_a_m": 1.0,
+    "ima_boss": 1.0,
+    "i_aint_no_joke": 1.0,
+    "live_in_brooklyn": 1.0,
+    "mercy": 1.0,
+    "on_to_the_next_one": 1.0,
+    "public_service_announcement": 1.0,
+    "pump_it_up": 1.0,
+    "run_this_town": 1.0,
+    "shook_ones": 1.0,
+    "shove_it": 1.0,
+    "stillness_is_the_move": 1.0,
+    "the_bounce": 1.0,
+    "victory": 1.0,
+    "viva_la_vida": 1.0,
+    "we_major": 1.0,
+    "world_is_yours": 1.0
+  }
+}

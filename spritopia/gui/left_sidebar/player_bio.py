@@ -2,8 +2,9 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.common.paths import paths
-from spritopia.gui import utils
-
+from spritopia.gui.widgets.auto_resize_label import AutoResizeLabel
+from spritopia.gui.app_state import globalAppState
+from spritopia.data_storage import data_storage as d
 
 
 # This is the top half widget the displays basic player description and graphics.
@@ -12,6 +13,10 @@ class PlayerBio(QWidget):
         super().__init__(parent)
         self.setup_ui()
 
+        # Connect to AppState to update on spriteID change
+        globalAppState.currentSpriteIDChanged.connect(self.update_player_bio)
+        self.update_player_bio(globalAppState.currentSpriteID)
+
     def setup_ui(self):
         layout = QVBoxLayout(self)  # Main layout for the widget
 
@@ -19,7 +24,7 @@ class PlayerBio(QWidget):
         topLayout = QHBoxLayout()
         self.factionImage = QLabel()
         self.factionImage.setFixedSize(75, 75)  # Fixed small size for images
-        self.playerName = QLabel()
+        self.playerName = AutoResizeLabel()
         playerNameFont = QFont("Arial", 20)
         playerNameFont.setBold(True)
         self.playerName.setFont(playerNameFont)
@@ -59,39 +64,39 @@ class PlayerBio(QWidget):
         layout.addLayout(middleLayout)
         layout.addWidget(self.descriptionLabel)
 
-    def update_player_bio(self, playerObj):
-        factionPixmap = QPixmap(paths["graphics"] / f"FactionIcons/{playerObj['Faction']}.png")
+    def update_player_bio(self, currentSpriteID):
+        thisPlayer = d.d.players[currentSpriteID]
+        factionPixmap = QPixmap(paths["graphics"] / f"FactionIcons/{thisPlayer['Faction']}.png")
         self.factionImage.setPixmap(factionPixmap.scaled(75, 75, Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
         # Set artifact image here.
         self.artifactImage.clear()
         artifactPMod = None
-        if(len(playerObj["PMods"]) > 0):
-            for pmod in playerObj["PMods"]:
+        if(len(thisPlayer["PMods"]) > 0):
+            for pmod in thisPlayer["PMods"]:
                 if(pmod["Type"]["TypeName"] == "Artifact"):
                     artifactPMod = pmod
                     break
         if(artifactPMod is not None):
-            artifactPixmap = QPixmap(paths["graphics"] / artifactPMod["Images"])
+            artifactPixmap = QPixmap(paths["graphics"] / artifactPMod["Image"])
             self.artifactImage.setPixmap(artifactPixmap.scaled(75,75,Qt.KeepAspectRatio,Qt.SmoothTransformation))
 
         # Set player name
-        self.playerName.setText(f"{playerObj['First_Name']} {playerObj['Last_Name']}")
-        utils.dynamicallyResizeFont(self.playerName)
+        self.playerName.setText(f"{thisPlayer['First_Name']} {thisPlayer['Last_Name']}")
         # Update Archetype with coloring based on value
-        archetype = playerObj["Archetype_Name"]
+        archetype = thisPlayer["Archetype_Name"]
         self.archetypeLabel.setText(f"<i>{archetype}</i>")
         # Example to set color, adjust as necessary
         self.archetypeLabel.setStyleSheet(f"color: {self.get_archetype_color(archetype)};")
 
         # Update Rarity with coloring based on value
-        rarity = playerObj["Rarity"]
+        rarity = thisPlayer["Rarity"]
         self.rarityLabel.setText(f"<b>{rarity}</b>")
         # Example to set color, adjust as necessary
         self.rarityLabel.setStyleSheet(f"color: {self.get_rarity_color(rarity)};")
 
         # Update Description
-        description = playerObj["Biography"]
+        description = thisPlayer["Biography"]
         self.descriptionLabel.setText(description)
 
     def get_archetype_color(self, archetype):

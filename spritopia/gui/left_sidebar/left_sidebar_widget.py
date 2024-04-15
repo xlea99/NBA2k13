@@ -8,6 +8,7 @@ from spritopia.gui.left_sidebar.player_stats_display import PlayerStatsDisplay
 from spritopia.gui.left_sidebar.player_attribute_display import PlayerAttributeDisplay
 
 
+
 class LeftSidebarWidget(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -28,8 +29,8 @@ class LeftSidebarWidget(QMainWindow):
         self.currentPlayer = None
 
         # Initialize the PlayerComboBox
-        self.playerComboBox = PlayerSelectionBox(parent=self)
-        self.layout.addWidget(self.playerComboBox)  # Add to layout
+        self.playerSelectionBox = PlayerSelectionBox(parent=self)
+        self.layout.addWidget(self.playerSelectionBox)  # Add to layout
 
         # Initialize the PlayerBio
         self.playerBio = PlayerBio(self)
@@ -48,15 +49,3 @@ class LeftSidebarWidget(QMainWindow):
         # Intialize the StatsDisplay
         self.statsDisplay = PlayerStatsDisplay(parent=self)
         self.tabWidget.addTab(self.statsDisplay,"Stats")
-
-        # Connect the player selection change signal to update the attribute display
-        self.playerComboBox.currentIndexChanged.connect(self.onPlayerSelected)
-        self.onPlayerSelected(None)
-
-    def onPlayerSelected(self, index):
-        spriteID = self.playerComboBox.getCurrentSpriteID()
-        self.currentPlayer = d.d.players[spriteID]
-        self.playerBio.update_player_bio(self.currentPlayer)
-        self.attributeDisplay.reorder_attributes(self.currentPlayer["Archetype_Name"])
-        self.attributeDisplay.update_attributes(self.currentPlayer)
-        self.statsDisplay.update_stats(spriteID=self.currentPlayer["SpriteID"])

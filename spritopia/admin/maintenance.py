@@ -1,6 +1,5 @@
 import sqlite3
 #import lxml.etree as ET
-import BaseFunctions as b
 import shutil
 from spritopia.data_storage import data_storage
 import os

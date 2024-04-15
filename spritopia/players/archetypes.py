@@ -96,7 +96,7 @@ class Archetype:
         self.archetypeName = _archetypeName
 
 
-        self.attributeRanges = {  "SShtIns" : [25,30],
+        self.attributeRanges = {"SShtIns" : [25,30],
                         "SShtCls" : [25,30],
                         "SShtMed" : [25,30],
                         "SSht3PT" : [25,30],
@@ -257,6 +257,25 @@ class Archetype:
         self.HPstLHighChance = 0
         self.HPstLLowChance = 0
 
+    # Built in __eq__ magic method for testing against simple strings.
+    def __eq__(self, other):
+        # Check if 'other' is a string and compare it with the archetype name
+        if isinstance(other, str):
+            return self.archetypeName.lower() == other.lower()
+        # Optionally, you can also enable comparison with other Archetype instances
+        elif isinstance(other, Archetype):
+            return self.archetypeName == other.archetypeName
+        # Return NotImplemented when comparing with other types
+        return NotImplemented
+
+    # "Overloads" on methods that may be called on archetypes thinking its a string, simply
+    # for ease of use.
+    def lower(self):
+        return self.archetypeName.lower()
+    def upper(self):
+        return self.archetypeName.upper()
+    def capitalize(self):
+        return self.archetypeName.capitalize()
 
     # STATS/SKILLS
 
@@ -1316,12 +1335,189 @@ ARCH_DIRECTOR.HPstLHighChance = 20
 ARCH_DIRECTOR.HPstLLowChance = 20
 #endregion HOTSPOTS - Engineer
 
+#region ATTRIBUTES - None
+ARCH_NONE = Archetype(0,"None")
+ARCH_NONE.heightRange = [63,90]
+ARCH_NONE.validTeams = ["1","2","3","4","5","6","7","8","9"]
+ARCH_NONE.jerseyTeamId = 0
+ARCH_NONE.inGamePositionId = 1
+ARCH_NONE.inGamePositionString = "SG"
+ARCH_NONE.inGameSecondaryPositionId = 0
+ARCH_NONE.inGameSecondaryPositionString = "PG"
+
+ARCH_NONE.primaryAttributes = OFFENSIVE_ATTRIBUTES
+ARCH_NONE.secondaryAttributes = DEFENSIVE_ATTRIBUTES
+ARCH_NONE.tertiaryAttributes = CONTROL_ATTRIBUTES
+
+ARCH_NONE.accentedAttributes = ["SLayUp", "SShtMed","SSht3PT","SShtOfD","SConsis","SOAwar","SPass","SSpeed","SHustle","SQuick","SDLowPost","SStrength","SBlock","SOnBallD"]
+ARCH_NONE.unaccentedAttributes = ['SShtCls', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SShtInT', 'SOReb', 'SDReb', 'SDAwar', 'SOffHDrib', 'SHands', 'SBallHndl', 'SBallSec', 'SSteal', 'SShtIns', 'SDunk', 'SStdDunk', 'SVertical', 'SShtFT', 'SStamina', 'SDurab', 'SPOT']
+ARCH_NONE.attributeRanges["SOffHDrib"] = [25, 99]
+ARCH_NONE.attributeRanges["SHands"] = [25, 99]
+ARCH_NONE.attributeRanges["SOAwar"] = [25, 99]
+ARCH_NONE.attributeRanges["SBallHndl"] = [25, 99]
+ARCH_NONE.attributeRanges["SBallSec"] = [25, 99]
+ARCH_NONE.attributeRanges["SPass"] = [25, 99]
+ARCH_NONE.attributeRanges["SSpeed"] = [25, 99]
+ARCH_NONE.attributeRanges["SQuick"] = [25, 99]
+ARCH_NONE.attributeRanges["SHustle"] = [25, 99]
+ARCH_NONE.attributeRanges["SSteal"] = [25, 99]
+ARCH_NONE.attributeRanges["SDLowPost"] = [25, 99]
+ARCH_NONE.attributeRanges["SStrength"] = [25, 99]
+ARCH_NONE.attributeRanges["SBlock"] = [25, 99]
+ARCH_NONE.attributeRanges["SOnBallD"] = [25, 99]
+ARCH_NONE.attributeRanges["SOReb"] = [25, 99]
+ARCH_NONE.attributeRanges["SDReb"] = [25, 99]
+ARCH_NONE.attributeRanges["SDAwar"] = [25, 99]
+ARCH_NONE.attributeRanges["SShtIns"] = [60, 99]
+ARCH_NONE.attributeRanges["SDunk"] = [25, 99]
+ARCH_NONE.attributeRanges["SStdDunk"] = [25, 99]
+ARCH_NONE.attributeRanges["SVertical"] = [25, 99]
+ARCH_NONE.attributeRanges["SShtFT"] = [25, 99]
+ARCH_NONE.attributeRanges["SStamina"] = [25, 99]
+ARCH_NONE.attributeRanges["SDurab"] = [25, 99]
+ARCH_NONE.attributeRanges["SPOT"] = [25, 99]
+ARCH_NONE.attributeRanges["SShtCls"] = [25, 99]
+ARCH_NONE.attributeRanges["SLayUp"] = [25, 99]
+ARCH_NONE.attributeRanges["SPstFdaway"] = [25, 99]
+ARCH_NONE.attributeRanges["SPstHook"] = [25, 99]
+ARCH_NONE.attributeRanges["SOLowPost"] = [25, 99]
+ARCH_NONE.attributeRanges["SShtMed"] = [50, 99]
+ARCH_NONE.attributeRanges["SSht3PT"] = [25, 99]
+ARCH_NONE.attributeRanges["SShtInT"] = [25, 99]
+ARCH_NONE.attributeRanges["SShtOfD"] = [25, 99]
+ARCH_NONE.attributeRanges["SConsis"] = [25, 99]
+
+
+#"Posterizer","Finisher","Spot-up Shooter","Shot Creator", "Deadeye", "Corner Specialist","Post Proficiency", "Post Playmaker", "Dimer","Alley-ooper", "Antifreeze", "Microwave","Heat Retention"
+ARCH_NONE.availableSkillCards = ["1","3","5","6", "7", "8","9", "11", "12","14", "26", "27","28"]
+#endregion ATTRIBUTES - None
+#region TENDENCIES - None
+ARCH_NONE.t_ShotTnd = [0,100]
+ARCH_NONE.t_InsideShot = [0,100]
+ARCH_NONE.t_CloseShot = [0,100]
+ARCH_NONE.t_MidShot = [0,100]
+ARCH_NONE.t_ShotThreePt = [0,100]
+ARCH_NONE.t_Putback = [0,100]
+
+ARCH_NONE.t_DriveLane = [0,100]
+ARCH_NONE.t_DriveRight = [0,100]
+
+ARCH_NONE.t_PullUp = [0,100]
+
+ARCH_NONE.t_PumpFake = [0,100]
+ARCH_NONE.t_TripleThreat = [0,100]
+ARCH_NONE.t_NoTripleThreat = [0,100]
+ARCH_NONE.t_TripleThreatShot = [0,100]
+
+ARCH_NONE.t_Sizeup = [0,100]
+ARCH_NONE.t_Hesitation = [0,100]
+ARCH_NONE.t_StraightDribble = [0,100]
+
+ARCH_NONE.t_Crossover = [0,100]
+ARCH_NONE.t_Spin = [0,100]
+ARCH_NONE.t_Stepback = [0,100]
+ARCH_NONE.t_Halfspin = [0,100]
+ARCH_NONE.t_DoubleCrossover = [0,100]
+ARCH_NONE.t_BehindBack = [0,100]
+ARCH_NONE.t_HesitationCross = [0,100]
+ARCH_NONE.t_InNOut = [0,100]
+ARCH_NONE.t_SimpleDrive = [0,100]
+
+ARCH_NONE.t_Attack = [0,100]
+ARCH_NONE.t_PassOut = [0,100]
+
+ARCH_NONE.t_Hopstep = [0,100]
+ARCH_NONE.t_SpinLayup = [0,100]
+ARCH_NONE.t_Eurostep = [0,100]
+
+ARCH_NONE.t_Runner = [0,100]
+ARCH_NONE.t_Fadeaway = [0,100]
+ARCH_NONE.t_StepbackJumper = [0,100]
+ARCH_NONE.t_SpinJumper = [0,100]
+
+ARCH_NONE.t_Dunk = [0,100]
+
+ARCH_NONE.t_Crash = [0,100]
+ARCH_NONE.t_AlleyOop = [0,100]
+ARCH_NONE.t_DrawFoul = [0,100]
+ARCH_NONE.t_UseGlass = [0,100]
+ARCH_NONE.t_StepThrough = [0,100]
+
+ARCH_NONE.t_Touches = [0,100]
+ARCH_NONE.t_UsePick = [0,100]
+ARCH_NONE.t_SetPick = [0,100]
+ARCH_NONE.t_Isolation = [0,100]
+ARCH_NONE.t_UseOffBallScreen = [0,100]
+ARCH_NONE.t_SetOffBallScreen = [0,100]
+ARCH_NONE.t_PostUp = [0,100]
+ARCH_NONE.t_SpotUp = [0,100]
+ARCH_NONE.t_GiveNGo = [0,100]
+
+ARCH_NONE.t_PostSpin = [0,100]
+ARCH_NONE.t_DropStep = [0,100]
+ARCH_NONE.t_Shimmy = [0,100]
+ARCH_NONE.t_FaceUp = [0,100]
+ARCH_NONE.t_LeavePost = [0,100]
+ARCH_NONE.t_BackDown = [0,100]
+ARCH_NONE.t_AggressiveBackDown = [0,100]
+ARCH_NONE.t_PostShot = [0,100]
+ARCH_NONE.t_PostHook = [0,100]
+ARCH_NONE.t_PostFade = [0,100]
+ARCH_NONE.t_PostDrive = [0,100]
+ARCH_NONE.t_HopShot = [0,100]
+
+ARCH_NONE.t_FlashyPass = [0,100]
+ARCH_NONE.t_ThrowAlleyOop = [0,100]
+
+ARCH_NONE.t_PlayPassLane = [0,100]
+ARCH_NONE.t_TakeCharge = [0,100]
+ARCH_NONE.t_OnBallSteal = [0,100]
+ARCH_NONE.t_Contest = [0,100]
+ARCH_NONE.t_CommitFoul = [0,100]
+ARCH_NONE.t_HardFoul = [0,100]
+#endregion TENDENCIES - None
+#region HOTSPOTS - None
+# Isolation
+ARCH_NONE.HIso3PLftChance =  1
+ARCH_NONE.HIso3PCtrChance =  1
+ARCH_NONE.HIso3PRgtChance =  1
+ARCH_NONE.HIsoHPLftChance = 1
+ARCH_NONE.HIsoHPCtrChance = 1
+ARCH_NONE.HIsoHPRgtChance = 1
+
+# Pick and Roll
+ARCH_NONE.HP_rLCrnrChance = 1
+ARCH_NONE.HP_rLWingChance = 1
+ARCH_NONE.HP_rTopOAChance = 1
+ARCH_NONE.HP_rRWingChance = 1
+ARCH_NONE.HP_rRCrnrChance = 1
+
+# Spot Up
+ARCH_NONE.HSpt3PLCrChance = 1
+ARCH_NONE.HSpt3PLWgChance = 1
+ARCH_NONE.HSpt3PTopChance = 1
+ARCH_NONE.HSpt3PRWgChance = 1
+ARCH_NONE.HSpt3PRCrChance = 1
+ARCH_NONE.HSptMdLBlChance = 1
+ARCH_NONE.HSptMdLWgChance = 1
+ARCH_NONE.HSptMdCtrChance = 1
+ARCH_NONE.HSptMdRWgChance = 1
+ARCH_NONE.HSptMdRBlChance = 1
+
+# Post
+ARCH_NONE.HPstRHighChance = 1
+ARCH_NONE.HPstRLowChance = 1
+ARCH_NONE.HPstLHighChance = 1
+ARCH_NONE.HPstLLowChance = 1
+#endregion HOTSPOTS - None
+
 
 possibleArchetypes = {"Director" : ARCH_DIRECTOR,
                       "Engineer" : ARCH_ENGINEER,
                       "Guardian" : ARCH_GUARDIAN,
                       "Medic" : ARCH_MEDIC,
                       "Slayer" : ARCH_SLAYER,
-                      "Vigilante" : ARCH_VIGILANTE}
+                      "Vigilante" : ARCH_VIGILANTE,
+                      "None" : ARCH_NONE}
 
 

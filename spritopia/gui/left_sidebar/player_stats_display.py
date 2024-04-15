@@ -2,6 +2,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.data_storage import data_storage as d
+from spritopia.gui.app_state import globalAppState
 
 
 
@@ -13,6 +14,10 @@ class PlayerStatsDisplay(QWidget):
 
         self.layout = QVBoxLayout(self)
         self.setup_stats_display()
+
+        # connect global SpriteID change
+        globalAppState.currentSpriteIDChanged.connect(self.update_stats)
+        self.update_stats(globalAppState.currentSpriteID)
 
     def setup_stats_display(self):
         self.statsFrame = QFrame(self)

@@ -2,8 +2,8 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.players import archetypes
-
-
+from spritopia.gui.app_state import globalAppState
+from spritopia.data_storage import data_storage as d
 
 # This is one of the bottom half widgets that displays attribute info. It is capable of displaying all player
 # attributes, and dynamically rearranging according to archetype.
@@ -17,6 +17,12 @@ class PlayerAttributeDisplay(QWidget):
         self.setup_defensive_attributes()
         self.setup_control_attributes()
         self.setup_general_attributes()
+
+        # Connect to global spriteID change
+        globalAppState.currentSpriteIDChanged.connect(self.reorder_attributes)
+        globalAppState.currentSpriteIDChanged.connect(self.update_attributes)
+        self.reorder_attributes(globalAppState.currentSpriteID)
+        self.update_attributes(globalAppState.currentSpriteID)
 
     def setup_offensive_attributes(self):
         self.offensiveFrame = QFrame(self)
@@ -116,7 +122,8 @@ class PlayerAttributeDisplay(QWidget):
 
         self.layout.addWidget(self.generalFrame)
 
-    def reorder_attributes(self, archetype):
+    def reorder_attributes(self, spriteID):
+        thisArchetype = d.d.players[spriteID]["Archetype_Name"]
 
         # Define the order of attributes for each archetype
         archetypeOrders = {
@@ -134,10 +141,11 @@ class PlayerAttributeDisplay(QWidget):
             self.layout.itemAt(i).widget().setParent(None)
 
         # Add widgets back in the correct order
-        for widget in archetypeOrders[archetype]:
+        for widget in archetypeOrders[thisArchetype]:
             self.layout.addWidget(widget)
+    def update_attributes(self, spriteID):
+        thisPlayer = d.d.players[spriteID]
 
-    def update_attributes(self, playerObj):
         attributeAccessors = {
             "Offensive" : archetypes.OFFENSIVE_ATTRIBUTES,
             "Defensive" : archetypes.DEFENSIVE_ATTRIBUTES,
@@ -147,10 +155,10 @@ class PlayerAttributeDisplay(QWidget):
 
 
         for attribute,label in self.offensiveAttributes.items():
-            label.setText(f"{archetypes.MAPPED_ATTRIBUTES[attribute]}: {playerObj[attribute]}")
+            label.setText(f"{archetypes.MAPPED_ATTRIBUTES[attribute]}: {thisPlayer[attribute]}")
         for attribute,label in self.defensiveAttributes.items():
-            label.setText(f"{archetypes.MAPPED_ATTRIBUTES[attribute]}: {playerObj[attribute]}")
+            label.setText(f"{archetypes.MAPPED_ATTRIBUTES[attribute]}: {thisPlayer[attribute]}")
         for attribute,label in self.controlAttributes.items():
-            label.setText(f"{archetypes.MAPPED_ATTRIBUTES[attribute]}: {playerObj[attribute]}")
+            label.setText(f"{archetypes.MAPPED_ATTRIBUTES[attribute]}: {thisPlayer[attribute]}")
         for attribute,label in self.generalAttributes.items():
-            label.setText(f"{archetypes.MAPPED_ATTRIBUTES[attribute]}: {playerObj[attribute]}")
+            label.setText(f"{archetypes.MAPPED_ATTRIBUTES[attribute]}: {thisPlayer[attribute]}")
