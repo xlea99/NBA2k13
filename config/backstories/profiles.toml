@@ -1,0 +1,21 @@
+[chances]
+name = 1.0
+age = 1.0
+morality = 1.0
+mannerisms = 0.75
+disposition = 0.75
+hobbies = 0.25
+fears = 0.1
+personal_goals = 0.75
+personal_event_1 = 0.6
+personal_event_2 = 0.1
+faction = 1.0
+faction_status = 1.0
+faction_role = 1.0
+faction_goals = 0.8
+faction_event_1 = 1.0
+faction_event_2 = 0.2
+secrets = 0.1
+regrets = 0.05
+religion = 0.05
+politics = 0.05

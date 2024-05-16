@@ -1,0 +1,32 @@
+{
+  "type": "station",
+  "id": "vibe",
+  "name": "The Vibe",
+  "songChances": {
+    "1812":   1.0,
+    "apology": 1.0,
+    "archetypal_obsession": 1.0,
+    "ceddy_c": 1.0,
+    "around_the_world_2": 0.3,
+    "around_the_world": 0.3,
+    "cedric_strikes_back": 1.0,
+    "jareds_song": 1.0,
+    "lets_talk": 1.0,
+    "meep_mop": 0.3,
+    "one_on_one": 1.0,
+    "one_repeat": 0.5,
+    "pass_shoot_score": 1.0,
+    "sad": 1.0,
+    "say_no": 1.0,
+    "shooting_stars": 1.0,
+    "smoking_hot": 0.5,
+    "taco_rhapsody": 1.0,
+    "the_truth": 1.0,
+    "ima_boss": 0.5,
+    "h_a_m": 0.5,
+    "viva_la_vida": 1.0,
+    "zombified_sprtn": 0.5,
+    "merry_2k_christmas": 1.0,
+    "pizzas": 0.25
+  }
+}

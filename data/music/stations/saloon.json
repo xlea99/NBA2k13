@@ -1,0 +1,15 @@
+{
+  "type": "station",
+  "id": "saloon",
+  "name": "The Saloon",
+  "songChances": {
+    "bandit": 1.0,
+    "clovis": 1.0,
+    "grizzly_days": 1.0,
+    "one_foot_over": 1.0,
+    "pint_after_game": 1.0,
+    "scott_brown_rag": 1.0,
+    "truckin_with_god": 1.0,
+    "glue_monster": 1.0
+  }
+}

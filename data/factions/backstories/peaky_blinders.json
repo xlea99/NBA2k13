@@ -1,0 +1,26 @@
+{
+  "faction_id": "peaky_blinders",
+  "faction_roles": [
+    {
+      "name": "Grunt",
+      "weight": 2,
+      "eventBuckets": ["basic","grunt"],
+      "goalBuckets": ["basic"]
+    },
+    {
+      "name": "Enforcer",
+      "weight": 6,
+      "eventBuckets": ["basic","enforcer"],
+      "goalBuckets": ["basic"]
+    }
+  ],
+  "faction_events": {
+    "basic": [
+      "he shot a dude",
+      "dude shot him"
+    ],
+    "grunt": [
+      "He once completely fumbled a delivery of {beans,kale,weed,meth} to a supplier"
+    ]
+  }
+}

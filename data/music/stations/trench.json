@@ -1,0 +1,31 @@
+{
+  "type": "station",
+  "id": "trench",
+  "name": "The Trench",
+  "songChances": {
+    "ceddy_c": 0.8,
+    "cedric_strikes_back": 1.0,
+    "court_clown": 1.0,
+    "eggroll_advertisement": 1.0,
+    "lets_talk": 1.0,
+    "og": 1.0,
+    "one_repeat": 1.0,
+    "pass_shoot_score": 0.5,
+    "price_penny": 1.0,
+    "say_no": 0.3,
+    "strawberry": 1.0,
+    "amazing": 1.0,
+    "shook_ones": 1.0,
+    "the_bounce": 1.0,
+    "mercy": 1.0,
+    "we_major": 1.0,
+    "run_this_town": 0.8,
+    "public_service_announcement": 1.0,
+    "victory": 1.0,
+    "blow_the_whistle": 1.0,
+    "world_is_yours": 1.0,
+    "on_to_the_next_one": 1.0,
+    "i_aint_no_joke": 1.0,
+    "pump_it_up": 1.0
+  }
+}
