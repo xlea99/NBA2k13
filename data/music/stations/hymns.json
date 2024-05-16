@@ -1,0 +1,18 @@
+{
+  "type": "station",
+  "id": "hymns",
+  "name": "Hymns From Atacama and Beyond",
+  "songChances": {
+    "dear_sneh": 1.0,
+    "turkey": 1.0,
+    "around_the_world_2": 1.0,
+    "dek_nara": 1.0,
+    "lord_selwig": 1.0,
+    "eggroll_advertisement": 1.0,
+    "smoking_hot": 1.0,
+    "taco_rhapsody": 1.0,
+    "pint_after_game": 1.0,
+    "merry_2k_christmas": 0.5,
+    "pizzas": 1.0
+  }
+}
