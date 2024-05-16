@@ -1047,10 +1047,10 @@ def genFactionName(faction : str,player):
         chosenLastNameList = symmetricalLastName
     elif(symmetricalFirstName is not None):
         chosenFirstNameList = symmetricalFirstName
-    firstNameListPath = dbDict["NameLists"][chosenFirstNameList]["Value"].replace("$NL_PATH", "\\WordLists\\NameLists")
-    lastNameListPath = dbDict["NameLists"][chosenLastNameList]["Value"].replace("$NL_PATH", "\\WordLists\\NameLists")
-    player["First_Name"] = rsuite.rString(firstNameListPath)
-    player["Last_Name"] = rsuite.rString(lastNameListPath)
+    firstNameListPath = dbDict["NameLists"][chosenFirstNameList]["Value"].replace("$NL_PATH", "WordLists\\NameLists")
+    lastNameListPath = dbDict["NameLists"][chosenLastNameList]["Value"].replace("$NL_PATH", "WordLists\\NameLists")
+    player["First_Name"] = rsuite.rString(firstNameListPath,randListBasePath=paths["randGen"])
+    player["Last_Name"] = rsuite.rString(lastNameListPath,randListBasePath=paths["randGen"])
 
 
 # Helper method for randomly choosing a faction to generate based on all generatable factions.

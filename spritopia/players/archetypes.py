@@ -268,6 +268,11 @@ class Archetype:
         # Return NotImplemented when comparing with other types
         return NotImplemented
 
+    # Simplified string method for getting the Archetype name.
+    def __str__(self):
+        return self.archetypeName
+
+
     # "Overloads" on methods that may be called on archetypes thinking its a string, simply
     # for ease of use.
     def lower(self):

@@ -1,6 +1,7 @@
 import re
 import chardet
 import random
+from pathlib import Path
 from spritopia.utilities import weighted_dict
 
 # This method simply selects a value or values randomly from a given file of words.
@@ -10,9 +11,11 @@ from spritopia.utilities import weighted_dict
 # -hatPick means that subsequent random values will never be the same as already picked values.
 # -rStringProcessing allows for processing results as rStrings (see below)
 def rFile(filePath, selectionCount : int = 1, hatPick : bool = False, rStringProcessing : bool = False):
-    if(type(filePath) is str):
+    if(isinstance(filePath,str)):
+        filePath = [Path(filePath)]
+    elif(isinstance(filePath,Path)):
         filePath = [filePath]
-    elif(type(filePath) is not list):
+    else:
         raise FileNotFoundError(filePath)
 
     allPotentialValues = []
@@ -36,7 +39,7 @@ def rFile(filePath, selectionCount : int = 1, hatPick : bool = False, rStringPro
     if(rStringProcessing):
         tempArray = []
         for result in returnArray:
-            tempArray.append(rStringProcess(result,recursiveProcessing=True))
+            tempArray.append(rString(result,recursiveProcessing=True))
         returnArray = tempArray
 
     return returnArray
@@ -46,7 +49,8 @@ def rFile(filePath, selectionCount : int = 1, hatPick : bool = False, rStringPro
 # be randomized.
 # {choice1,choice2,choice3} is an adLib operator, and would process randomly to select one of the three choices only.
 # [path/to/other/wordlist] is a randomList selection operator, and would attempt to fill that spot with a single entry from the randList path.
-def rString(string,recursiveProcessing : bool = True,randListPath = ""):
+def rString(string,recursiveProcessing : bool = True,randListBasePath = ""):
+    randListBasePath = Path(randListBasePath)
 
     # Locate all occurrences of {option1, option2, ...} in the string
     options = re.findall('{([^}]*)}', string)
@@ -68,7 +72,7 @@ def rString(string,recursiveProcessing : bool = True,randListPath = ""):
     options = re.findall(r'\[([^]]*)]', string)
     # Assume each option is a file path to a wordlist, recursively gen from that list
     for option in options:
-        pickedOption = rFile(filePath = f"{randListPath}\\{option}",rStringProcessing=recursiveProcessing)[0]
+        pickedOption = rFile(filePath = randListBasePath / option,rStringProcessing=recursiveProcessing)[0]
         string = string.replace(f"[{option}]",pickedOption)
 
     return string

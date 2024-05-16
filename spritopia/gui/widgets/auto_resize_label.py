@@ -1,14 +1,17 @@
 from PySide6.QtWidgets import QLabel, QApplication, QWidget, QVBoxLayout
 from PySide6.QtGui import QFontMetrics, QFont
 from PySide6.QtCore import Qt
-
+import re
 
 # This class provides text that automatically resizes itself to fit the maximum height
-# and width of the label it exists in.
+# and width of the label it exists in. AutoWrap automatically ensures only one word is on
+# each wrapped line.
 class AutoResizeLabel(QLabel):
 
-    def __init__(self, text="", parent=None,baseFont=None):
+    def __init__(self, text="", parent=None,baseFont=None,autoWrap=False):
         super().__init__(text, parent)
+
+        self.autoWrap = autoWrap
 
         if(baseFont is None):
             self.baseFont = self.font()
@@ -20,7 +23,11 @@ class AutoResizeLabel(QLabel):
         # Create a QFont based on the current label font
         font = QFont(self.baseFont)
 
-        lines = self.text().split('\n')
+        if(self.autoWrap):
+            rePattern = r'[\t\n ]+'
+        else:
+            rePattern = r'[\n]+'
+        lines = re.split(rePattern, self.text())
 
         # Start with a existing font size and decrease it until the text fits
         for font_size in range(font.pointSize(), 1, -1):
