@@ -1,6 +1,7 @@
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
+from spritopia.gui.bottom_content.bottom_content_widget import BottomContentWidget
 from spritopia.gui.main_content.main_content_widget import MainContentWidget
 from spritopia.gui.left_sidebar.left_sidebar_widget import LeftSidebarWidget
 import sys
@@ -39,7 +40,7 @@ class MainWindow(QMainWindow):
         self.mainContent.setStyleSheet("#mainContentArea {border: 1px solid black;}")  # TODO TEMP
         #self.mainContent.setStyleSheet("border: 1px solid black;")  # TODO TEMP
 
-        self.bottomContent = QWidget()
+        self.bottomContent = BottomContentWidget()
         self.bottomContent.setObjectName("bottomContentArea")
         self.bottomContent.setStyleSheet("#bottomContentArea {border: 1px solid black;}") #TODO TEMP
 
