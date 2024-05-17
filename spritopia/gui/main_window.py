@@ -1,5 +1,5 @@
-from PySide6.QtCore import *
-from PySide6.QtGui import *
+#from PySide6.QtCore import *
+#from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.gui.bottom_content.bottom_content_widget import BottomContentWidget
 from spritopia.gui.main_content.main_content_widget import MainContentWidget

@@ -150,8 +150,6 @@ VALUE_COMBO_MAP = {
 }
 
 
-
-
 class PlayerFilterMenu(QDialog):
     # Signal for apply button.
     filterApplied = Signal(dict)

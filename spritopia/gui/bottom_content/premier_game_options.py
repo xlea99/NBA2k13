@@ -14,6 +14,7 @@ PREMADE_GAME_MODES = [
 ]
 
 
+
 class PremierGameOptions(QWidget):
 
     def __init__(self, parent=None):
@@ -26,6 +27,7 @@ class PremierGameOptions(QWidget):
 
         self.currentGameMode = PREMADE_GAME_MODES[0]
         self.setupGeneralOptions()
+        self.setupPickOptions()
 
 
 
@@ -88,21 +90,17 @@ class PremierGameOptions(QWidget):
         # Advanced Options Tab Container
         self.optionsTabWidget = QTabWidget()
         self.optionsTabWidget.addTab(self.generalOptionsContainer,"General")
-        self.optionsPicksContainer = QWidget()
-        self.optionsTabWidget.addTab(self.optionsPicksContainer,"Picks")
-        self.optionsBansContainer = QWidget()
-        self.optionsTabWidget.addTab(self.optionsBansContainer,"Bans")
+        self.optionsTabWidget.addTab(self.pickOptionsContainer,"Picks")
         self.layout.addWidget(self.optionsTabWidget)
 
         self.layout.setStretchFactor(gameModeSelectionContainer, 1)
         self.layout.setStretchFactor(self.optionsTabWidget,3)
 
-
+    # General options setup
     def setupGeneralOptions(self):
         self.generalOptionsContainer = QWidget()
         self.generalOptionsLayout = QHBoxLayout(self.generalOptionsContainer)
         self.generalOptionsLayout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
 
         #region === Basic Game Options ===
         basicGameOptionsContainer = QWidget()
@@ -217,14 +215,6 @@ class PremierGameOptions(QWidget):
         #endregion === Common Options ===
 
         self.generalOptionsLayout.addStretch(2)
-
-
-
-
-
-
-
-        #self.generalOptionsLayout.addStretch(2)
     def onGameModeComboUpdate(self):
         currentlySelectGameModeData = self.gameModeComboBox.currentData()
         self.gameModeDescription.setText(currentlySelectGameModeData["Description"])
@@ -241,11 +231,141 @@ class PremierGameOptions(QWidget):
 
         self.onGameModeComboUpdate()
 
+    # Pick options setup
+    def setupPickOptions(self):
+        self.pickOptionsContainer = QWidget()
+        self.pickOptionsLayout = QHBoxLayout(self.pickOptionsContainer)
 
+        # Any general options (if necessary) go below here...
 
+        # Line
+        vLine = QFrame()
+        vLine.setFrameShape(QFrame.VLine)
+        vLine.setFrameShadow(QFrame.Sunken)
+        self.pickOptionsLayout.addWidget(vLine)
 
+        #region === Ballerz Picks ===
+        ballerzOptionsContainer = QWidget()
+        ballerzOptionsLayout = QVBoxLayout(ballerzOptionsContainer)
+        self.pickOptionsLayout.addWidget(ballerzOptionsContainer)
 
+        ballerzPicksHeaderLabel = QLabel("Ballerz Picks")
+        ballerzPicksHeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ballerzOptionsLayout.addWidget(ballerzPicksHeaderLabel)
 
+        pickTypeOptions = ["Normal","Random","Archetype (Random)","Archetype (Slayer)","Archetype (Vigilante)",
+                           "Archetype (Medic)","Archetype (Guardian)","Archetype (Engineer)","Archetype (Director)"]
 
+        ballerzPick1Container = QWidget()
+        ballerzPick1Layout = QHBoxLayout(ballerzPick1Container)
+        ballerzOptionsLayout.addWidget(ballerzPick1Container)
+        ballerzPick1Label = QLabel("Pick 1")
+        self.ballerzPick1ComboBox = QComboBox()
+        self.ballerzPick1ComboBox.addItems(pickTypeOptions)
+        ballerzPick1Layout.addWidget(ballerzPick1Label)
+        ballerzPick1Layout.addWidget(self.ballerzPick1ComboBox)
+
+        ballerzPick2Container = QWidget()
+        ballerzPick2Layout = QHBoxLayout(ballerzPick2Container)
+        ballerzOptionsLayout.addWidget(ballerzPick2Container)
+        ballerzPick2Label = QLabel("Pick 2")
+        self.ballerzPick2ComboBox = QComboBox()
+        self.ballerzPick2ComboBox.addItems(pickTypeOptions)
+        ballerzPick2Layout.addWidget(ballerzPick2Label)
+        ballerzPick2Layout.addWidget(self.ballerzPick2ComboBox)
+
+        ballerzPick3Container = QWidget()
+        ballerzPick3Layout = QHBoxLayout(ballerzPick3Container)
+        ballerzOptionsLayout.addWidget(ballerzPick3Container)
+        ballerzPick3Label = QLabel("Pick 3")
+        self.ballerzPick3ComboBox = QComboBox()
+        self.ballerzPick3ComboBox.addItems(pickTypeOptions)
+        ballerzPick3Layout.addWidget(ballerzPick3Label)
+        ballerzPick3Layout.addWidget(self.ballerzPick3ComboBox)
+
+        ballerzPick4Container = QWidget()
+        ballerzPick4Layout = QHBoxLayout(ballerzPick4Container)
+        ballerzOptionsLayout.addWidget(ballerzPick4Container)
+        ballerzPick4Label = QLabel("Pick 4")
+        self.ballerzPick4ComboBox = QComboBox()
+        self.ballerzPick4ComboBox.addItems(pickTypeOptions)
+        ballerzPick4Layout.addWidget(ballerzPick4Label)
+        ballerzPick4Layout.addWidget(self.ballerzPick4ComboBox)
+
+        ballerzPick5Container = QWidget()
+        ballerzPick5Layout = QHBoxLayout(ballerzPick5Container)
+        ballerzOptionsLayout.addWidget(ballerzPick5Container)
+        ballerzPick5Label = QLabel("Pick 5")
+        self.ballerzPick5ComboBox = QComboBox()
+        self.ballerzPick5ComboBox.addItems(pickTypeOptions)
+        ballerzPick5Layout.addWidget(ballerzPick5Label)
+        ballerzPick5Layout.addWidget(self.ballerzPick5ComboBox)
+
+        #endregion === Ballerz Picks ===
+
+        # region === Ringers Picks ===
+        ringersOptionsContainer = QWidget()
+        ringersOptionsLayout = QVBoxLayout(ringersOptionsContainer)
+        self.pickOptionsLayout.addWidget(ringersOptionsContainer)
+
+        ringersPicksHeaderLabel = QLabel("Ringers Picks")
+        ringersPicksHeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        ringersOptionsLayout.addWidget(ringersPicksHeaderLabel)
+
+        pickTypeOptions = ["Normal", "Random", "Archetype (Random)", "Archetype (Slayer)", "Archetype (Vigilante)",
+                           "Archetype (Medic)", "Archetype (Guardian)", "Archetype (Engineer)", "Archetype (Director)"]
+
+        ringersPick1Container = QWidget()
+        ringersPick1Layout = QHBoxLayout(ringersPick1Container)
+        ringersOptionsLayout.addWidget(ringersPick1Container)
+        ringersPick1Label = QLabel("Pick 1")
+        self.ringersPick1ComboBox = QComboBox()
+        self.ringersPick1ComboBox.addItems(pickTypeOptions)
+        ringersPick1Layout.addWidget(ringersPick1Label)
+        ringersPick1Layout.addWidget(self.ringersPick1ComboBox)
+
+        ringersPick2Container = QWidget()
+        ringersPick2Layout = QHBoxLayout(ringersPick2Container)
+        ringersOptionsLayout.addWidget(ringersPick2Container)
+        ringersPick2Label = QLabel("Pick 2")
+        self.ringersPick2ComboBox = QComboBox()
+        self.ringersPick2ComboBox.addItems(pickTypeOptions)
+        ringersPick2Layout.addWidget(ringersPick2Label)
+        ringersPick2Layout.addWidget(self.ringersPick2ComboBox)
+
+        ringersPick3Container = QWidget()
+        ringersPick3Layout = QHBoxLayout(ringersPick3Container)
+        ringersOptionsLayout.addWidget(ringersPick3Container)
+        ringersPick3Label = QLabel("Pick 3")
+        self.ringersPick3ComboBox = QComboBox()
+        self.ringersPick3ComboBox.addItems(pickTypeOptions)
+        ringersPick3Layout.addWidget(ringersPick3Label)
+        ringersPick3Layout.addWidget(self.ringersPick3ComboBox)
+
+        ringersPick4Container = QWidget()
+        ringersPick4Layout = QHBoxLayout(ringersPick4Container)
+        ringersOptionsLayout.addWidget(ringersPick4Container)
+        ringersPick4Label = QLabel("Pick 4")
+        self.ringersPick4ComboBox = QComboBox()
+        self.ringersPick4ComboBox.addItems(pickTypeOptions)
+        ringersPick4Layout.addWidget(ringersPick4Label)
+        ringersPick4Layout.addWidget(self.ringersPick4ComboBox)
+
+        ringersPick5Container = QWidget()
+        ringersPick5Layout = QHBoxLayout(ringersPick5Container)
+        ringersOptionsLayout.addWidget(ringersPick5Container)
+        ringersPick5Label = QLabel("Pick 5")
+        self.ringersPick5ComboBox = QComboBox()
+        self.ringersPick5ComboBox.addItems(pickTypeOptions)
+        ringersPick5Layout.addWidget(ringersPick5Label)
+        ringersPick5Layout.addWidget(self.ringersPick5ComboBox)
+
+        # endregion === Ringers Picks ===
+
+        self.pickOptionsLayout.addStretch(1)
+
+    # Ban options setup
+    def setupBanOptions(self):
+        pass
 
 
