@@ -7,22 +7,40 @@ from spritopia.gui.widgets.player_card import PlayerCard
 from spritopia.gui.app_state import globalAppState
 from spritopia.gui.widgets.auto_resize_label import AutoResizeLabel
 from functools import partial
+import random
 
 PREMADE_GAME_MODES = [
     {"Name": "Classic", "Description": "Classic 2K experience - revolving picks, no bans."},
     {"Name": "Smite", "Description": "Smite-style picking, all players allowed, 5 bans each."}
 ]
-
+DRAFT_TYPES = {
+    "Classic": "Bans are done before picks are made. Users take turns selecting one player each until draft has concluded.",
+    "Smite": "Half of the total bans are made before picks are made. User 1 gets the first pick, User 2 gets the following two picks, User 1 gets the next pick. The next ban phase commences. Then, User 2 gets one pick, User 1 gets two picks, and User 2 gets the final pick.",
+    "Danny-First": "Bans are done before picks are made. Danny selects his entire team first, then Alex drafts his team.",
+    "Alex-First": "Bans are done before picks are made. Alex selects his entire team first, then Danny drafts his team.",
+    "2-4-2": "Bans are done before picks are made. User 1 gets two picks, User 2 gets 4 picks, User 1 gets the final two picks."}
+DRAFT_CONTENT_DESCRIPTIONS = {
+    "Normal": "Every pick is normally selected.",
+    "Random": "Every pick is randomly selected.",
+    "Semi-Random": "Every other pick is random.",
+    "Archetypal-Random": "Every pick must be a random pre-selected archetype.",
+    "Captains": "First pick is random, every other pick is normal.",
+    "Affirmative-Action": "Last pick for each team is random.",
+    "Archetype Showdown": "Each user is assigned one archetype that they must build their team with.",
+    "Spritopian Duos": "Each user is assigned a shooting archetype and a non-shooting archetype to build their team around.",
+    "Chaos": "Every slot is given a random rule. It can be a normal pick, random pick, or random archetype lock."}
 
 
 class PremierGameOptions(QWidget):
+
+    pickTypeOptions = ["Normal", "Random", "Archetype (Random)", "Archetype (Slayer)", "Archetype (Vigilante)",
+                            "Archetype (Medic)", "Archetype (Guardian)", "Archetype (Engineer)", "Archetype (Director)"]
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0,0,0,0)
         self.layout.setSpacing(0)
-
 
 
         self.currentGameMode = PREMADE_GAME_MODES[0]
@@ -90,7 +108,7 @@ class PremierGameOptions(QWidget):
         # Advanced Options Tab Container
         self.optionsTabWidget = QTabWidget()
         self.optionsTabWidget.addTab(self.generalOptionsContainer,"General")
-        self.optionsTabWidget.addTab(self.pickOptionsContainer,"Picks")
+        self.optionsTabWidget.addTab(self.pickOptionsContainer,"Draft")
         self.layout.addWidget(self.optionsTabWidget)
 
         self.layout.setStretchFactor(gameModeSelectionContainer, 1)
@@ -214,6 +232,12 @@ class PremierGameOptions(QWidget):
         self.generalOptionsLayout.setStretchFactor(commonOptionsContainer,1)
         #endregion === Common Options ===
 
+        # Line
+        vLine = QFrame()
+        vLine.setFrameShape(QFrame.VLine)
+        vLine.setFrameShadow(QFrame.Sunken)
+        self.generalOptionsLayout.addWidget(vLine)
+
         self.generalOptionsLayout.addStretch(2)
     def onGameModeComboUpdate(self):
         currentlySelectGameModeData = self.gameModeComboBox.currentData()
@@ -230,13 +254,71 @@ class PremierGameOptions(QWidget):
 
 
         self.onGameModeComboUpdate()
+    def updateDraftTypeDescription(self,draftType):
+        self.draftTypeDescriptionLabel.setText(DRAFT_TYPES[draftType])
+    def updateContentTypeDescription(self,contentType):
+        self.contentOverrideDescriptionLabel.setText(DRAFT_CONTENT_DESCRIPTIONS[contentType])
 
     # Pick options setup
     def setupPickOptions(self):
         self.pickOptionsContainer = QWidget()
         self.pickOptionsLayout = QHBoxLayout(self.pickOptionsContainer)
 
-        # Any general options (if necessary) go below here...
+        # region === Draft Options ===
+        draftOptionsContainer = QWidget()
+        draftOptionsLayout = QVBoxLayout(draftOptionsContainer)
+
+        # Draft type selection
+        draftTypeSelectionContainer = QWidget()
+        draftTypeSelectionLayout = QHBoxLayout(draftTypeSelectionContainer)
+        draftTypeSelectionLabel = QLabel("Draft order: ")
+        self.draftTypeSelectionCombo = QComboBox()
+        self.draftTypeSelectionCombo.addItems(list(DRAFT_TYPES.keys()))
+        self.draftTypeSelectionCombo.currentTextChanged.connect(self.updateDraftTypeDescription)
+        draftTypeSelectionLayout.addWidget(draftTypeSelectionLabel)
+        draftTypeSelectionLayout.addWidget(self.draftTypeSelectionCombo)
+        draftOptionsLayout.addWidget(draftTypeSelectionContainer)
+
+        # Draft type description
+        draftTypeDescriptionContainer = QWidget()
+        draftTypeDescriptionLayout = QHBoxLayout(draftTypeDescriptionContainer)
+        self.draftTypeDescriptionLabel = QLabel()
+        self.draftTypeDescriptionLabel.setWordWrap(True)
+        draftTypeDescriptionLayout.addWidget(self.draftTypeDescriptionLabel)
+        draftOptionsLayout.addWidget(draftTypeDescriptionContainer)
+
+        self.draftTypeSelectionCombo.setCurrentIndex(0)
+        self.updateDraftTypeDescription(self.draftTypeSelectionCombo.currentText())
+
+        self.pickOptionsLayout.addWidget(draftOptionsContainer)
+
+        # endregion === Draft Options ===
+
+        # region === Ban Options ===
+
+        # Bans selection
+        banCountContainer = QWidget()
+        banCountLayout = QHBoxLayout(banCountContainer)
+        banCountLabel = QLabel("Bans: ")
+        self.banCountSpinBox = QSpinBox()
+        self.banCountSpinBox.setAlignment(Qt.AlignCenter)
+        self.banCountSpinBox.setMaximumWidth(50)
+        banCountLayout.addWidget(banCountLabel)
+        banCountLayout.addWidget(self.banCountSpinBox)
+        draftOptionsLayout.addWidget(banCountContainer)
+
+        # Random Bans selection
+        randomBanCountContainer = QWidget()
+        randomBanCountLayout = QHBoxLayout(randomBanCountContainer)
+        randomBanCountLabel = QLabel("Random Bans: ")
+        self.randomBanCountSpinBox = QSpinBox()
+        self.randomBanCountSpinBox.setAlignment(Qt.AlignCenter)
+        self.randomBanCountSpinBox.setMaximumWidth(50)
+        randomBanCountLayout.addWidget(randomBanCountLabel)
+        randomBanCountLayout.addWidget(self.randomBanCountSpinBox)
+        draftOptionsLayout.addWidget(randomBanCountContainer)
+
+        # endregion === Ban Options ===
 
         # Line
         vLine = QFrame()
@@ -244,125 +326,182 @@ class PremierGameOptions(QWidget):
         vLine.setFrameShadow(QFrame.Sunken)
         self.pickOptionsLayout.addWidget(vLine)
 
-        #region === Ballerz Picks ===
+        # region === Content Options ===
+        contentOptionsContainer = QWidget()
+        contentOptionsLayout = QVBoxLayout(contentOptionsContainer)
+
+        # Content Override selection
+        contentOverrideContainer = QWidget()
+        contentOverrideLayout = QHBoxLayout(contentOverrideContainer)
+        contentOverrideLabel = QLabel("Draft content: ")
+        self.contentOverrideCombo = QComboBox()
+        self.contentOverrideCombo.addItems(list(DRAFT_CONTENT_DESCRIPTIONS.keys()))
+        self.contentOverrideCombo.currentTextChanged.connect(self.updateContentTypeDescription)
+        contentOverrideLayout.addWidget(contentOverrideLabel)
+        contentOverrideLayout.addWidget(self.contentOverrideCombo)
+        contentOptionsLayout.addWidget(contentOverrideContainer)
+
+        # Content Override description
+        contentOverrideDescriptionContainer = QWidget()
+        contentOverrideDescriptionLayout = QHBoxLayout(contentOverrideDescriptionContainer)
+        self.contentOverrideDescriptionLabel = QLabel()
+        self.contentOverrideDescriptionLabel.setWordWrap(True)
+        contentOverrideDescriptionLayout.addWidget(self.contentOverrideDescriptionLabel)
+        contentOptionsLayout.addWidget(contentOverrideDescriptionContainer)
+
+        self.contentOverrideCombo.setCurrentIndex(0)
+        self.updateContentTypeDescription(self.contentOverrideCombo.currentText())
+
+        self.pickOptionsLayout.addWidget(contentOptionsContainer)
+
+        # endregion === Content Options ===
+
+        # Line
+        vLine = QFrame()
+        vLine.setFrameShape(QFrame.VLine)
+        vLine.setFrameShadow(QFrame.Sunken)
+        self.pickOptionsLayout.addWidget(vLine)
+
+
+        #region === Picks ===
         ballerzOptionsContainer = QWidget()
         ballerzOptionsLayout = QVBoxLayout(ballerzOptionsContainer)
         self.pickOptionsLayout.addWidget(ballerzOptionsContainer)
-
         ballerzPicksHeaderLabel = QLabel("Ballerz Picks")
         ballerzPicksHeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ballerzOptionsLayout.addWidget(ballerzPicksHeaderLabel)
 
-        pickTypeOptions = ["Normal","Random","Archetype (Random)","Archetype (Slayer)","Archetype (Vigilante)",
-                           "Archetype (Medic)","Archetype (Guardian)","Archetype (Engineer)","Archetype (Director)"]
-
-        ballerzPick1Container = QWidget()
-        ballerzPick1Layout = QHBoxLayout(ballerzPick1Container)
-        ballerzOptionsLayout.addWidget(ballerzPick1Container)
-        ballerzPick1Label = QLabel("Pick 1")
-        self.ballerzPick1ComboBox = QComboBox()
-        self.ballerzPick1ComboBox.addItems(pickTypeOptions)
-        ballerzPick1Layout.addWidget(ballerzPick1Label)
-        ballerzPick1Layout.addWidget(self.ballerzPick1ComboBox)
-
-        ballerzPick2Container = QWidget()
-        ballerzPick2Layout = QHBoxLayout(ballerzPick2Container)
-        ballerzOptionsLayout.addWidget(ballerzPick2Container)
-        ballerzPick2Label = QLabel("Pick 2")
-        self.ballerzPick2ComboBox = QComboBox()
-        self.ballerzPick2ComboBox.addItems(pickTypeOptions)
-        ballerzPick2Layout.addWidget(ballerzPick2Label)
-        ballerzPick2Layout.addWidget(self.ballerzPick2ComboBox)
-
-        ballerzPick3Container = QWidget()
-        ballerzPick3Layout = QHBoxLayout(ballerzPick3Container)
-        ballerzOptionsLayout.addWidget(ballerzPick3Container)
-        ballerzPick3Label = QLabel("Pick 3")
-        self.ballerzPick3ComboBox = QComboBox()
-        self.ballerzPick3ComboBox.addItems(pickTypeOptions)
-        ballerzPick3Layout.addWidget(ballerzPick3Label)
-        ballerzPick3Layout.addWidget(self.ballerzPick3ComboBox)
-
-        ballerzPick4Container = QWidget()
-        ballerzPick4Layout = QHBoxLayout(ballerzPick4Container)
-        ballerzOptionsLayout.addWidget(ballerzPick4Container)
-        ballerzPick4Label = QLabel("Pick 4")
-        self.ballerzPick4ComboBox = QComboBox()
-        self.ballerzPick4ComboBox.addItems(pickTypeOptions)
-        ballerzPick4Layout.addWidget(ballerzPick4Label)
-        ballerzPick4Layout.addWidget(self.ballerzPick4ComboBox)
-
-        ballerzPick5Container = QWidget()
-        ballerzPick5Layout = QHBoxLayout(ballerzPick5Container)
-        ballerzOptionsLayout.addWidget(ballerzPick5Container)
-        ballerzPick5Label = QLabel("Pick 5")
-        self.ballerzPick5ComboBox = QComboBox()
-        self.ballerzPick5ComboBox.addItems(pickTypeOptions)
-        ballerzPick5Layout.addWidget(ballerzPick5Label)
-        ballerzPick5Layout.addWidget(self.ballerzPick5ComboBox)
-
-        #endregion === Ballerz Picks ===
-
-        # region === Ringers Picks ===
         ringersOptionsContainer = QWidget()
         ringersOptionsLayout = QVBoxLayout(ringersOptionsContainer)
         self.pickOptionsLayout.addWidget(ringersOptionsContainer)
-
         ringersPicksHeaderLabel = QLabel("Ringers Picks")
         ringersPicksHeaderLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ringersOptionsLayout.addWidget(ringersPicksHeaderLabel)
 
-        pickTypeOptions = ["Normal", "Random", "Archetype (Random)", "Archetype (Slayer)", "Archetype (Vigilante)",
-                           "Archetype (Medic)", "Archetype (Guardian)", "Archetype (Engineer)", "Archetype (Director)"]
+        self.playerPickComboBoxes = []
 
-        ringersPick1Container = QWidget()
-        ringersPick1Layout = QHBoxLayout(ringersPick1Container)
-        ringersOptionsLayout.addWidget(ringersPick1Container)
-        ringersPick1Label = QLabel("Pick 1")
-        self.ringersPick1ComboBox = QComboBox()
-        self.ringersPick1ComboBox.addItems(pickTypeOptions)
-        ringersPick1Layout.addWidget(ringersPick1Label)
-        ringersPick1Layout.addWidget(self.ringersPick1ComboBox)
+        for i in range(5):
+            thisBallerzPickContainer = QWidget()
+            thisBallerzPickLayout = QHBoxLayout(thisBallerzPickContainer)
+            ballerzOptionsLayout.addWidget(thisBallerzPickContainer)
+            thisPickLabel = QLabel(f"Pick {i + 1}")
+            thisPickComboBox = QComboBox()
+            thisPickComboBox.addItems(self.pickTypeOptions)
+            thisBallerzPickLayout.addWidget(thisPickLabel)
+            thisBallerzPickLayout.addWidget(thisPickComboBox)
+            self.playerPickComboBoxes.append(thisPickComboBox)
+        for i in range(5):
+            thisRingersPickContainer = QWidget()
+            thisRingersPickLayout = QHBoxLayout(thisRingersPickContainer)
+            ringersOptionsLayout.addWidget(thisRingersPickContainer)
+            thisPickLabel = QLabel(f"Pick {i + 1}")
+            thisPickComboBox = QComboBox()
+            thisPickComboBox.addItems(self.pickTypeOptions)
+            thisRingersPickLayout.addWidget(thisPickLabel)
+            thisRingersPickLayout.addWidget(thisPickComboBox)
+            self.playerPickComboBoxes.append(thisPickComboBox)
 
-        ringersPick2Container = QWidget()
-        ringersPick2Layout = QHBoxLayout(ringersPick2Container)
-        ringersOptionsLayout.addWidget(ringersPick2Container)
-        ringersPick2Label = QLabel("Pick 2")
-        self.ringersPick2ComboBox = QComboBox()
-        self.ringersPick2ComboBox.addItems(pickTypeOptions)
-        ringersPick2Layout.addWidget(ringersPick2Label)
-        ringersPick2Layout.addWidget(self.ringersPick2ComboBox)
+            self.contentOverrideCombo.currentTextChanged.connect(self.updateDraftContentSlots)
+            self.updateDraftContentSlots(self.contentOverrideCombo.currentText())
 
-        ringersPick3Container = QWidget()
-        ringersPick3Layout = QHBoxLayout(ringersPick3Container)
-        ringersOptionsLayout.addWidget(ringersPick3Container)
-        ringersPick3Label = QLabel("Pick 3")
-        self.ringersPick3ComboBox = QComboBox()
-        self.ringersPick3ComboBox.addItems(pickTypeOptions)
-        ringersPick3Layout.addWidget(ringersPick3Label)
-        ringersPick3Layout.addWidget(self.ringersPick3ComboBox)
-
-        ringersPick4Container = QWidget()
-        ringersPick4Layout = QHBoxLayout(ringersPick4Container)
-        ringersOptionsLayout.addWidget(ringersPick4Container)
-        ringersPick4Label = QLabel("Pick 4")
-        self.ringersPick4ComboBox = QComboBox()
-        self.ringersPick4ComboBox.addItems(pickTypeOptions)
-        ringersPick4Layout.addWidget(ringersPick4Label)
-        ringersPick4Layout.addWidget(self.ringersPick4ComboBox)
-
-        ringersPick5Container = QWidget()
-        ringersPick5Layout = QHBoxLayout(ringersPick5Container)
-        ringersOptionsLayout.addWidget(ringersPick5Container)
-        ringersPick5Label = QLabel("Pick 5")
-        self.ringersPick5ComboBox = QComboBox()
-        self.ringersPick5ComboBox.addItems(pickTypeOptions)
-        ringersPick5Layout.addWidget(ringersPick5Label)
-        ringersPick5Layout.addWidget(self.ringersPick5ComboBox)
-
-        # endregion === Ringers Picks ===
+        # endregion === Picks ===
 
         self.pickOptionsLayout.addStretch(1)
+
+    # This method generates a list that will determine the content of each pick slot
+    def genDraftContentFromPreset(self,draftContentPreset, playerCount: int):
+        returnSlots = []
+
+        if (draftContentPreset == "Normal"):
+            for i in range(10):
+                returnSlots.append("Normal")
+        elif (draftContentPreset == "Random"):
+            for i in range(10):
+                returnSlots.append("Random")
+        elif (draftContentPreset == "Semi-Random"):
+            for i in range(2):
+                returnSlots.append("Normal")
+                returnSlots.append("Random")
+                returnSlots.append("Normal")
+                returnSlots.append("Random")
+                returnSlots.append("Normal")
+        elif (draftContentPreset == "Archetypal-Random"):
+            for i in range(10):
+                returnSlots.append("Archetype (Random)")
+        elif (draftContentPreset == "Captains"):
+            for i in range(10):
+                if i != 0 and i != 5:
+                    returnSlots.append("Normal")
+                else:
+                    returnSlots.append("Random")
+        elif (draftContentPreset == "Affirmative-Action"):
+            for i in range(10):
+                if i == playerCount - 1 or i == playerCount + 4:
+                    returnSlots.append("Random")
+                else:
+                    returnSlots.append("Normal")
+        elif (draftContentPreset == "Archetype Showdown"):
+            archetypes = ["Archetype (Slayer)", "Archetype (Vigilante)", "Archetype (Medic)", "Archetype (Guardian)",
+                          "Archetype (Engineer)", "Archetype (Director)"]
+            ballerz = random.choice(archetypes)
+            ringers = random.choice(archetypes)
+
+            for i in range(5):
+                returnSlots.append(ballerz)
+            for i in range(5):
+                returnSlots.append(ringers)
+
+        elif (draftContentPreset == "Spritopian Duos"):
+            shootingArchetypes = ["Archetype (Slayer)", "Archetype (Vigilante)"]
+            nonShootingArchetypes = ["Archetype (Medic)", "Archetype (Guardian)", "Archetype (Engineer)",
+                                     "Archetype (Director)"]
+
+            ballerz1 = random.choice(shootingArchetypes)
+            ballerz2 = random.choice(nonShootingArchetypes)
+            ringers1 = random.choice(shootingArchetypes)
+            ringers2 = random.choice(nonShootingArchetypes)
+
+            ballerzPick = random.choice([ballerz1, ballerz2])
+            ringersPick = random.choice([ringers1, ringers2])
+            for i in range(5):
+                if i % 2 == 0:
+                    if ballerzPick == ballerz1:
+                        returnSlots.append(ballerz1)
+                    elif ballerzPick == ballerz2:
+                        returnSlots.append(ballerz2)
+                else:
+                    if ballerzPick == ballerz1:
+                        returnSlots.append(ballerz2)
+                    elif ballerzPick == ballerz2:
+                        returnSlots.append(ballerz1)
+
+            for i in range(5):
+                if i % 2 == 0:
+                    if ringersPick == ringers1:
+                        returnSlots.append(ringers1)
+                    elif ringersPick == ringers2:
+                        returnSlots.append(ringers2)
+                else:
+                    if ringersPick == ringers1:
+                        returnSlots.append(ringers2)
+                    elif ringersPick == ringers2:
+                        returnSlots.append(ringers1)
+
+        elif (draftContentPreset == "Chaos"):
+            for i in range(10):
+                returnSlots.append(random.choice(self.pickTypeOptions))
+
+        return returnSlots
+    def updateDraftContentSlots(self,draftContentPreset):
+        playerCount = int(self.playerCountSelectionCombo.currentText().split("v")[0])
+        draftContentList = self.genDraftContentFromPreset(draftContentPreset,playerCount)
+
+        for i, pickComboBox in enumerate(self.playerPickComboBoxes):
+            pickComboBox.setCurrentText(draftContentList[i])
+
+
+
+
 
     # Ban options setup
     def setupBanOptions(self):
