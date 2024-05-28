@@ -1,0 +1,10 @@
+{
+  "type": "song",
+  "id": "some_more_work",
+  "path": "some_more_work.mp3",
+  "name": "Some More Work",
+  "artist": "Michael Davis-Jones",
+  "tags": [],
+  "timestamps": {
+  }
+}

@@ -80,6 +80,7 @@ class PlayerBio(QWidget):
         if(artifactPMod is not None):
             artifactPixmap = QPixmap(paths["graphics"] / artifactPMod["Image"])
             self.artifactImage.setPixmap(artifactPixmap.scaled(75,75,Qt.KeepAspectRatio,Qt.SmoothTransformation))
+            self.artifactImage.setToolTip(artifactPMod["Description"])
 
         # Set player name
         self.playerName.setText(f"{thisPlayer['First_Name']} {thisPlayer['Last_Name']}")
