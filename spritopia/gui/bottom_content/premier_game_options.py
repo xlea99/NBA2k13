@@ -367,5 +367,3 @@ class PremierGameOptions(QWidget):
     # Ban options setup
     def setupBanOptions(self):
         pass
-
-
