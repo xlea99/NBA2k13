@@ -26,5 +26,5 @@ class BottomContentWidget(QMainWindow):
         }
         """)
 
-        self.premierGameOptions = PremierGameOptions()
-        self.layout.addWidget(self.premierGameOptions)
+        #self.premierGameOptions = PremierGameOptions() #TODO TEMP DISABLED
+        #self.layout.addWidget(self.premierGameOptions)

@@ -657,7 +657,7 @@ def updateFacialHairColor():
     conn.commit()
     conn.close()
 
-#genBlankFactionsDatabase(paths["factions"] / "Factions.db")
+genBlankFactionsDatabase(paths["factions"] / "Factions.db")
 updateRaces()
 updateGearTypes()
 updateGearItems()

@@ -44,8 +44,15 @@ class MainWindow(QMainWindow):
         self.bottomContent.setObjectName("bottomContentArea")
         self.bottomContent.setStyleSheet("#bottomContentArea {border: 1px solid black;}") #TODO TEMP
 
-        self.mainContentOuterLayout.addWidget(self.mainContent,2)
-        self.mainContentOuterLayout.addWidget(self.bottomContent,1)
+        self.mainContentOuterLayout.addWidget(self.mainContent,5)
+        self.mainContentOuterLayout.addWidget(self.bottomContent,3)
+
+
+        # Menu bar
+        menuBar = self.menuBar()
+        gameMenu = menuBar.addMenu("&Game")
+        beansMenu = menuBar.addMenu("&Beans")
+
 
         self.showMaximized()
 
