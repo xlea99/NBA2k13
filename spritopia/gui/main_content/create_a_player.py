@@ -13,5 +13,13 @@ class CreateAPlayer(QWidget):
     # Initialize UI and tracking variables
     def __init__(self,parent=None):
         super().__init__(parent)
-        self.layout = QHBoxLayout()
-        self.layout.addStretch(1)
+        self.createAPlayerLayout = QHBoxLayout(self)
+
+
+        aLabel = QLabel("Beans!")
+        thisFont = QFont("Arial",24)
+        aLabel.setFont(thisFont)
+        self.createAPlayerLayout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.createAPlayerLayout.addWidget(aLabel)
+
