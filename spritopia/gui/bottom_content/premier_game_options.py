@@ -60,7 +60,6 @@ class PremierGameOptions(QWidget):
 
         # Game Options Caption
         self.gameOptionsTitleGameLabel = AutoResizeLabel("Game Options", autoWrap=True)
-        #self.gameOptionsTitleGameLabel.setMaximumWidth(30)
         self.gameOptionsTitleGameLabel.setFont(QFont("Arial", 20))
         self.gameOptionsTitleGameLabel.setAlignment(Qt.AlignmentFlag.AlignLeft)
         gameModeSelectionLayout.addWidget(self.gameOptionsTitleGameLabel)
@@ -362,9 +361,11 @@ class PremierGameOptions(QWidget):
         vLine.setFrameShadow(QFrame.Sunken)
         self.pickOptionsLayout.addWidget(vLine)
 
-
+        num = 280
         #region === Picks ===
         ballerzOptionsContainer = QWidget()
+        ballerzOptionsContainer.setSizePolicy(QSizePolicy.Policy.Preferred,QSizePolicy.Policy.Maximum)
+        ballerzOptionsContainer.setMaximumHeight(self.pickOptionsContainer.height() - num)
         ballerzOptionsLayout = QVBoxLayout(ballerzOptionsContainer)
         self.pickOptionsLayout.addWidget(ballerzOptionsContainer)
         ballerzPicksHeaderLabel = QLabel("Ballerz Picks")
@@ -372,6 +373,8 @@ class PremierGameOptions(QWidget):
         ballerzOptionsLayout.addWidget(ballerzPicksHeaderLabel)
 
         ringersOptionsContainer = QWidget()
+        ringersOptionsContainer.setSizePolicy(QSizePolicy.Policy.Preferred,QSizePolicy.Policy.Maximum)
+        ringersOptionsContainer.setMaximumHeight(self.pickOptionsContainer.height() - num)
         ringersOptionsLayout = QVBoxLayout(ringersOptionsContainer)
         self.pickOptionsLayout.addWidget(ringersOptionsContainer)
         ringersPicksHeaderLabel = QLabel("Ringers Picks")
@@ -379,9 +382,9 @@ class PremierGameOptions(QWidget):
         ringersOptionsLayout.addWidget(ringersPicksHeaderLabel)
 
         self.playerPickComboBoxes = []
-
         for i in range(5):
             thisBallerzPickContainer = QWidget()
+            thisBallerzPickContainer.setMinimumHeight(40)
             thisBallerzPickLayout = QHBoxLayout(thisBallerzPickContainer)
             ballerzOptionsLayout.addWidget(thisBallerzPickContainer)
             thisPickLabel = QLabel(f"Pick {i + 1}")
@@ -392,6 +395,7 @@ class PremierGameOptions(QWidget):
             self.playerPickComboBoxes.append(thisPickComboBox)
         for i in range(5):
             thisRingersPickContainer = QWidget()
+            thisRingersPickContainer.setMinimumHeight(40)
             thisRingersPickLayout = QHBoxLayout(thisRingersPickContainer)
             ringersOptionsLayout.addWidget(thisRingersPickContainer)
             thisPickLabel = QLabel(f"Pick {i + 1}")
@@ -401,8 +405,8 @@ class PremierGameOptions(QWidget):
             thisRingersPickLayout.addWidget(thisPickComboBox)
             self.playerPickComboBoxes.append(thisPickComboBox)
 
-            self.contentOverrideCombo.currentTextChanged.connect(self.updateDraftContentSlots)
-            self.updateDraftContentSlots(self.contentOverrideCombo.currentText())
+        self.contentOverrideCombo.currentTextChanged.connect(self.updateDraftContentSlots)
+        self.updateDraftContentSlots(self.contentOverrideCombo.currentText())
 
         # endregion === Picks ===
 
@@ -498,9 +502,6 @@ class PremierGameOptions(QWidget):
 
         for i, pickComboBox in enumerate(self.playerPickComboBoxes):
             pickComboBox.setCurrentText(draftContentList[i])
-
-
-
 
 
     # Ban options setup
