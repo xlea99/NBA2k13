@@ -237,6 +237,11 @@ class PremierGameOptions(QWidget):
         vLine.setFrameShadow(QFrame.Sunken)
         self.generalOptionsLayout.addWidget(vLine)
 
+        #subWidgetMaxHeight = self.generalOptionsContainer.height() - 300
+        #basicGameOptionsContainer.setMaximumHeight(subWidgetMaxHeight)
+        #commonOptionsContainer.setMaximumHeight(subWidgetMaxHeight)
+
+
         self.generalOptionsLayout.addStretch(2)
     def onGameModeComboUpdate(self):
         currentlySelectGameModeData = self.gameModeComboBox.currentData()
@@ -291,10 +296,6 @@ class PremierGameOptions(QWidget):
 
         self.pickOptionsLayout.addWidget(draftOptionsContainer)
 
-        # endregion === Draft Options ===
-
-        # region === Ban Options ===
-
         # Bans selection
         banCountContainer = QWidget()
         banCountLayout = QHBoxLayout(banCountContainer)
@@ -317,7 +318,7 @@ class PremierGameOptions(QWidget):
         randomBanCountLayout.addWidget(self.randomBanCountSpinBox)
         draftOptionsLayout.addWidget(randomBanCountContainer)
 
-        # endregion === Ban Options ===
+        # endregion === Draft Options ===
 
         # Line
         vLine = QFrame()
@@ -361,11 +362,10 @@ class PremierGameOptions(QWidget):
         vLine.setFrameShadow(QFrame.Sunken)
         self.pickOptionsLayout.addWidget(vLine)
 
-        num = 280
+
         #region === Picks ===
         ballerzOptionsContainer = QWidget()
         ballerzOptionsContainer.setSizePolicy(QSizePolicy.Policy.Preferred,QSizePolicy.Policy.Maximum)
-        ballerzOptionsContainer.setMaximumHeight(self.pickOptionsContainer.height() - num)
         ballerzOptionsLayout = QVBoxLayout(ballerzOptionsContainer)
         self.pickOptionsLayout.addWidget(ballerzOptionsContainer)
         ballerzPicksHeaderLabel = QLabel("Ballerz Picks")
@@ -374,7 +374,6 @@ class PremierGameOptions(QWidget):
 
         ringersOptionsContainer = QWidget()
         ringersOptionsContainer.setSizePolicy(QSizePolicy.Policy.Preferred,QSizePolicy.Policy.Maximum)
-        ringersOptionsContainer.setMaximumHeight(self.pickOptionsContainer.height() - num)
         ringersOptionsLayout = QVBoxLayout(ringersOptionsContainer)
         self.pickOptionsLayout.addWidget(ringersOptionsContainer)
         ringersPicksHeaderLabel = QLabel("Ringers Picks")
@@ -409,6 +408,13 @@ class PremierGameOptions(QWidget):
         self.updateDraftContentSlots(self.contentOverrideCombo.currentText())
 
         # endregion === Picks ===
+
+        # Height adjustments
+        #subWidgetMaxHeight = self.pickOptionsContainer.height() - 300
+        #draftOptionsContainer.setMaximumHeight(subWidgetMaxHeight)
+        #banCountContainer.setMaximumHeight(subWidgetMaxHeight)
+        #ballerzOptionsContainer.setMaximumHeight(subWidgetMaxHeight)
+        #ringersOptionsContainer.setMaximumHeight(subWidgetMaxHeight)
 
         self.pickOptionsLayout.addStretch(1)
 

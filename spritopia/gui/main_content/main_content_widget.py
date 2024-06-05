@@ -2,9 +2,11 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.gui.main_content.picker_menu import PickerMenu
+from spritopia.gui.main_content.create_a_player import CreateAPlayer
 
 
 class MainContentWidget(QMainWindow):
+
     def __init__(self):
         super().__init__()
 
@@ -21,5 +23,6 @@ class MainContentWidget(QMainWindow):
         }
         """)
 
-        self.pickerMenuWidget = PickerMenu(self)
-        self.layout.addWidget(self.pickerMenuWidget)
+        #self.pickerMenuWidget = PickerMenu(self)
+        self.createAPlayer = CreateAPlayer()
+        self.layout.addWidget(self.createAPlayer)

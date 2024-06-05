@@ -78,8 +78,8 @@ class PlayerCard(QWidget):
         self.setSpriteID(self.spriteID)
 
     def __setToWideSize(self):
-        self.setMinimumHeight(120)
-        self.setMaximumHeight(120)
+        #self.setMinimumHeight(120)
+        #self.setMaximumHeight(120)
         self.setMinimumWidth(300)
         self.setMaximumWidth(300)
 
