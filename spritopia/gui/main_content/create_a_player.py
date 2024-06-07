@@ -30,7 +30,7 @@ class CreateAPlayer(QWidget):
 
         # Clear button
         self.clearButton = QPushButton("Clear")
-        self.clearButton.setIcon(QIcon("D:/Coding/NBA2k13/assets/graphics/MusicIcons/warning.png"))
+        self.clearButton.setIcon(QIcon(str(paths["graphics"] / "warning.png")))
         self.createAPlayerQueueLayout.addWidget(self.clearButton)
 
         # Execute button

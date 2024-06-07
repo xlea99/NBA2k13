@@ -2,7 +2,7 @@
 #from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.gui.bottom_content.bottom_content_widget import BottomContentWidget
-from spritopia.gui.main_content.main_content_widget import MainContentWidget
+from spritopia.gui.main_content.main_content_widget import MainContentOuterWidget
 from spritopia.gui.left_sidebar.left_sidebar_widget import LeftSidebarWidget
 import sys
 
@@ -29,30 +29,17 @@ class MainWindow(QMainWindow):
 
 
         # Initialize outer main content area
-        self.mainContentOuter = QWidget()
-        self.mainContentOuterLayout = QVBoxLayout(self.mainContentOuter)  # Placeholder layout
-        self.mainContentOuterLayout.setSpacing(0)  # No space between widgets
-        self.mainContentOuterLayout.setContentsMargins(0, 0, 0, 0)  # No margins
+        self.mainContentOuter = MainContentOuterWidget()
         self.mainLayout.addWidget(self.mainContentOuter,3)  # Add to layout with stretch factor
 
-        self.mainContent = MainContentWidget()
-        self.mainContent.setObjectName("mainContentArea")
-        self.mainContent.setStyleSheet("#mainContentArea {border: 1px solid black;}")  # TODO TEMP
+        #self.mainContent = MainContentOuterWidget()
+        #self.mainContent.setObjectName("mainContentArea")
+        #self.mainContent.setStyleSheet("#mainContentArea {border: 1px solid black;}")  # TODO TEMP
         #self.mainContent.setStyleSheet("border: 1px solid black;")  # TODO TEMP
 
-        self.bottomContent = BottomContentWidget()
-        self.bottomContent.setObjectName("bottomContentArea")
-        self.bottomContent.setStyleSheet("#bottomContentArea {border: 1px solid black;}") #TODO TEMP
-
-        self.mainContentOuterLayout.addWidget(self.mainContent,5)
-        self.mainContentOuterLayout.addWidget(self.bottomContent,3)
-
-
-        # Menu bar
-        menuBar = self.menuBar()
-        gameMenu = menuBar.addMenu("&Game")
-        beansMenu = menuBar.addMenu("&Beans")
-
+        #self.bottomContent = BottomContentWidget()
+        #self.bottomContent.setObjectName("bottomContentArea")
+        #self.bottomContent.setStyleSheet("#bottomContentArea {border: 1px solid black;}") #TODO TEMP
 
         self.showMaximized()
 
