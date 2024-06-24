@@ -2,8 +2,9 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.gui.main_content.picker_menu import PickerMenu
-from spritopia.gui.main_content.create_a_player import CreateAPlayer
+from spritopia.gui.main_content.premier_create_a_player import PremierCreateAPlayer
 from spritopia.gui.bottom_content.premier_game_options import PremierGameOptions
+from spritopia.gui.bottom_content.cap_reveal import CAPReveal
 
 
 class MainContentOuterWidget(QMainWindow):
@@ -35,7 +36,7 @@ class MainContentOuterWidget(QMainWindow):
 
         # All middle contents
         self.middleContents["Premier_Picker"] = PickerMenu()
-        self.middleContents["Premier_CAP"] = CreateAPlayer()
+        self.middleContents["Premier_CAP"] = PremierCreateAPlayer()
 
         #endregion === Middle Content ===
 
@@ -58,6 +59,7 @@ class MainContentOuterWidget(QMainWindow):
 
         # All bottom contents
         self.bottomContents["Premier_GameOptions"] = PremierGameOptions()
+        self.bottomContents["Premier_CAPReveal"] = CAPReveal()
 
         #endregion === Bottom Content ===
 
@@ -75,6 +77,10 @@ class MainContentOuterWidget(QMainWindow):
         gauntletMenu.addAction("God Room")
 
         #endregion === Menu Bar ===
+
+
+        #TODO TEMP
+        self.goto_premier_cap()
 
 
     # Helper methods to update specific content areas with the given content ID. #TODO modify these later to support contents that need to be reinitialized on update
@@ -111,4 +117,4 @@ class MainContentOuterWidget(QMainWindow):
         self.updateBottomContent("Premier_GameOptions")
     def goto_premier_cap(self):
         self.updateMiddleContent("Premier_CAP")
-        self.updateBottomContent(None)
+        self.updateBottomContent("Premier_CAPReveal")

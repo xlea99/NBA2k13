@@ -2,54 +2,56 @@ from PySide6.QtWidgets import QLabel, QApplication, QWidget, QVBoxLayout
 from PySide6.QtGui import QFontMetrics, QFont
 from PySide6.QtCore import Qt
 import re
+import sys
 
 # This class provides text that automatically resizes itself to fit the maximum height
 # and width of the label it exists in. AutoWrap automatically ensures only one word is on
 # each wrapped line.
 class AutoResizeLabel(QLabel):
 
-    def __init__(self, text="", parent=None,baseFont=None,autoWrap=False):
+    def __init__(self, text="", parent=None, baseFont=None, autoWrap=False):
         super().__init__(text, parent)
-
         self.autoWrap = autoWrap
-
-        if(baseFont is None):
-            self.baseFont = self.font()
-        else:
-            self.baseFont = baseFont
+        self.setWordWrap(self.autoWrap)
+        self.baseFont = baseFont if baseFont is not None else self.font()
         self.adjustFontSize()
 
     def adjustFontSize(self):
-        # Create a QFont based on the current label font
+        if not self.text():
+            return
+
+        # Prepare the font and metrics
         font = QFont(self.baseFont)
+        fm = QFontMetrics(font)
 
-        if(self.autoWrap):
-            rePattern = r'[\t\n ]+'
-        else:
-            rePattern = r'[\n]+'
-        lines = re.split(rePattern, self.text())
+        # Define a range for font sizes with a more practical minimum size
+        min_size, max_size = 8, 100  # Increased minimum size for readability
+        last_good_size = max(self.font().pointSize(), min_size)  # Start from the current font size
 
-        # Start with a existing font size and decrease it until the text fits
-        for font_size in range(font.pointSize(), 1, -1):
+        while min_size < max_size:
+            font_size = (min_size + max_size) // 2
             font.setPointSize(font_size)
-            # QFontMetrics gives us information about how the text will be rendered
             fm = QFontMetrics(font)
 
-            # Measure each line's width and find the maximum
-            maxLineWidth = max(fm.horizontalAdvance(line) for line in lines)
+            if self.autoWrap:
+                rect = fm.boundingRect(0, 0, self.width(), 10000, Qt.TextWordWrap | Qt.TextExpandTabs, self.text())
+            else:
+                rect = fm.boundingRect(self.text())
 
-            # Check if the widest line fits within the current label size
-            if maxLineWidth <= self.maximumWidth() and fm.height() * len(lines) <= self.maximumHeight():
-                super().setFont(font)
-                break
+            if rect.height() <= self.height() and rect.width() <= self.width():
+                last_good_size = font_size
+                min_size = font_size + 1
+            else:
+                max_size = font_size
 
-    # Override setFont to ensure this remembers the baseFont to refer back to.
-    def setFont(self,font):
-        super().setFont(font)
-        self.baseFont = font
+        # Apply last good size ensuring it doesn't drop below min_size
+        font.setPointSize(max(last_good_size, min_size) - 2)
+        self.setFont(font)
+
+    def setText(self, text):
+        super().setText(text)
+        self.adjustFontSize()
 
     def resizeEvent(self, event):
-        # Call the base class method to ensure proper event handling
         super().resizeEvent(event)
-        # Adjust the font size whenever the label is resized
         self.adjustFontSize()
