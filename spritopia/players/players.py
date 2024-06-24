@@ -1106,6 +1106,15 @@ class Player:
                 returnString += f" ({self.idMap[key][value]})"
             returnString += "\n"
         return returnString
+    # String method for displaying an overview - more detailed than just a name, but enough to fit on one line.
+    def getOverviewString(self):
+        returnString = f"{self.__spriteID}| ({self['Archetype_Name'][0]}) {self.getFullName()}, {self['Faction']} | "
+        if(self["Rarity"] == "Common"):
+            returnString += f"{self['Rarity']} |"
+        else:
+            returnString += f"{self['Rarity']} ({self.getArtifactPMod()['Name']})"
+
+        return returnString
 
     # Simple comparator methods for comparing players by their names.
     def __lt__(self, other):
@@ -1291,6 +1300,13 @@ class Player:
     # in extremely specific circumstances.
     def overrideSpriteID(self,newSpriteID):
         self.__spriteID = newSpriteID
+
+    # Helper method for returning the full PMod dict of this player's artifact
+    def getArtifactPMod(self):
+        if(self.pmods):
+            for pmod in self.pmods:
+                if(pmod["Type"]["TypeName"] == "Artifact"):
+                    return pmod
 
     #endregion === Getter and Setter ===
 
@@ -1789,8 +1805,9 @@ class Player:
             self.compilePMod(pmod=pmod)
 
         self.hasPendingUpdates = True
+
     # Helper method that connects to Factions.py to generate random or specific faction information for this player.
-    def genFaction(self,faction : str = None):
+    def genFaction(self,faction : str = None,randomizeName=True):
         if(faction is None):
             faction = factions.getRandomFaction()
         self["Faction"] = faction
@@ -1799,6 +1816,7 @@ class Player:
         factions.genFactionHair(faction=faction, player=self)
         factions.genFactionTattoos(faction=faction, player=self)
         factions.genFactionName(faction=faction, player=self)
+
 
     #endregion === Generators ===
 
@@ -1836,3 +1854,5 @@ class Player:
         return pmodToRevert
 
     #endregion === PMod ===
+
+
