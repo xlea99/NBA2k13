@@ -26,12 +26,12 @@ MAPPED_ATTRIBUTES = {"SShtIns": "Shot Inside",
                     "SSteal": "Steal",
                     "SHands": "Hands",
                     "SOnBallD": "On Ball Defense",
-                    "SOReb": "Offensive Rebound",
-                    "SDReb": "Defensive Rebound",
+                    "SOReb": "Off. Rebound",
+                    "SDReb": "Def. Rebound",
                     "SOLowPost": "Low Post Offense",
                     "SDLowPost": "Low Post Defense",
-                    "SOAwar": "Offensive Awareness",
-                    "SDAwar": "Defensive Awareness",
+                    "SOAwar": "Off. Awareness",
+                    "SDAwar": "Def. Awareness",
                     "SConsis": "Consistency",
                     "SStamina": "Stamina",
                     "SSpeed": "Speed",
@@ -46,55 +46,10 @@ MAPPED_ATTRIBUTES = {"SShtIns": "Shot Inside",
 # This class represents a specific character 'Archetype,' of which
 # there are 6.
 class Archetype:
-    # This is a unique ID to distinguish between multiple archetypes.
-    __archetypeID = 0
-    archetypeName = ""
-
-    # This is a list of all character skills available to the archetype.
-    availableSkillCards = []
-
-    # This stores the range of possible heights of the archetype.
-    heightRange = []
-
-    # This array stores which variables (indexed IDs) are 'core' to the
-    # archetype, and the inverse.
-    accentedAttributes = []
-    unaccentedAttributes = []
-
-    primaryAttributes = []
-    secondaryAttributes = []
-    tertiaryAttributes = []
-    generalAttributes = GENERAL_ATTRIBUTES
-
-
-    # This array contains valid team IDs for each archetype.
-    validTeams = []
-
-    # This value correlates to an in-game position that will always be used per archetype. Positions
-    # are as follows:
-    #
-    # 0 - Point Guard
-    # 1 - Shooting Guard
-    # 2 - Small Forward
-    # 3 - Power Forward
-    # 4 - Center
-    # 5 - None
-    inGamePositionId = 5
-    inGameSecondaryPositionId = 5
-    inGamePositionString = "None"
-    inGameSecondaryPositionString = "None"
-
-    # Whether or not the player is a play initiator. Limited only to directors and engineers.
-    isPlayInitiator = 0
-
-    # This value relates to the ID number set in "TeamId1" and "TeamID2" to
-    # get respective player jerseys by archetype.
-    jerseyTeamId = -1
-
     def __init__(self, _archetypeID, _archetypeName):
+        # This is a unique ID to distinguish between multiple archetypes.
         self.__archetypeID = _archetypeID
         self.archetypeName = _archetypeName
-
 
         self.attributeRanges = {"SShtIns" : [25,30],
                         "SShtCls" : [25,30],
@@ -132,6 +87,50 @@ class Archetype:
                         "SDurab" : [25,30],
                         "SPOT" : [25,30],
                         "SEmotion" : [25,30]}
+
+        # This is a list of all character skills available to the archetype.
+        self.availableSkillCards = []
+
+        # This stores the range of possible heights of the archetype.
+        self.heightRange = []
+
+        # This array stores which variables (indexed IDs) are 'core' to the
+        # archetype, and the inverse.
+        self.accentedAttributes = []
+        self.unaccentedAttributes = []
+
+        self.primaryAttributes = []
+        self.secondaryAttributes = []
+        self.tertiaryAttributes = []
+        self.generalAttributes = GENERAL_ATTRIBUTES
+
+        # This list roughly ranks the "importance" of each attribute to archetype.
+        self.attributeImportance = []
+
+        # This array contains valid team IDs for each archetype.
+        self.validTeams = []
+
+        # This value correlates to an in-game position that will always be used per archetype. Positions
+        # are as follows:
+        #
+        # 0 - Point Guard
+        # 1 - Shooting Guard
+        # 2 - Small Forward
+        # 3 - Power Forward
+        # 4 - Center
+        # 5 - None
+        self.inGamePositionId = 5
+        self.inGameSecondaryPositionId = 5
+        self.inGamePositionString = "None"
+        self.inGameSecondaryPositionString = "None"
+
+        # Whether or not the player is a play initiator. Limited only to directors and engineers.
+        self.isPlayInitiator = 0
+
+        # This value relates to the ID number set in "TeamId1" and "TeamID2" to
+        # get respective player jerseys by archetype.
+        self.jerseyTeamId = -1
+
 
         # Here, all tendencies are listed as two number arrays.
         self.t_ShotTnd = []
@@ -301,6 +300,7 @@ ARCH_SLAYER.tertiaryAttributes = DEFENSIVE_ATTRIBUTES
 
 ARCH_SLAYER.accentedAttributes = ["SLayUp", "SShtMed","SSht3PT","SShtOfD","SConsis","SOAwar","SPass","SSpeed","SHustle","SQuick","SDLowPost","SStrength","SBlock","SOnBallD"]
 ARCH_SLAYER.unaccentedAttributes = ['SShtCls', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SShtInT', 'SOReb', 'SDReb', 'SDAwar', 'SOffHDrib', 'SHands', 'SBallHndl', 'SBallSec', 'SSteal', 'SShtIns', 'SDunk', 'SStdDunk', 'SVertical', 'SShtFT', 'SStamina', 'SDurab', 'SPOT']
+ARCH_SLAYER.attributeImportance = ['SSht3PT', 'SSpeed', 'SShtOfD', 'SConsis', 'SShtInT', 'SBallSec', 'SVertical', 'SSteal', 'SDReb', 'SOReb', 'SBallHndl', 'SOffHDrib', 'SDunk', 'SQuick', 'SOAwar', 'SOnBallD', 'SDAwar', 'SLayUp', 'SShtMed', 'SHands', 'SPass', 'SHustle', 'SStrength', 'SBlock', 'SShtIns', 'SStdDunk', 'SShtCls', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SDLowPost']
 ARCH_SLAYER.attributeRanges["SOffHDrib"] = [45, 65]
 ARCH_SLAYER.attributeRanges["SHands"] = [45, 65]
 ARCH_SLAYER.attributeRanges["SOAwar"] = [50, 70]
@@ -477,6 +477,7 @@ ARCH_VIGILANTE.tertiaryAttributes = CONTROL_ATTRIBUTES
 
 ARCH_VIGILANTE.accentedAttributes = ["SShtCls","SPstFdaway","SPstHook","SOLowPost","SShtInT","SDLowPost","SStrength","SBlock","SOnBallD","SOAwar","SHustle","SPass","SSpeed","SQuick"]
 ARCH_VIGILANTE.unaccentedAttributes = ['SLayUp', 'SShtMed', 'SSht3PT', 'SShtOfD', 'SConsis', 'SOReb', 'SDReb', 'SDAwar', 'SOffHDrib', 'SHands', 'SBallHndl', 'SBallSec', 'SSteal', 'SShtIns', 'SDunk', 'SStdDunk', 'SVertical', 'SShtFT', 'SStamina', 'SDurab', 'SPOT']
+ARCH_VIGILANTE.attributeImportance = ['SSht3PT', 'SShtInT', 'SShtOfD', 'SSpeed', 'SConsis', 'SVertical', 'SDReb', 'SOReb', 'SOnBallD', 'SDunk', 'SSteal', 'SLayUp', 'SBallHndl', 'SBallSec', 'SStrength', 'SBlock', 'SDAwar', 'SStdDunk', 'SShtMed', 'SShtCls', 'SOffHDrib', 'SHands', 'SOAwar', 'SPass', 'SQuick', 'SHustle', 'SDLowPost', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SShtIns']
 ARCH_VIGILANTE.attributeRanges["SOffHDrib"] = [25, 40]
 ARCH_VIGILANTE.attributeRanges["SHands"] = [25, 40]
 ARCH_VIGILANTE.attributeRanges["SOAwar"] = [30, 50]
@@ -652,6 +653,7 @@ ARCH_MEDIC.tertiaryAttributes = OFFENSIVE_ATTRIBUTES
 
 ARCH_MEDIC.accentedAttributes = ["SShtCls","SOAwar","SPstFdaway","SPstHook","SOLowPost","SShtInT","SOReb", "SDReb", "SDAwar","SOffHDrib","SHands","SBallSec","SBallHndl","SSteal"]
 ARCH_MEDIC.unaccentedAttributes = ['SLayUp', 'SShtMed', 'SSht3PT', 'SShtOfD', 'SConsis', 'SDLowPost', 'SStrength', 'SBlock', 'SOnBallD', 'SHustle', 'SPass', 'SSpeed', 'SQuick', 'SShtIns', 'SDunk', 'SStdDunk', 'SVertical', 'SShtFT', 'SStamina', 'SDurab', 'SPOT']
+ARCH_MEDIC.attributeImportance = ['SVertical', 'SDReb', 'SOReb', 'SSpeed', 'SPass', 'SDAwar', 'SSteal', 'SSht3PT', 'SBallSec', 'SOnBallD', 'SOAwar', 'SQuick', 'SHustle', 'SBlock', 'SStrength', 'SHands', 'SOffHDrib', 'SBallHndl', 'SDunk', 'SStdDunk', 'SShtIns', 'SShtInT', 'SShtOfD', 'SConsis', 'SShtCls', 'SShtMed', 'SLayUp', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SDLowPost']
 ARCH_MEDIC.attributeRanges["SOffHDrib"] = [55, 75]
 ARCH_MEDIC.attributeRanges["SHands"] = [60, 80]
 ARCH_MEDIC.attributeRanges["SOAwar"] = [40, 60]
@@ -827,6 +829,7 @@ ARCH_GUARDIAN.tertiaryAttributes = CONTROL_ATTRIBUTES
 
 ARCH_GUARDIAN.accentedAttributes = ["SShtCls","SPstFdaway","SPstHook","SOLowPost","SShtInT","SDLowPost", "SStrength", "SBlock", "SOnBallD","SOffHDrib","SHands","SBallHndl","SBallSec","SSteal"]
 ARCH_GUARDIAN.unaccentedAttributes = ['SLayUp', 'SShtMed', 'SSht3PT', 'SShtOfD', 'SConsis', 'SOReb', 'SDReb', 'SDAwar', 'SOAwar', 'SHustle', 'SPass', 'SSpeed', 'SQuick', 'SShtIns', 'SDunk', 'SStdDunk', 'SVertical', 'SShtFT', 'SStamina', 'SDurab', 'SPOT']
+ARCH_GUARDIAN.attributeImportance = ['SSht3PT', 'SDReb', 'SOReb', 'SOnBallD', 'SDAwar', 'SSpeed', 'SShtInT', 'SVertical', 'SBallHndl', 'SBallSec', 'SOAwar', 'SSteal', 'SHands', 'SQuick', 'SHustle', 'SDunk', 'SStdDunk', 'SLayUp', 'SShtMed', 'SShtOfD', 'SConsis', 'SPass', 'SOffHDrib', 'SShtIns', 'SShtCls', 'SStrength', 'SBlock', 'SDLowPost', 'SPstFdaway', 'SPstHook', 'SOLowPost']
 ARCH_GUARDIAN.attributeRanges["SOffHDrib"] = [35, 50]
 ARCH_GUARDIAN.attributeRanges["SHands"] = [35, 50]
 ARCH_GUARDIAN.attributeRanges["SOAwar"] = [25, 35]
@@ -1004,6 +1007,7 @@ ARCH_ENGINEER.isPlayInitiator = 1
 
 ARCH_ENGINEER.accentedAttributes = ["SLayUp","SShtMed","SSht3PT","SShtOfD","SConsis","SOReb", "SDReb", "SDAwar", "SOffHDrib", "SHands", "SBallSec", "SBallHndl", "SSteal"]
 ARCH_ENGINEER.unaccentedAttributes = ['SShtCls', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SShtInT', 'SDLowPost', 'SStrength', 'SBlock', 'SOnBallD', 'SOAwar', 'SHustle', 'SPass', 'SSpeed', 'SQuick', 'SShtIns', 'SDunk', 'SStdDunk', 'SVertical', 'SShtFT', 'SStamina', 'SDurab', 'SPOT']
+ARCH_ENGINEER.attributeImportance = ['SBallSec', 'SSpeed', 'SSteal', 'SDAwar', 'SDReb', 'SOReb', 'SSht3PT', 'SVertical', 'SOAwar', 'SBallHndl', 'SQuick', 'SHustle', 'SHands', 'SPass', 'SOffHDrib', 'SOnBallD', 'SStrength', 'SBlock', 'SShtInT', 'SShtOfD', 'SConsis', 'SLayUp', 'SDunk', 'SStdDunk', 'SShtIns', 'SShtMed', 'SPstFdaway', 'SPstHook', 'SShtCls', 'SDLowPost', 'SOLowPost']
 ARCH_ENGINEER.attributeRanges["SOffHDrib"] = [85, 99]
 ARCH_ENGINEER.attributeRanges["SHands"] = [85, 99]
 ARCH_ENGINEER.attributeRanges["SOAwar"] = [70, 90]
@@ -1181,6 +1185,7 @@ ARCH_DIRECTOR.isPlayInitiator = 1
 
 ARCH_DIRECTOR.accentedAttributes = ["SLayUp", "SShtMed", "SSht3PT", "SShtOfD", "SConsis", "SOAwar", "SPass", "SSpeed", "SHustle", "SQuick","SOReb","SDReb","SDAwar"]
 ARCH_DIRECTOR.unaccentedAttributes = ['SShtCls', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SShtInT', 'SDLowPost', 'SStrength', 'SBlock', 'SOnBallD', 'SOffHDrib', 'SHands', 'SBallHndl', 'SBallSec', 'SSteal', 'SShtIns', 'SDunk', 'SStdDunk', 'SVertical', 'SShtFT', 'SStamina', 'SDurab', 'SPOT']
+ARCH_DIRECTOR.attributeImportance = ['SSht3PT', 'SSpeed', 'SBallSec', 'SBallHndl', 'SQuick', 'SSteal', 'SVertical', 'SShtOfD', 'SConsis', 'SHustle', 'SOffHDrib', 'SHands', 'SPass', 'SShtInT', 'SDAwar', 'SOReb', 'SDReb', 'SOAwar', 'SDunk', 'SStdDunk', 'SLayUp', 'SShtCls', 'SOnBallD', 'SStrength', 'SBlock', 'SShtMed', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SShtIns', 'SDLowPost']
 ARCH_DIRECTOR.attributeRanges["SOffHDrib"] = [70, 90]
 ARCH_DIRECTOR.attributeRanges["SHands"] = [75, 95]
 ARCH_DIRECTOR.attributeRanges["SOAwar"] = [80, 99]
@@ -1356,6 +1361,7 @@ ARCH_NONE.tertiaryAttributes = CONTROL_ATTRIBUTES
 
 ARCH_NONE.accentedAttributes = ["SLayUp", "SShtMed","SSht3PT","SShtOfD","SConsis","SOAwar","SPass","SSpeed","SHustle","SQuick","SDLowPost","SStrength","SBlock","SOnBallD"]
 ARCH_NONE.unaccentedAttributes = ['SShtCls', 'SPstFdaway', 'SPstHook', 'SOLowPost', 'SShtInT', 'SOReb', 'SDReb', 'SDAwar', 'SOffHDrib', 'SHands', 'SBallHndl', 'SBallSec', 'SSteal', 'SShtIns', 'SDunk', 'SStdDunk', 'SVertical', 'SShtFT', 'SStamina', 'SDurab', 'SPOT']
+ARCH_NONE.attributeImportance = ['SSht3PT', 'SDReb', 'SOReb', 'SOnBallD', 'SDAwar', 'SSpeed', 'SShtInT', 'SVertical', 'SBallHndl', 'SBallSec', 'SOAwar', 'SSteal', 'SHands', 'SQuick', 'SHustle', 'SDunk', 'SStdDunk', 'SLayUp', 'SShtMed', 'SShtOfD', 'SConsis', 'SPass', 'SOffHDrib', 'SShtIns', 'SShtCls', 'SStrength', 'SBlock', 'SDLowPost', 'SPstFdaway', 'SPstHook', 'SOLowPost']
 ARCH_NONE.attributeRanges["SOffHDrib"] = [25, 99]
 ARCH_NONE.attributeRanges["SHands"] = [25, 99]
 ARCH_NONE.attributeRanges["SOAwar"] = [25, 99]
