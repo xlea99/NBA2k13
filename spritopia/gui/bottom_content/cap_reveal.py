@@ -1,7 +1,9 @@
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
-from spritopia.gui.widgets.player_card import PlayerCard
+from spritopia.gui.widgets.player_card_base import PlayerCardBase
+from spritopia.gui.widgets.player_card_box import PlayerCardBox
+from spritopia.gui.app_state import globalAppState
 
 
 class CAPReveal(QWidget):
@@ -11,19 +13,10 @@ class CAPReveal(QWidget):
 
         self.mainLayout = QHBoxLayout(self)
 
-        thisName = "Mahatma Gandhi"
+        self.testPlayerCard1 = PlayerCardBox()
+        self.mainLayout.addWidget(self.testPlayerCard1)
+        globalAppState.currentSpriteIDChanged.connect(self.updateTestThing)
 
-        testPlayerCard1 = PlayerCard()
-        testPlayerCard1.setSpriteID(thisName)
-        testPlayerCard1.setSize("Box")
-        self.mainLayout.addWidget(testPlayerCard1)
 
-        testPlayerCard2 = PlayerCard()
-        testPlayerCard2.setSpriteID(thisName)
-        testPlayerCard2.setSize("Wide")
-        self.mainLayout.addWidget(testPlayerCard2)
-
-        testPlayerCard3 = PlayerCard()
-        testPlayerCard3.setSpriteID(thisName)
-        testPlayerCard3.setSize("Icon")
-        self.mainLayout.addWidget(testPlayerCard3)
+    def updateTestThing(self,spriteID):
+        self.testPlayerCard1.setSpriteID(spriteID)

@@ -262,36 +262,32 @@ class PremierCreateAPlayer(QWidget):
         rosterStatsLabel.setAlignment(Qt.AlignCenter)
         createAPlayerRosterStatsLayout.addWidget(rosterStatsLabel)
 
-        # Statistic labels with initial values
-        #TODO in case you change how "Premier" is identified, IE not by roster but by tag, change this
-        archetypeStats = {"Slayer" : 0,"Vigilante" : 0,"Medic" : 0,"Guardian" : 0,"Engineer" : 0,"Director" : 0,"Total" : 0}
-        currentPremierSpriteIDs = set(d.rosters["Premier"]["SpriteIDs"].values())
-        for spriteID,player in d.players.items():
-            if(spriteID in currentPremierSpriteIDs):
-                archetypeStats[player["Archetype_Name"]] += 1
-                archetypeStats["Total"] += 1
+        # Declare each dict to hold the archetype labels
+        self.archetypeCountLabels = {"Slayer" : None,"Vigilante" : None,"Medic" : None,"Guardian" : None,"Engineer" : None,"Director" : None,"Total" : None}
+        for key in self.archetypeCountLabels.keys():
+            thisStatContainer = QWidget()
+            thisStatLayout = QHBoxLayout(thisStatContainer)
 
-        for archetypeName, archetypeCount in archetypeStats.items():
-            statLayout = QHBoxLayout()
-            archetypeNameLabel = QLabel(archetypeName)
-            archetypeCountLabel = QLabel(str(archetypeCount))
-            if(archetypeName == "Total"):
+            if(key == "Total"):
                 font = QFont("Arial", 12)  # Slightly larger than normal
                 font.setBold(True)
             else:
                 font = QFont("Arial", 12)  # Slightly larger than normal
-            archetypeNameLabel.setFont(font)
-            archetypeCountLabel.setFont(font)
-            statLayout.addWidget(archetypeNameLabel)
-            statLayout.addWidget(archetypeCountLabel)
-            createAPlayerRosterStatsLayout.addLayout(statLayout)
 
+            thisNameLabel = QLabel(key)
+            thisNameLabel.setFont(font)
+            thisCountLabel = QLabel("0")
+            thisCountLabel.setFont(font)
 
+            self.archetypeCountLabels[key] = thisCountLabel
+            thisStatLayout.addWidget(thisNameLabel)
+            thisStatLayout.addWidget(thisCountLabel)
+            createAPlayerRosterStatsLayout.addWidget(thisStatContainer)
 
+        self.updateArchetypeTotals()
         self.createAPlayerLayout.addWidget(createAPlayerRosterStatsContainer, 1)
 
         # endregion === Create A Player Roster Statistics ===
-
 
     # This function is run when the "queue" button is clicked, to add a player to the creation queue
     def queuePlayerForCreation(self,event):
@@ -371,4 +367,18 @@ class PremierCreateAPlayer(QWidget):
 
         for thisNewPlayer in allNewPlayers:
             print(thisNewPlayer.getOverviewString())
+
+    # Method to update the archetype totals.
+    def updateArchetypeTotals(self):
+        # Statistic labels with initial values
+        # TODO in case you change how "Premier" is identified, IE not by roster but by tag, change this
+        archetypeStats = {"Slayer" : 0,"Vigilante" : 0,"Medic" : 0,"Guardian" : 0,"Engineer" : 0,"Director" : 0,"Total" : 0}
+        currentPremierSpriteIDs = set(d.rosters["Premier"]["SpriteIDs"].values())
+        for spriteID,player in d.players.items():
+           if(spriteID in currentPremierSpriteIDs):
+               archetypeStats[player["Archetype_Name"]] += 1
+               archetypeStats["Total"] += 1
+
+        for archetypeName in self.archetypeCountLabels.keys():
+            self.archetypeCountLabels[archetypeName].setText(str(archetypeStats[archetypeName]))
 

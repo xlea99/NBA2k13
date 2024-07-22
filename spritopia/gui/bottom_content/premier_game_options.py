@@ -2,8 +2,8 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.common.paths import paths
-from spritopia.gui import const
-from spritopia.gui.widgets.player_card import PlayerCard
+from spritopia.gui import gui_const
+from spritopia.gui.widgets.player_card_base import PlayerCardBase
 from spritopia.gui.app_state import globalAppState
 from spritopia.gui.widgets.auto_resize_label import AutoResizeLabel
 from functools import partial

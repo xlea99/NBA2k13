@@ -1308,6 +1308,42 @@ class Player:
                 if(pmod["Type"]["TypeName"] == "Artifact"):
                     return pmod
 
+    # Helper method returns a list of attribute IDs, factoring in any changes made by the player's artifact by
+    # referencing their archetype's attributeImportance list. forcedPriorityCount ensures that, regardless of archetype
+    # changes, the top n attributes remain at the top/front of the list.
+    def getAttributeImportantList(self,forcedPriorityCount=3):
+        baseAttributeImportanceList = self["Archetype"].attributeImportance.copy()
+
+        # First, we get a list of attributes that are modified by the player's artifact (if applicable)
+        unsortedModifiedAttributes = []
+        thisArtifactPMod = self.getArtifactPMod()
+        if(thisArtifactPMod):
+            for modification in thisArtifactPMod["Modifications"]:
+                if(modification["Key"] in baseAttributeImportanceList and modification["Key"] not in baseAttributeImportanceList[:forcedPriorityCount]):
+                    unsortedModifiedAttributes.append(modification["Key"])
+
+        # Now, we sort ONLY the modified attributes list based on the attributeImportanceList
+        sortedModifiedAttributes = []
+        for i in range(31):
+            potentialAttributeAtThisImportance = baseAttributeImportanceList[i]
+            if(potentialAttributeAtThisImportance in unsortedModifiedAttributes):
+                sortedModifiedAttributes.append(potentialAttributeAtThisImportance)
+
+        # Then, we calculate a list of sorted importance attributes MINUS any modified attributes
+        intermittentAttributeImportanceList = baseAttributeImportanceList.copy()
+        for thisAttribute in baseAttributeImportanceList:
+            if(thisAttribute in sortedModifiedAttributes):
+                intermittentAttributeImportanceList.remove(thisAttribute)
+
+        # Finally, we generate the finished importance attribute list, with our modified attributes taking
+        # priority after skipping any forcedPriority attributes
+        finalAttributeImportanceList = (intermittentAttributeImportanceList[:forcedPriorityCount] +
+                                        sortedModifiedAttributes +
+                                        intermittentAttributeImportanceList[forcedPriorityCount:])
+
+        return finalAttributeImportanceList
+
+
     #endregion === Getter and Setter ===
 
     #region === Generators ===

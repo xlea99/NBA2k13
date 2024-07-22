@@ -9,10 +9,11 @@ import sys
 # each wrapped line.
 class AutoResizeLabel(QLabel):
 
-    def __init__(self, text="", parent=None, baseFont=None, autoWrap=False):
+    def __init__(self, text="", parent=None, baseFont=None, autoWrap=False, minimumSize=8):
         super().__init__(text, parent)
         self.autoWrap = autoWrap
         self.setWordWrap(self.autoWrap)
+        self.minimumAutoSize = minimumSize
         self.baseFont = baseFont if baseFont is not None else self.font()
         self.adjustFontSize()
 
@@ -25,8 +26,8 @@ class AutoResizeLabel(QLabel):
         fm = QFontMetrics(font)
 
         # Define a range for font sizes with a more practical minimum size
-        min_size, max_size = 8, 100  # Increased minimum size for readability
-        last_good_size = max(self.font().pointSize(), min_size)  # Start from the current font size
+        min_size, max_size = self.minimumAutoSize, 100  # Increased minimum size for readability
+        last_good_size = max(self.font().pointSize(), self.minimumAutoSize)  # Start from the current font size
 
         while min_size < max_size:
             font_size = (min_size + max_size) // 2

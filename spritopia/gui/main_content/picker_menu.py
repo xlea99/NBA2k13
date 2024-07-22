@@ -2,8 +2,8 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.common.paths import paths
-from spritopia.gui import const
-from spritopia.gui.widgets.player_card import PlayerCard
+from spritopia.gui import gui_const
+from spritopia.gui.widgets.player_card_base import PlayerCardBase
 from spritopia.gui.app_state import globalAppState
 from functools import partial
 
@@ -127,7 +127,7 @@ class PickerMenu(QWidget):
             playerCardLayout = QVBoxLayout(playerCardContainer)
             playerCardLayout.setAlignment(Qt.AlignmentFlag.AlignTop)
             playerCardLayout.setContentsMargins(0,0,0,0)
-            thisPlayerCard = PlayerCard()
+            thisPlayerCard = PlayerCardBase()
             playerCardLayout.addWidget(thisPlayerCard)
 
             thisBadgesContainerWidget = QWidget()
@@ -207,7 +207,7 @@ class PickerMenu(QWidget):
         self.phaseLayout.addWidget(self.phaseSubtextLabel)
 
         self.midLayout.addWidget(phaseContainerWidget)
-        self.selectedPlayerCard = PlayerCard()
+        self.selectedPlayerCard = PlayerCardBase()
         self.midLayout.addWidget(self.selectedPlayerCard)
         self.midLayout.addSpacerItem(spacer)
 
@@ -319,7 +319,7 @@ class PickerMenu(QWidget):
         elif((ballerz and self.ballerzBansRemaining == 0) or (not ballerz and self.ringersBansRemaining == 0)):
             return False
         else:
-            newBanPlayerCard = PlayerCard(spriteID=spriteID,size="icon")
+            newBanPlayerCard = PlayerCardBase(spriteID=spriteID, size="icon")
             if(ballerz):
                 self.ballerzBans[spriteID] = newBanPlayerCard
                 self.ballerzBanListLayout.addWidget(newBanPlayerCard)
