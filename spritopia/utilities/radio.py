@@ -12,7 +12,7 @@ import random
 import vlc
 from pathlib import Path
 from spritopia.common import paths
-from spritopia.common.logger import log
+#from spritopia.common.logger import log
 
 #endregion === Imports ===
 
@@ -199,7 +199,7 @@ class Radio:
             if(self.__autoPlay):
                 self.__player.play()
 
-            log.debug(f"Set active radio song to '{self.__signalSetSong}' at time '{self.__player.get_time()}'")
+            #log.debug(f"Set active radio song to '{self.__signalSetSong}' at time '{self.__player.get_time()}'")
             self.__signalSetSong = None
             self.__songIsEnded = False
     # This run loop method handles checking for plays, pauses, and time sets.
@@ -211,19 +211,19 @@ class Radio:
                     self.__player.set_time(self.catalog[self.__activeSong]["length"])
                 else:
                     self.__player.set_time(self.__signalSetTime)
-                log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetTime}'")
+                #log.debug(f"Set current play time of song '{self.__activeSong}' to '{self.__signalSetTime}'")
                 self.__signalSetTime = -1
             # Detect play signal.
             if (self.__signalPlay):
                 self.__signalPlay = False
                 if (not self.__player.is_playing()):
-                    log.debug(f"Played/resumed radio at {self.__player.get_time()}")
+                    #log.debug(f"Played/resumed radio at {self.__player.get_time()}")
                     self.__player.play()
             # Detect pause signal.
             if (self.__signalPause):
                 self.__signalPause = False
                 if (self.__player.is_playing()):
-                    log.debug(f"Paused radio at {self.__player.get_time()}")
+                    #log.debug(f"Paused radio at {self.__player.get_time()}")
                     self.__player.pause()
     # This run loop method handles grabbing the next song from the queue and signaling it.
     def __signalNextQueueSong(self):
