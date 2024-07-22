@@ -73,12 +73,7 @@ class PlayerBio(QWidget):
 
         # Set artifact image here.
         self.artifactImage.clear()
-        artifactPMod = None
-        if(len(thisPlayer["PMods"]) > 0):
-            for pmod in thisPlayer["PMods"]:
-                if(pmod["Type"]["TypeName"] == "Artifact"):
-                    artifactPMod = pmod
-                    break
+        artifactPMod = thisPlayer.getArtifactPMod()
         if(artifactPMod is not None):
             artifactPixmap = QPixmap(paths["graphics"] / artifactPMod["Image"])
             self.artifactImage.setPixmap(artifactPixmap.scaled(75,75,Qt.KeepAspectRatio,Qt.SmoothTransformation))

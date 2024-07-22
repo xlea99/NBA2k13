@@ -3,7 +3,7 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.data_storage import data_storage as d
 from spritopia.utilities import misc
-from spritopia.gui import const
+from spritopia.gui import gui_const
 from spritopia.gui import utils
 from spritopia.gui.widgets.auto_resize_label import AutoResizeLabel
 
@@ -14,7 +14,7 @@ NAME_FONT_ICON.setBold(True)
 GAMES_FONT = QFont("Arial", 7)
 
 # Simple, classy widget for displaying a player's info in a compact way.
-class PlayerCard(QWidget):
+class PlayerCardBase(QWidget):
 
     # Basic setup init method.
     def __init__(self,parent=None,spriteID = None,size = "Wide"):
@@ -105,9 +105,6 @@ class PlayerCard(QWidget):
         # endregion === Name/Title ===
 
         self.__sizeID = "icon"
-
-
-
 
     # This method sets the player to the given SpriteID, and updates the contents.
     def setSpriteID(self,spriteID):
