@@ -2,7 +2,7 @@ from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from spritopia.gui.widgets.player_card_base import PlayerCardBase
-from spritopia.gui.widgets.player_card_box import PlayerCardBox
+from spritopia.gui.widgets.player_reveal_card import PlayerRevealCard
 from spritopia.gui.app_state import globalAppState
 
 
@@ -13,7 +13,7 @@ class CAPReveal(QWidget):
 
         self.mainLayout = QHBoxLayout(self)
 
-        self.testPlayerCard1 = PlayerCardBox()
+        self.testPlayerCard1 = PlayerRevealCard()
         self.mainLayout.addWidget(self.testPlayerCard1)
         globalAppState.currentSpriteIDChanged.connect(self.updateTestThing)
 
