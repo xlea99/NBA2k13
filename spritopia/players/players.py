@@ -7,7 +7,6 @@ from spritopia.utilities import weighted_dict, misc
 
 
 
-
 # EXTRA VALUES:
 # -CreationAge
 # -RealityType
@@ -1343,7 +1342,6 @@ class Player:
 
         return finalAttributeImportanceList
 
-
     #endregion === Getter and Setter ===
 
     #region === Generators ===
@@ -1890,5 +1888,6 @@ class Player:
         return pmodToRevert
 
     #endregion === PMod ===
+
 
 
