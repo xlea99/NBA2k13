@@ -74,7 +74,7 @@ class HoverableImageLabel(QLabel):
         """
         Set the title for the preview card.
         """
-        self.title = string.capwords(title)
+        self.title = title
 
     def setDescription(self, description: str):
         """
@@ -93,15 +93,28 @@ class HoverableImageLabel(QLabel):
     def enterEvent(self, event):
         """
         When the mouse enters the widget, show the enlarged preview card near it.
+        The popup's width is forced to be as wide as the image (if one exists).
         """
         if self.originalPixmap:
             # Scale the original pixmap for the hover card.
             scaled = self.originalPixmap.scaled(self.hoverSize, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             self.imageLabel.setPixmap(scaled)
+            pixmap_width = scaled.width()
+
             # Update the title and description on the card.
             self.titleLabel.setText(self.title)
             self.descLabel.setText(self.description)
-            # Adjust the widget size to the content.
+
+            # Restrict the title and description to not exceed the image's width.
+            self.titleLabel.setMaximumWidth(pixmap_width)
+            self.descLabel.setMaximumWidth(pixmap_width)
+
+            # Calculate the total width (image width plus layout margins) and set it.
+            margins = self.previewWidget.layout().contentsMargins()
+            total_width = pixmap_width + margins.left() + margins.right()
+            self.previewWidget.setFixedWidth(total_width)
+
+            # Update the widget size to the content.
             self.previewWidget.adjustSize()
 
             # Determine the global position of this widget and calculate where the card should appear.

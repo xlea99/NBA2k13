@@ -7,6 +7,7 @@ from spritopia.common.paths import paths
 from spritopia.gui import gui_const
 from spritopia.players.archetypes import MAPPED_ATTRIBUTES
 from spritopia.gui.widgets.hoverable_image_label import HoverableImageLabel
+from spritopia.players.factions import dbDict as factionsDict
 
 class PlayerRevealCard(QWidget):
     def __init__(self, parent=None, spriteID=None):
@@ -114,7 +115,6 @@ class PlayerRevealCard(QWidget):
         # Create a placeholder pixmap for artifact
         placeholder_artifact = QPixmap(70, 70)
         placeholder_artifact.fill(Qt.transparent)
-        self.artifactImage.setCardData(placeholder_artifact, "Title", "Description")
         self.artifactImage.setAlignment(Qt.AlignCenter)
         rarityArtifactLayout.addWidget(self.rarityLabel)
         rarityArtifactLayout.addWidget(self.artifactImage)
@@ -208,6 +208,7 @@ class PlayerRevealCard(QWidget):
             self.factionIcon.setPixmap(factionPixmap)
             self.factionIcon.previewWidget.setToolTip(thisPlayer["Faction"])
             self.factionLabel.setText(thisPlayer["Faction"])
+            self.factionIcon.setCardData(factionPixmap, thisPlayer["Faction"], factionsDict["Factions"][thisPlayer["Faction"]]["Description"])
 
             # === Rarity/Artifact Label ===
             customRarityColors = {
