@@ -20,3 +20,16 @@ class CAPReveal(QWidget):
 
     def updateTestThing(self,spriteID):
         self.testPlayerCard1.setSpriteID(spriteID)
+
+
+        #self.playerCards = []
+        #for index, spriteID in enumerate(listOfSpriteIDs):
+        #    newPlayer = PlayerRevealCard()
+        #    newPlayer.setSpriteID(spriteID)
+        #    self.playerCards.append(newPlayer)
+        #
+        #    self.mainLayout.addWidget(newPlayer)
+        #
+
+
+            #playerCard[2]
