@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QLabel, QWidget, QVBoxLayout
 import string
 
 
-class HoverableImageLabel(QLabel):
+class HoverableImage(QLabel):
     """
     A QLabel that shows an enlarged preview card when hovered, containing a title,
     an image, and a description.

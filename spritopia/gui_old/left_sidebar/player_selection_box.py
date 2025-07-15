@@ -34,9 +34,6 @@ class PlayerSelectionBox(QWidget):
         self.layout.addWidget(self.playerInputComboBox)
         self.layout.addWidget(self.filterButton)
 
-
-
-
     # Populate with players' names and spriteIDs.
     def applyFilter(self,filterDict):
         spriteIDs = filterSpriteIDs(condition=filterDict)
