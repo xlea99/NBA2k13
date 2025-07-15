@@ -5,6 +5,7 @@
   "songChances": {
     "1812":   1.0,
     "apology": 1.0,
+    "apology_mrar": 0.5,
     "archetypal_obsession": 1.0,
     "ceddy_c": 1.0,
     "around_the_world_2": 0.3,
