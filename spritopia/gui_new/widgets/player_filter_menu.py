@@ -3,7 +3,6 @@ from PySide6.QtGui import *
 from PySide6.QtWidgets import *
 from functools import partial
 from spritopia.data_storage.data_storage import d
-from spritopia.gui.widgets.auto_resize_label import AutoResizeLabel
 from spritopia.gui.widgets.input_combo_box import InputComboBox
 from spritopia.players.players import Player
 from spritopia.data_storage import player_filter
