@@ -9,16 +9,16 @@ export default function PremierLayout() {
     return (
         <>
             <nav className="subnavbar">
-                <Link className="subnavlink" to="play">Play</Link>
-                <Link className="subnavlink" to="create-a-player">Create-A-Player</Link>
-                <Link className="subnavlink" to="stats">Stats</Link>
-                <Link className="subnavlink" to="settings">Settings</Link>
+                <Link className="subnavlink" to="/premier/play">Play</Link>
+                <Link className="subnavlink" to="/premier/CreatePlayer">Create-A-Player</Link>
+                <Link className="subnavlink" to="/premier/stats">Stats</Link>
+                <Link className="subnavlink" to="/premier/settings">Settings</Link>
             </nav>
 
             <div className="page-content">
                 <Routes>
                     <Route path="play" element={<Play />} />
-                    <Route path="create-a-player" element={<CreatePlayer />} />
+                    <Route path="CreatePlayer" element={<CreatePlayer />} />
                     <Route path="stats" element={<Stats />} />
                     <Route path="settings" element={<Settings />} />
                 </Routes>

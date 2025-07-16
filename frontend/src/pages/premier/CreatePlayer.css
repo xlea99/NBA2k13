@@ -1,0 +1,182 @@
+h1 {
+    font-size: 32px;
+    margin-left: 58%;
+}
+
+
+.create-player-container {
+    color: #fff;
+    padding: 40px 20px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.create-player-content {
+    display: grid;
+    grid-template-columns:
+    minmax(400px, 1fr)
+    minmax(400px, 1fr)
+    minmax(400px, 1fr);
+    gap: 100px;
+    justify-content: center;
+    margin-top: 30px;
+    max-width: 1920px;
+    margin-left: 30%;
+    margin-right: auto;
+}
+
+.create-player-form {
+    background: #222;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+.create-player-form label {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 4px;
+    display: block;
+    font-weight: 600;
+}
+
+.create-player-form input,
+.create-player-form select,
+.create-player-form textarea {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 15px;
+}
+
+.create-player-form input:focus,
+.create-player-form select:focus,
+.create-player-form textarea:focus {
+    outline: none;
+    border-color: #7ED321;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.queue-button {
+    background: rgba(178, 155, 155, 0.75);
+    color: #111;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+    margin-left: 40%;
+}
+
+.queue-button:hover {
+    background: #6ab318;
+}
+
+.roster-stats {
+    background: #222;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    max-width: 300px;
+}
+
+.roster-stats h2 {
+    margin-top: 0;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.roster-stats ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.roster-stats ul li {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}
+
+.roster-stats ul li:last-child {
+    border-bottom: none;
+}
+
+.stat-label {
+    color: #aaa;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #fff;
+}
+
+.queue-card {
+    background: #222;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    max-height: 100%;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.queue-card h2 {
+    margin-top: 0;
+    font-size: 20px;
+    margin-bottom: 20px;
+}
+
+.queue-listbox {
+    background: #333;
+    color: #fff;
+    border: 1px solid #555;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 15px;
+    width: 100%;
+    flex-grow: 1;
+    min-height: 200px;
+}
+
+.queue-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.queue-buttons button {
+    flex: 1;
+    background: rgba(178, 155, 155, 0.75);
+    color: #111;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.queue-buttons button:not(.remove-button):hover {
+    background: #6ab318;
+}
+
+.remove-button:hover {
+    background: #e74c3c;
+    color: #fff;
+}
+
