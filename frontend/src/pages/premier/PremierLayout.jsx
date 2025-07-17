@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, Routes, Route } from 'react-router-dom';
+import Landing from './LandingPage.jsx'
 import Play from './Play';
 import CreatePlayer from './CreatePlayer';
 import Stats from './Stats';
@@ -17,6 +18,7 @@ export default function PremierLayout() {
 
             <div className="page-content">
                 <Routes>
+                    <Route index element={<Landing />} />
                     <Route path="play" element={<Play />} />
                     <Route path="CreatePlayer" element={<CreatePlayer />} />
                     <Route path="stats" element={<Stats />} />
