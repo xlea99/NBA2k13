@@ -85,3 +85,9 @@ main {
   border-radius: 4px;
 }
 
+.radio-float{
+  position:absolute;
+  right:100px;
+  top:50%;
+  transform:translateY(-50%);
+}

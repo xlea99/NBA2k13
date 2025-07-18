@@ -1,0 +1,27 @@
+.radio-ui{
+    display:flex;align-items:center;gap:.5rem;
+    padding:.35rem .6rem;border-radius:8px;
+    background:rgba(0,0,0,.45);backdrop-filter:blur(6px);
+}
+
+.radio-ui button{
+    all:unset;cursor:pointer;line-height:0;
+    color:var(--color-light,#fff);transition:transform .15s;
+}
+.radio-ui button:active{transform:scale(.9)}
+
+.vol{display:flex;align-items:center;gap:.25rem}
+.vol input[type=range]{width:80px;accent-color:var(--color-accent,#f7e14c)}
+
+.now-playing{
+    max-width:200px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    font-size:.75rem;
+    color:var(--color-light,#fff);
+}
+
+.dash{ opacity:.6; }
+
+.radio-ui{ gap:.6rem; }
