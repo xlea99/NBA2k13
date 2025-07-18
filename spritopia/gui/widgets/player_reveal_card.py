@@ -6,7 +6,7 @@ from spritopia.data_storage.data_storage import d
 from spritopia.common.paths import paths
 from spritopia.gui import gui_const
 from spritopia.players.archetypes import MAPPED_ATTRIBUTES
-from spritopia.gui.widgets.pdx_hover import PdxHover
+from spritopia.gui.widgets.hoverable_image import HoverableImage
 from spritopia.players.factions import dbDict as factionsDict
 
 class PlayerRevealCard(QWidget):
@@ -72,7 +72,7 @@ class PlayerRevealCard(QWidget):
         self.archetypeLabel.setFont(QFont("Segoe UI", 12))
         self.archetypeLabel.setAlignment(Qt.AlignCenter)
         # Use HoverableImageLabel for faction (default preview: top_left).
-        self.factionIcon = PdxHover(QSize(70, 70), QSize(280, 280))
+        self.factionIcon = HoverableImage(QSize(70, 70), QSize(280, 280))
         # Create a placeholder pixmap (70x70, transparent)
         placeholder_faction = QPixmap(70, 70)
         placeholder_faction.fill(Qt.transparent)
@@ -111,7 +111,7 @@ class PlayerRevealCard(QWidget):
         self.rarityLabel.setFont(QFont("Segoe UI", 12))
         self.rarityLabel.setAlignment(Qt.AlignCenter)
         # Use HoverableImageLabel for artifact with preview positioned at "top_right".
-        self.artifactImage = PdxHover(QSize(70, 70), QSize(280, 280), preview_position="top_right")
+        self.artifactImage = HoverableImage(QSize(70, 70), QSize(280, 280), preview_position="top_right")
         # Create a placeholder pixmap for artifact
         placeholder_artifact = QPixmap(70, 70)
         placeholder_artifact.fill(Qt.transparent)

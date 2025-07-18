@@ -4,7 +4,7 @@
 
 [paths]
 # Folder for runtime program files.
-saveFolder = 'C:\Alex\Coding\Python\Spritopia\save'
+saveFolder = 'C:\Users\t1val\IdeaProjects\NBA2k13\save'
 # Path to NBA 2k13 game install directory
 gameInstall = 'C:\Program Files (x86)\Steam\steamapps\common\NBA2K13'
 
