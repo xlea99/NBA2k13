@@ -1,37 +1,35 @@
 h1 {
     font-size: 32px;
-    margin-left: 57%;
+    text-align: center;
+    margin: 0 0 30px 0;
 }
-
 
 .create-player-container {
     color: #fff;
     padding: 40px 20px;
     margin: 0 auto;
     box-sizing: border-box;
+    width: 100vw;
 }
 
 .create-player-content {
-    display: grid;
-    grid-template-columns:
-    minmax(400px, 1fr)
-    minmax(400px, 1fr)
-    minmax(400px, 1fr);
-    gap: 100px;
+    display: flex;
     justify-content: center;
-    margin-top: 30px;
-    max-width: 1920px;
-    margin-left: 27%;
-    margin-right: auto;
+    align-items: flex-start;
+    gap: 40px;
+    flex-wrap: wrap;
 }
 
-.create-player-form {
+.queue-card,
+.create-player-form,
+.roster-stats {
     background: #222;
     padding: 30px;
     border-radius: 10px;
-    max-width: 500px;
-    width: 100%;
     box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    flex: 1;
+    min-width: 300px;
+    max-width: 400px;
 }
 
 .create-player-form label {
@@ -51,6 +49,8 @@ h1 {
     padding: 10px;
     border-radius: 5px;
     font-size: 15px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .create-player-form input:focus,
@@ -66,6 +66,22 @@ h1 {
     margin-bottom: 20px;
 }
 
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 0;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+}
+
 .queue-button {
     background: rgba(178, 155, 155, 0.75);
     color: #111;
@@ -77,19 +93,11 @@ h1 {
     cursor: pointer;
     transition: all 0.2s ease;
     margin-top: 10px;
-    margin-left: 40%;
+    width: 100%;
 }
 
 .queue-button:hover {
     background: #6ab318;
-}
-
-.roster-stats {
-    background: #222;
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    max-width: 300px;
 }
 
 .roster-stats h2 {
@@ -125,14 +133,8 @@ h1 {
 }
 
 .queue-card {
-    background: #222;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    max-height: 100%;
     display: flex;
     flex-direction: column;
-    width: 100%;
 }
 
 .queue-card h2 {
@@ -151,6 +153,7 @@ h1 {
     width: 100%;
     flex-grow: 1;
     min-height: 200px;
+    box-sizing: border-box;
 }
 
 .queue-buttons {
@@ -180,3 +183,46 @@ h1 {
     color: #fff;
 }
 
+/* Media queries for responsive design */
+@media (max-width: 1200px) {
+    .create-player-content {
+        gap: 30px;
+    }
+
+    .queue-card,
+    .create-player-form,
+    .roster-stats {
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 992px) {
+    .create-player-content {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .queue-card,
+    .create-player-form,
+    .roster-stats {
+        max-width: 500px;
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    h1 {
+        font-size: 24px;
+    }
+
+    .create-player-container {
+        padding: 20px 10px;
+    }
+
+    .queue-card,
+    .create-player-form,
+    .roster-stats {
+        padding: 20px;
+        min-width: unset;
+    }
+}

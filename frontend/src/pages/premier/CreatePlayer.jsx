@@ -53,6 +53,7 @@ const CreatePlayer = () => {
                         <button className="execute-button">Execute</button>
                     </div>
                 </div>
+
                 <form onSubmit={handleSubmit} className="create-player-form">
                     <div className="form-group">
                         <label>First:</label>

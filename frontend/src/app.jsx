@@ -12,7 +12,7 @@ function App() {
     return (
         <Router>
             <Navbar />
-            <div style={{ padding: '80px 20px 20px 20px' }}>
+            <div className="app-container">
                 <Routes>
                     <Route path="/" element={<Navigate to="/premier" replace />} />
                     <Route path="/premier/*" element={<PremierLayout />} />
