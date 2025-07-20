@@ -35,7 +35,7 @@ main {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 100vw;
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
@@ -65,7 +65,7 @@ main {
   position: fixed;
   top: 50px;
   left: 0;
-  width: 100%;
+  width: 100vw;
   z-index: 999;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
@@ -86,8 +86,24 @@ main {
 }
 
 .radio-float{
-  position:absolute;
-  right:100px;
-  top:50%;
-  transform:translateY(-50%);
+  position: absolute;
+  right: 100px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* ADD THIS - Critical for centering! */
+.app-container {
+  padding-top: 100px; /* Space for both navbars (50px + 50px) */
+  width: 100vw;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.page-content {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 100px); /* Account for both navbars */
 }
