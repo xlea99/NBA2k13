@@ -307,6 +307,7 @@ class Radio:
     def station(self,stationID):
         if(stationID not in self.stations.keys()):
             raise ValueError(f"Station '{stationID}' not a registered radio station!")
+        print(f"Switched to station: {self.stations[stationID]["name"]}")
         self.__signalStationChange = stationID
 
     # Method to refresh/repopulate a station's queue with configured songs.
