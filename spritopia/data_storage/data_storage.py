@@ -552,7 +552,7 @@ class DataStorage:
     # Assumes rosterName CSVs are already exported and up to date. It uses rosterID to target a single player.
     def csv_ExtractPlayer(self, rosterName, rosterID):
         player = Player()
-        for key, value in self.rosters[rosterName]['Players'][rosterID]:
+        for key, value in self.rosters[rosterName]['Players'][rosterID].items():
             if (key not in ["ID", "HS_ID", "Height"] and key != ""):
                 player[key] = value
 
@@ -565,7 +565,7 @@ class DataStorage:
         # Grab HS_ID for future use
         HS_ID = int(self.rosters[rosterName]["Players"][rosterID]["HS_ID"])
 
-        for key, value in self.rosters[rosterName]['Headshapes'][HS_ID]:
+        for key, value in self.rosters[rosterName]['Headshapes'][HS_ID].items():
             if (key != "HS_ID"):
                 player[key] = value
         return player
@@ -681,7 +681,7 @@ class DataStorage:
         for row in results:
             thisPlayer = Player()
             thisPlayer["SpriteID"] = row["SpriteID"]
-            for key in thisPlayer.vals.keys():
+            for key in thisPlayer.all_keys:
                 thisPlayer[key] = row[key]
             if(row["PMods"] is not None):
                 thisPlayer.pmods = json.loads(row["PMods"])
@@ -704,7 +704,7 @@ class DataStorage:
                 values = []
 
                 # First we build the info part of the query
-                for key in thisPlayer.vals.keys():
+                for key in thisPlayer.all_keys:
                     columnNameQuery += f"{key}, "
                     valuesQuery += "?, "
                     if (key == "Archetype"):
