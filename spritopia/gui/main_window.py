@@ -39,7 +39,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Spritopia")
         self.setMinimumSize(1280, 720)
-        self.resize(1920, 1080)
+        self.showMaximized()
 
         # Apply theme
         self.setStyleSheet(STYLESHEET)

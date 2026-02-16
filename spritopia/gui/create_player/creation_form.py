@@ -5,7 +5,7 @@ Allows users to queue players for creation with optional archetype/faction selec
 """
 
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QLineEdit,
     QComboBox, QPushButton, QFrame, QScrollArea, QCheckBox,
     QListWidget, QListWidgetItem, QSizePolicy, QMessageBox
 )
@@ -162,14 +162,25 @@ class CreationFormWidget(QWidget):
 
         form_layout.addLayout(name_row)
 
-        # Options row
-        options_row = QHBoxLayout()
-        options_row.setSpacing(12)
+        # Options row - use grid so labels align across columns
+        options_grid = QGridLayout()
+        options_grid.setHorizontalSpacing(12)
+        options_grid.setVerticalSpacing(4)
+        options_grid.setColumnStretch(0, 1)
+        options_grid.setColumnStretch(1, 1)
 
-        archetype_container = QVBoxLayout()
         archetype_label = QLabel("Archetype")
         archetype_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 12px;")
-        archetype_container.addWidget(archetype_label)
+        options_grid.addWidget(archetype_label, 0, 0)
+
+        faction_label = QLabel("Faction")
+        faction_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 12px;")
+        options_grid.addWidget(faction_label, 0, 1)
+
+        appearance_label = QLabel("Appearance")
+        appearance_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 12px;")
+        options_grid.addWidget(appearance_label, 0, 2)
+
         self.archetype_combo = QComboBox()
         self.archetype_combo.addItem("Random", None)
         self.archetype_combo.addItem("Slayer", "Slayer")
@@ -178,20 +189,28 @@ class CreationFormWidget(QWidget):
         self.archetype_combo.addItem("Guardian", "Guardian")
         self.archetype_combo.addItem("Engineer", "Engineer")
         self.archetype_combo.addItem("Director", "Director")
-        archetype_container.addWidget(self.archetype_combo)
-        options_row.addLayout(archetype_container)
+        options_grid.addWidget(self.archetype_combo, 1, 0)
 
-        faction_container = QVBoxLayout()
-        faction_label = QLabel("Faction")
-        faction_label.setStyleSheet(f"color: {COLORS['text_secondary']}; font-size: 12px;")
-        faction_container.addWidget(faction_label)
         self.faction_combo = QComboBox()
         self.faction_combo.addItem("Random", None)
         # Factions will be populated from data
-        faction_container.addWidget(self.faction_combo)
-        options_row.addLayout(faction_container)
+        options_grid.addWidget(self.faction_combo, 1, 1)
 
-        form_layout.addLayout(options_row)
+        self.random_appearance_check = QCheckBox("Random")
+        self.random_appearance_check.setStyleSheet(f"""
+            QCheckBox {{
+                color: {COLORS['text_primary']};
+                font-size: 12px;
+                spacing: 6px;
+            }}
+            QCheckBox::indicator {{
+                width: 16px;
+                height: 16px;
+            }}
+        """)
+        options_grid.addWidget(self.random_appearance_check, 1, 2)
+
+        form_layout.addLayout(options_grid)
 
         # Add to queue button
         add_btn = QPushButton("+ Add to Queue")
@@ -360,6 +379,7 @@ class CreationFormWidget(QWidget):
             'last_name': self.last_name_input.text().strip() or None,
             'archetype': self.archetype_combo.currentData(),
             'faction': self.faction_combo.currentData(),
+            'random_appearance': self.random_appearance_check.isChecked(),
         }
 
         self._queue.append(player_data)
@@ -370,6 +390,7 @@ class CreationFormWidget(QWidget):
         self.last_name_input.clear()
         self.archetype_combo.setCurrentIndex(0)
         self.faction_combo.setCurrentIndex(0)
+        self.random_appearance_check.setChecked(False)
 
         # Focus first name for quick entry
         self.first_name_input.setFocus()
