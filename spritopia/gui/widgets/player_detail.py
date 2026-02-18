@@ -313,52 +313,45 @@ class PlayerDetailWidget(QWidget):
             }}
         """)
 
-        icons_layout = QHBoxLayout(icons_frame)
-        icons_layout.setContentsMargins(12, 10, 12, 10)
-        icons_layout.setSpacing(12)
+        icons_grid = QGridLayout(icons_frame)
+        icons_grid.setContentsMargins(12, 10, 12, 10)
+        icons_grid.setHorizontalSpacing(12)
+        icons_grid.setVerticalSpacing(6)
+        icons_grid.setColumnStretch(0, 1)
+        icons_grid.setColumnStretch(1, 1)
 
-        # Faction section
-        faction_section = QVBoxLayout()
-        faction_section.setSpacing(2)
-        faction_section.setAlignment(Qt.AlignCenter)
-
+        # Row 0: Headers
         faction_header = QLabel("FACTION")
         faction_header.setAlignment(Qt.AlignCenter)
         faction_header.setStyleSheet(f"font-size: 8px; font-weight: bold; color: {COLORS['text_muted']}; letter-spacing: 1px;")
-        faction_section.addWidget(faction_header)
-
-        self.faction_icon = IconWithTooltip(size=48)
-        self.faction_icon.setStyleSheet(f"background-color: {COLORS['bg_light']}; border-radius: 4px;")
-        faction_section.addWidget(self.faction_icon, alignment=Qt.AlignCenter)
-
-        self.faction_name_label = QLabel("None")
-        self.faction_name_label.setAlignment(Qt.AlignCenter)
-        self.faction_name_label.setStyleSheet(f"font-size: 10px; color: {COLORS['text_secondary']};")
-        faction_section.addWidget(self.faction_name_label)
-
-        icons_layout.addLayout(faction_section)
-        icons_layout.addStretch()
-
-        # Artifact section
-        artifact_section = QVBoxLayout()
-        artifact_section.setSpacing(2)
-        artifact_section.setAlignment(Qt.AlignCenter)
+        icons_grid.addWidget(faction_header, 0, 0)
 
         artifact_header = QLabel("ARTIFACT")
         artifact_header.setAlignment(Qt.AlignCenter)
         artifact_header.setStyleSheet(f"font-size: 8px; font-weight: bold; color: {COLORS['text_muted']}; letter-spacing: 1px;")
-        artifact_section.addWidget(artifact_header)
+        icons_grid.addWidget(artifact_header, 0, 1)
+
+        # Row 1: Icons
+        self.faction_icon = IconWithTooltip(size=48)
+        self.faction_icon.setStyleSheet(f"background-color: {COLORS['bg_light']}; border-radius: 4px;")
+        icons_grid.addWidget(self.faction_icon, 1, 0, Qt.AlignCenter)
 
         self.artifact_icon = IconWithTooltip(size=48)
         self.artifact_icon.setStyleSheet(f"background-color: {COLORS['bg_light']}; border-radius: 4px;")
-        artifact_section.addWidget(self.artifact_icon, alignment=Qt.AlignCenter)
+        icons_grid.addWidget(self.artifact_icon, 1, 1, Qt.AlignCenter)
+
+        # Row 2: Names (these can vary in height)
+        self.faction_name_label = QLabel("None")
+        self.faction_name_label.setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+        self.faction_name_label.setWordWrap(True)
+        self.faction_name_label.setStyleSheet(f"font-size: 10px; color: {COLORS['text_secondary']};")
+        icons_grid.addWidget(self.faction_name_label, 2, 0)
 
         self.artifact_name_label = QLabel("None")
-        self.artifact_name_label.setAlignment(Qt.AlignCenter)
+        self.artifact_name_label.setAlignment(Qt.AlignHCenter | Qt.AlignTop)
+        self.artifact_name_label.setWordWrap(True)
         self.artifact_name_label.setStyleSheet(f"font-size: 10px; color: {COLORS['text_secondary']};")
-        artifact_section.addWidget(self.artifact_name_label)
-
-        icons_layout.addLayout(artifact_section)
+        icons_grid.addWidget(self.artifact_name_label, 2, 1)
 
         layout.addWidget(icons_frame)
 

@@ -835,3 +835,76 @@ class StatsEngine:
         }
 
         return superlatives
+
+    def get_career_records(self, min_games_for_pct: int = 20) -> Dict[str, Dict[str, Any]]:
+        """
+        Get all-time career total records (cumulative stats leaders).
+        Returns a dict of stat_name -> {value, display_value, player_name, sprite_id, games_played}
+
+        Args:
+            min_games_for_pct: Minimum games played to qualify for percentage-based records
+        """
+        career_categories = [
+            ("total_points", "total_points", False),
+            ("total_rebounds", "total_rebounds", False),
+            ("total_assists", "total_assists", False),
+            ("threes_made", "threes_made", False),
+            ("three_pt_pct", "three_pt_pct", True),
+            ("wins", "wins", False),
+            ("total_steals", "total_steals", False),
+            ("total_blocks", "total_blocks", False),
+            ("games_played", "games_played", False),
+            ("total_dunks", "total_dunks", False),
+            ("fg_made", "fg_made", False),
+            ("total_turnovers", "total_turnovers", False),
+        ]
+
+        records = {}
+        for key, attr, needs_min_games in career_categories:
+            best_value = -1
+            best_stats = None
+
+            for stats in self._career_stats.values():
+                if stats.games_played < 1:
+                    continue
+                if needs_min_games and stats.games_played < min_games_for_pct:
+                    continue
+
+                stat_dict = stats.to_dict()
+                if attr in stat_dict:
+                    value = stat_dict[attr]
+                elif hasattr(stats, attr):
+                    value = getattr(stats, attr)
+                    if callable(value):
+                        value = value()
+                else:
+                    continue
+
+                if value is not None and value > best_value:
+                    best_value = value
+                    best_stats = stats
+
+            if best_stats is not None:
+                # Format display value
+                if needs_min_games:
+                    display_value = f"{best_value * 100:.1f}%"
+                else:
+                    display_value = f"{best_value:,}" if isinstance(best_value, int) else f"{best_value:.1f}"
+
+                records[key] = {
+                    "value": best_value,
+                    "display_value": display_value,
+                    "player_name": best_stats.full_name,
+                    "sprite_id": best_stats.sprite_id,
+                    "games_played": best_stats.games_played,
+                }
+            else:
+                records[key] = {
+                    "value": 0,
+                    "display_value": "0",
+                    "player_name": "N/A",
+                    "sprite_id": -1,
+                    "games_played": 0,
+                }
+
+        return records

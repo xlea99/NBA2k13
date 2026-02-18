@@ -2017,12 +2017,59 @@ class PlayerStatsWidget(QWidget):
 
 
 class RecordsWidget(QWidget):
-    """All-time single game records display."""
+    """All-time records display: career totals, single-game highs, and game superlatives."""
 
     def __init__(self, engine: StatsEngine):
         super().__init__()
         self._engine = engine
         self._setup_ui()
+
+    def _build_record_card(self, category: str, value_text: str, player_name: str,
+                           detail_text: str, accent_border: bool = False) -> QFrame:
+        """Build a styled record card."""
+        card = QFrame()
+        border_color = COLORS['accent_primary'] if accent_border else COLORS['border_dark']
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS['bg_card']};
+                border: 1px solid {border_color};
+                border-radius: 8px;
+            }}
+        """)
+        card_layout = QVBoxLayout(card)
+        card_layout.setContentsMargins(20, 16, 20, 16)
+        card_layout.setSpacing(6)
+
+        cat_label = QLabel(category)
+        cat_label.setStyleSheet(f"color: {COLORS['text_muted']}; font-size: 12px; font-weight: 500;")
+        card_layout.addWidget(cat_label)
+
+        val_label = QLabel(value_text)
+        val_label.setStyleSheet(f"color: {COLORS['accent_primary']}; font-size: 36px; font-weight: bold;")
+        card_layout.addWidget(val_label)
+
+        player_label = QLabel(player_name)
+        player_label.setStyleSheet(f"color: {COLORS['text_primary']}; font-size: 14px; font-weight: 600;")
+        card_layout.addWidget(player_label)
+
+        detail_label = QLabel(detail_text)
+        detail_label.setStyleSheet(f"color: {COLORS['text_muted']}; font-size: 11px;")
+        card_layout.addWidget(detail_label)
+
+        return card
+
+    def _build_section_header(self, text: str) -> QLabel:
+        """Build a section header label."""
+        label = QLabel(text)
+        label.setStyleSheet(f"""
+            font-size: 18px;
+            font-weight: bold;
+            color: {COLORS['text_primary']};
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid {COLORS['border_dark']};
+        """)
+        return label
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -2033,11 +2080,10 @@ class RecordsWidget(QWidget):
         title.setStyleSheet(f"font-size: 24px; font-weight: bold; color: {COLORS['text_primary']};")
         layout.addWidget(title)
 
-        subtitle = QLabel("Single game highs across all players")
+        subtitle = QLabel("Career totals and single-game highs across all players")
         subtitle.setStyleSheet(f"color: {COLORS['text_muted']}; margin-bottom: 16px;")
         layout.addWidget(subtitle)
 
-        # Records grid
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("QScrollArea { border: none; }")
@@ -2046,70 +2092,75 @@ class RecordsWidget(QWidget):
         grid = QGridLayout(content)
         grid.setSpacing(16)
 
-        records = self._engine.get_single_game_records()
+        current_row = 0
 
-        record_info = [
-            ("points", "Points", "pts"),
-            ("assists", "Assists", "ast"),
-            ("rebounds", "Rebounds", "reb"),
-            ("steals", "Steals", "stl"),
-            ("blocks", "Blocks", "blk"),
-            ("dunks", "Dunks", "dnk"),
-            ("threes_made", "3-Pointers Made", "3pm"),
-            ("insides_made", "Field Goals Made", "fgm"),
-            ("offensive_rebounds", "Offensive Rebounds", "oreb"),
-            ("defensive_rebounds", "Defensive Rebounds", "dreb"),
-        ]
-
-        for i, (key, label, abbrev) in enumerate(record_info):
-            record = records.get(key, {"value": 0, "player_name": "N/A", "game_date": "N/A"})
-
-            card = QFrame()
-            card.setStyleSheet(f"""
-                QFrame {{
-                    background-color: {COLORS['bg_card']};
-                    border: 1px solid {COLORS['border_dark']};
-                    border-radius: 8px;
-                }}
-            """)
-            card_layout = QVBoxLayout(card)
-            card_layout.setContentsMargins(20, 16, 20, 16)
-            card_layout.setSpacing(8)
-
-            # Record category
-            cat_label = QLabel(label)
-            cat_label.setStyleSheet(f"color: {COLORS['text_muted']}; font-size: 12px; font-weight: 500;")
-            card_layout.addWidget(cat_label)
-
-            # Value
-            val_label = QLabel(str(record["value"]))
-            val_label.setStyleSheet(f"color: {COLORS['accent_primary']}; font-size: 36px; font-weight: bold;")
-            card_layout.addWidget(val_label)
-
-            # Player name
-            player_label = QLabel(record["player_name"] or "N/A")
-            player_label.setStyleSheet(f"color: {COLORS['text_primary']}; font-size: 14px; font-weight: 600;")
-            card_layout.addWidget(player_label)
-
-            # Date
-            date_label = QLabel(record["game_date"] or "Unknown")
-            date_label.setStyleSheet(f"color: {COLORS['text_muted']}; font-size: 11px;")
-            card_layout.addWidget(date_label)
-
-            grid.addWidget(card, i // 2, i % 2)
-
-        # Game Superlatives section
-        superlatives_row = grid.rowCount()
-        sep_label = QLabel("Game Superlatives")
-        sep_label.setStyleSheet(f"""
+        # ── Career Records ──
+        career_header = QLabel("Career Records")
+        career_header.setStyleSheet(f"""
             font-size: 18px;
             font-weight: bold;
             color: {COLORS['text_primary']};
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid {COLORS['border_dark']};
+            padding-bottom: 4px;
         """)
-        grid.addWidget(sep_label, superlatives_row, 0, 1, 2)
+        grid.addWidget(career_header, current_row, 0, 1, 2)
+        current_row += 1
+
+        career_records = self._engine.get_career_records(min_games_for_pct=20)
+
+        career_info = [
+            ("total_points", "Total Points"),
+            ("total_rebounds", "Total Rebounds"),
+            ("total_assists", "Total Assists"),
+            ("threes_made", "3-Pointers Made"),
+            ("three_pt_pct", "3-Point % (20 GP min)"),
+            ("wins", "Wins"),
+            ("total_steals", "Total Steals"),
+            ("total_blocks", "Total Blocks"),
+            ("games_played", "Games Played"),
+            ("total_dunks", "Total Dunks"),
+            ("fg_made", "Field Goals Made"),
+            ("total_turnovers", "Total Turnovers"),
+        ]
+
+        for i, (key, label) in enumerate(career_info):
+            rec = career_records.get(key, {"display_value": "0", "player_name": "N/A", "games_played": 0})
+            detail = f"{rec['games_played']} games played"
+            card = self._build_record_card(label, rec["display_value"], rec["player_name"] or "N/A", detail)
+            grid.addWidget(card, current_row + i // 2, i % 2)
+
+        current_row += (len(career_info) + 1) // 2
+
+        # ── Single Game Highs ──
+        grid.addWidget(self._build_section_header("Single Game Highs"), current_row, 0, 1, 2)
+        current_row += 1
+
+        single_game_records = self._engine.get_single_game_records()
+
+        single_game_info = [
+            ("points", "Points"),
+            ("assists", "Assists"),
+            ("rebounds", "Rebounds"),
+            ("steals", "Steals"),
+            ("blocks", "Blocks"),
+            ("dunks", "Dunks"),
+            ("threes_made", "3-Pointers Made"),
+            ("insides_made", "Field Goals Made"),
+            ("offensive_rebounds", "Offensive Rebounds"),
+            ("defensive_rebounds", "Defensive Rebounds"),
+        ]
+
+        for i, (key, label) in enumerate(single_game_info):
+            rec = single_game_records.get(key, {"value": 0, "player_name": "N/A", "game_date": "N/A"})
+            card = self._build_record_card(
+                label, str(rec["value"]), rec["player_name"] or "N/A", rec["game_date"] or "Unknown"
+            )
+            grid.addWidget(card, current_row + i // 2, i % 2)
+
+        current_row += (len(single_game_info) + 1) // 2
+
+        # ── Game Superlatives ──
+        grid.addWidget(self._build_section_header("Game Superlatives"), current_row, 0, 1, 2)
+        current_row += 1
 
         superlatives = self._engine.get_game_superlatives()
         sup_keys = ["closest_game", "biggest_blowout", "highest_scoring", "lowest_scoring"]
@@ -2118,36 +2169,11 @@ class RecordsWidget(QWidget):
             if key not in superlatives:
                 continue
             sup = superlatives[key]
-
-            sup_card = QFrame()
-            sup_card.setStyleSheet(f"""
-                QFrame {{
-                    background-color: {COLORS['bg_card']};
-                    border: 1px solid {COLORS['accent_primary']};
-                    border-radius: 8px;
-                }}
-            """)
-            sup_layout = QVBoxLayout(sup_card)
-            sup_layout.setContentsMargins(20, 16, 20, 16)
-            sup_layout.setSpacing(6)
-
-            sup_cat = QLabel(sup["label"])
-            sup_cat.setStyleSheet(f"color: {COLORS['text_muted']}; font-size: 12px; font-weight: 500;")
-            sup_layout.addWidget(sup_cat)
-
-            sup_val = QLabel(sup["value"])
-            sup_val.setStyleSheet(f"color: {COLORS['accent_primary']}; font-size: 32px; font-weight: bold;")
-            sup_layout.addWidget(sup_val)
-
-            sup_detail = QLabel(sup["detail"])
-            sup_detail.setStyleSheet(f"color: {COLORS['text_primary']}; font-size: 13px;")
-            sup_layout.addWidget(sup_detail)
-
-            sup_date = QLabel(sup["date"])
-            sup_date.setStyleSheet(f"color: {COLORS['text_muted']}; font-size: 11px;")
-            sup_layout.addWidget(sup_date)
-
-            grid.addWidget(sup_card, superlatives_row + 1 + j // 2, j % 2)
+            card = self._build_record_card(
+                sup["label"], sup["value"], sup["detail"], sup["date"],
+                accent_border=True
+            )
+            grid.addWidget(card, current_row + j // 2, j % 2)
 
         grid.setRowStretch(grid.rowCount(), 1)
         scroll.setWidget(content)

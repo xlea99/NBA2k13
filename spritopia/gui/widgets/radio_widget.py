@@ -308,13 +308,13 @@ class HeaderRadioWidget(QFrame):
             }}
         """)
         info_layout = QVBoxLayout(info_frame)
-        info_layout.setSpacing(0)
-        info_layout.setContentsMargins(10, 4, 10, 4)
+        info_layout.setSpacing(1)
+        info_layout.setContentsMargins(10, 3, 10, 3)
 
         # Song title (scrolling)
         self.song_label = MarqueeLabel()
         self.song_label.setFixedWidth(160)
-        self.song_label.setFixedHeight(20)
+        self.song_label.setFixedHeight(18)
         self.song_label.setBold(True)
         self.song_label.setPointSize(11)
         self.song_label.setText("Loading...")
@@ -323,9 +323,9 @@ class HeaderRadioWidget(QFrame):
         # Artist (scrolling)
         self.artist_label = MarqueeLabel()
         self.artist_label.setFixedWidth(160)
-        self.artist_label.setFixedHeight(16)
+        self.artist_label.setFixedHeight(14)
         self.artist_label.setColor(COLORS['text_muted'])
-        self.artist_label.setPointSize(9)
+        self.artist_label.setPointSize(8)
         self.artist_label.setText("")
         info_layout.addWidget(self.artist_label)
 
@@ -343,7 +343,7 @@ class HeaderRadioWidget(QFrame):
 
         # Previous button
         self.prev_btn = QPushButton("⏮")
-        self.prev_btn.setFixedSize(28, 26)
+        self.prev_btn.setFixedSize(26, 24)
         self.prev_btn.setStyleSheet(self._control_btn_style())
         self.prev_btn.clicked.connect(self._on_previous)
         self.prev_btn.setToolTip("Previous")
@@ -351,7 +351,7 @@ class HeaderRadioWidget(QFrame):
 
         # Play/Pause button - larger and more prominent
         self.play_btn = QPushButton("⏸")
-        self.play_btn.setFixedSize(34, 26)
+        self.play_btn.setFixedSize(30, 24)
         self.play_btn.setStyleSheet(self._play_btn_style())
         self.play_btn.clicked.connect(self._on_play_pause)
         self.play_btn.setToolTip("Play/Pause")
@@ -359,7 +359,7 @@ class HeaderRadioWidget(QFrame):
 
         # Next button
         self.next_btn = QPushButton("⏭")
-        self.next_btn.setFixedSize(28, 26)
+        self.next_btn.setFixedSize(26, 24)
         self.next_btn.setStyleSheet(self._control_btn_style())
         self.next_btn.clicked.connect(self._on_next)
         self.next_btn.setToolTip("Next")
@@ -375,6 +375,7 @@ class HeaderRadioWidget(QFrame):
         self.current_time = QLabel("0:00")
         self.current_time.setStyleSheet(f"font-size: 9px; color: {COLORS['text_muted']}; font-family: monospace;")
         self.current_time.setFixedWidth(28)
+        self.current_time.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         progress_row.addWidget(self.current_time)
 
         # Seekable progress bar
@@ -387,7 +388,7 @@ class HeaderRadioWidget(QFrame):
         self.total_time = QLabel("0:00")
         self.total_time.setStyleSheet(f"font-size: 9px; color: {COLORS['text_muted']}; font-family: monospace;")
         self.total_time.setFixedWidth(28)
-        self.total_time.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        self.total_time.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         progress_row.addWidget(self.total_time)
 
         controls_column.addLayout(progress_row)
@@ -408,21 +409,23 @@ class HeaderRadioWidget(QFrame):
 
         # Station selector with icon
         station_row = QHBoxLayout()
-        station_row.setSpacing(4)
+        station_row.setSpacing(2)
+        station_row.setContentsMargins(0, 0, 0, 0)
 
         station_icon = QLabel("📻")
         station_icon.setStyleSheet(f"font-size: 11px;")
+        station_icon.setFixedWidth(16)
         station_row.addWidget(station_icon)
 
         self.station_combo = QComboBox()
         self.station_combo.setFixedWidth(90)
-        self.station_combo.setMinimumHeight(22)
+        self.station_combo.setFixedHeight(18)
         self.station_combo.setStyleSheet(f"""
             QComboBox {{
                 background-color: rgba(0, 0, 0, 0.3);
                 border: 1px solid {COLORS['border_dark']};
                 border-radius: 4px;
-                padding: 2px 6px;
+                padding: 1px 6px;
                 font-size: 10px;
                 color: {COLORS['text_primary']};
             }}
@@ -449,20 +452,22 @@ class HeaderRadioWidget(QFrame):
 
         # Volume slider with icon
         volume_row = QHBoxLayout()
-        volume_row.setSpacing(4)
+        volume_row.setSpacing(2)
+        volume_row.setContentsMargins(0, 0, 0, 0)
 
         volume_icon = QLabel("🔊")
         volume_icon.setStyleSheet(f"font-size: 10px;")
+        volume_icon.setFixedWidth(16)
         volume_row.addWidget(volume_icon)
 
         self.volume_slider = QSlider(Qt.Horizontal)
-        self.volume_slider.setFixedWidth(80)
+        self.volume_slider.setFixedWidth(78)
         self.volume_slider.setFixedHeight(14)
         self.volume_slider.setRange(0, 100)
         self.volume_slider.setValue(100)
         self.volume_slider.setStyleSheet(f"""
             QSlider::groove:horizontal {{
-                background: rgba(0, 0, 0, 0.4);
+                background: rgba(255, 255, 255, 0.12);
                 height: 4px;
                 border-radius: 2px;
             }}
@@ -496,7 +501,7 @@ class HeaderRadioWidget(QFrame):
                 border: 1px solid transparent;
                 border-radius: 6px;
                 padding: 0px;
-                font-size: 12px;
+                font-size: 16px;
             }}
             QPushButton:hover {{
                 color: {COLORS['text_primary']};
@@ -520,7 +525,7 @@ class HeaderRadioWidget(QFrame):
                 border: none;
                 border-radius: 6px;
                 padding: 0px;
-                font-size: 13px;
+                font-size: 17px;
             }}
             QPushButton:hover {{
                 background: qlineargradient(
