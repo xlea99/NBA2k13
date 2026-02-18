@@ -39,7 +39,6 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Spritopia")
         self.setMinimumSize(1280, 720)
-        self.showMaximized()
 
         # Apply theme
         self.setStyleSheet(STYLESHEET)
@@ -49,6 +48,8 @@ class MainWindow(QMainWindow):
         self._connect_signals()
         self._load_initial_data()
         self._init_radio()
+
+        self.showMaximized()
 
     def _setup_ui(self):
         # Central widget
