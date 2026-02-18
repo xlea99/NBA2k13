@@ -1,7 +1,7 @@
 import time
 from spritopia.common.logger import log
 from spritopia.interface.red_mc import RedMC
-
+from spritopia.data_storage.data_storage import d
 
 # This helper file combines data_storage and redmc methods to facilitate importing
 # and exporting all data between the program and RedMC.

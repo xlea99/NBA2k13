@@ -74,6 +74,7 @@ class RedMC:
 
     # Simply quits out of RedMC. THE FILE MUST BE SAVED BEFORE DOING THIS.
     def closeRedMC(self):
+        print("DOING THIS")
         pyautogui.press("altleft")
         pyautogui.press("up")
         pyautogui.press("up")
@@ -123,7 +124,7 @@ class RedMC:
         pyautogui.press("enter")
 
         pyautogui.press("up")
-        pyautogui.write(rosterName)
+        pyautogui.write(str((paths["rosterCSVs"] / rosterName).resolve()))
         pyautogui.press("tab")
 
         pyautogui.press("tab")
@@ -164,6 +165,4 @@ class FailedToOpenRedMCException(RedMCException):
 class RosterDoesNotExistException(RedMCException):
     def __init__(self,rosterPath):
         super().__init__("Roster path does not exist: '" + rosterPath + "'.")
-
-
 

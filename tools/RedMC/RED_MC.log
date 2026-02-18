@@ -1,6 +1,7 @@
-	Thread ID 172724	0	 (i)  Log subsystem started in elapsed time mode.
-	Thread ID 172724	0	 (i)  Logging [debug info (D), info (i), notices (M), warnings (W), errors (Er), fatal errors (!!)]
-	Thread ID 172724	0	 (i)  Buffered mode: 0
-	Thread ID 172724	0	 (M)  Service thread started
-	Thread ID 173256	15500	 (i)  Logged fatal_errors: 0, errors: 0, warnings: 0, notices: 1, info: 3, debug: 0
-	Thread ID 173256	15500	 (i)  Log session shutdown
+	Thread ID 20628	0	 (i)  Log subsystem started in elapsed time mode.
+	Thread ID 20628	0	 (i)  Logging [debug info (D), info (i), notices (M), warnings (W), errors (Er), fatal errors (!!)]
+	Thread ID 20628	0	 (i)  Buffered mode: 0
+	Thread ID 20628	0	 (M)  Service thread started
+	Thread ID 14424	30125	 (i)  Service context queue task depleted
+	Thread ID 14424	49015	 (i)  Logged fatal_errors: 0, errors: 0, warnings: 0, notices: 1, info: 4, debug: 0
+	Thread ID 14424	49015	 (i)  Log session shutdown

@@ -1212,8 +1212,8 @@ class Player:
         elif key == "SpriteID":
             if self.__spriteID < 0:
                 self.__spriteID = int(value)
-                log.warn(f"NOT an error - SpriteID was just successfully set to {self.__spriteID}")
-                log.warn(''.join(traceback.format_stack()))
+                #log.warn(f"NOT an error - SpriteID was just successfully set to {self.__spriteID}")
+                #log.warn(''.join(traceback.format_stack()))
             else:
                 error = ValueError(f"Can not attempt to change SpriteID of an existing player!! Player already had an existing SpriteID of {self.__spriteID}, but the program tried to change this value to {value}!!")
                 log.exception(error)
@@ -1243,6 +1243,11 @@ class Player:
                     log.exception(error)
                     raise error
                 _set_delta("Archetype",archetype)
+                _set_delta("Pos", value.inGamePositionId)
+                _set_delta("SecondPos", value.inGameSecondaryPositionId)
+                _set_delta("PlayInitor", value.isPlayInitiator)
+                _set_delta("TeamID1", str(value.jerseyTeamId))
+                _set_delta("TeamID2", str(value.jerseyTeamId))
             elif type(value) is archetypes.Archetype:
                 _set_delta("Archetype", value)
                 _set_delta("Pos", value.inGamePositionId)
@@ -1911,3 +1916,31 @@ class Player:
         return pmodToRevert
 
     #endregion === PMod ===
+
+
+for i in range(3):
+
+    # Create new player
+    player = Player()
+    player.genArchetype()
+
+    # Generate rarity
+    player.genRarity()
+
+    # Generate all stats based on archetype
+    player.genAttributes()
+    player.genTendencies()
+    player.genHotspots()
+    player.genHeight()
+    player.genAnimations()
+    player.genPlayTypes()
+    player.genMisc()
+
+    # Generate artifact (if not Common)
+    if player["Rarity"] != "Common":
+        player.genArtifact()
+
+    # Generate faction (this also generates a random name)
+    player.genFaction()
+
+    print(player.getOverviewString())

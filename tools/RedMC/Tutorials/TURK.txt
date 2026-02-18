@@ -22,7 +22,7 @@ AN a                            - NOT a (better to use this!!!)
 a E b                           - a OR b
 a TATA b                        - a AND b
 a TA b                          - equivalent to previous
-PUSCHLA ... VESCHLE             - program brackets (begin ... end in Pascal) 
+PUSCHLA ... VESCHLE             - program brackets (begin ... end in Pascal)
 a PULSAN b UNSARAN c            - IF a THEN b ELSE c
 i VALLI a RAN b TARAN TU        - Cycle, where i changes from a to b with step 1
 "David"                         - String, which consists of word David
