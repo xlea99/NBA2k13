@@ -1243,11 +1243,11 @@ class Player:
                     log.exception(error)
                     raise error
                 _set_delta("Archetype",archetype)
-                _set_delta("Pos", value.inGamePositionId)
-                _set_delta("SecondPos", value.inGameSecondaryPositionId)
-                _set_delta("PlayInitor", value.isPlayInitiator)
-                _set_delta("TeamID1", str(value.jerseyTeamId))
-                _set_delta("TeamID2", str(value.jerseyTeamId))
+                _set_delta("Pos", archetype.inGamePositionId)
+                _set_delta("SecondPos", archetype.inGameSecondaryPositionId)
+                _set_delta("PlayInitor", archetype.isPlayInitiator)
+                _set_delta("TeamID1", str(archetype.jerseyTeamId))
+                _set_delta("TeamID2", str(archetype.jerseyTeamId))
             elif type(value) is archetypes.Archetype:
                 _set_delta("Archetype", value)
                 _set_delta("Pos", value.inGamePositionId)
