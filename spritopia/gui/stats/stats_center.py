@@ -25,6 +25,20 @@ from spritopia.data_storage.data_storage import d
 from typing import Optional, List, Dict, Any
 
 
+class NumericTableItem(QTableWidgetItem):
+    """Table item that sorts numerically but displays a formatted string."""
+
+    def __init__(self, value: float, display_text: str):
+        super().__init__()
+        self._sort_value = value
+        self.setText(display_text)
+
+    def __lt__(self, other):
+        if isinstance(other, NumericTableItem):
+            return self._sort_value < other._sort_value
+        return super().__lt__(other)
+
+
 class StatCard(QFrame):
     """A styled card displaying a single statistic."""
 
@@ -83,7 +97,7 @@ class LeaderboardTable(QTableWidget):
         "PPG": "Points Per Game - Average points scored per game",
         "FG%": "Field Goal Percentage - (FG Made / FG Attempted) x 100",
         "3P%": "Three-Point Percentage - (3PT Made / 3PT Attempted) x 100",
-        "TS%": "True Shooting Percentage - Measures scoring efficiency accounting for 2s and 3s",
+        "TS%": "True Shooting Percentage - Measures scoring efficiency (points relative to max possible from attempts)",
         "APG": "Assists Per Game - Average assists per game",
         "AST/TO": "Assist to Turnover Ratio - Higher is better ball security",
         "PTS Created": "Points Created Per Game - Own points + points from assists",
@@ -95,7 +109,7 @@ class LeaderboardTable(QTableWidget):
         "STL+BLK": "Combined Steals + Blocks Per Game",
         "EFF": "Efficiency Rating - Custom metric: (PTS+REB+AST+STL+BLK-TO-MissedFG) / GP",
         "GmSc": "Game Score - Hollinger's formula measuring overall game impact",
-        "eFG%": "Effective Field Goal % - Adjusts FG% to account for 3-pointers being worth more",
+        "eFG%": "Effective Field Goal % - Adjusts FG% to account for outsides being worth more than insides",
         "W": "Wins",
         "L": "Losses",
         "WIN%": "Win Percentage - (Wins / Games Played) x 100",
@@ -755,10 +769,7 @@ class UnifiedLeaderboardTable(QTableWidget):
             ]
 
             for j, (val, fmt) in enumerate(zip(numeric_values, formats)):
-                item = QTableWidgetItem()
-                item.setData(Qt.DisplayRole, round(val, 2) if isinstance(val, float) else val)
-                item.setData(Qt.EditRole, val)  # For sorting
-                item.setText(fmt.format(val))
+                item = NumericTableItem(val, fmt.format(val))
                 item.setFlags(item.flags() & ~Qt.ItemIsEditable)
                 item.setTextAlignment(Qt.AlignCenter)
                 self.setItem(i, j + 3, item)

@@ -175,20 +175,23 @@ class PlayerCareerStats:
     @property
     def efg_pct(self) -> float:
         """
-        Effective field goal percentage.
-        eFG% = (FGM + 0.5 * 3PM) / FGA
-        Accounts for the extra value of three-pointers.
+        Effective field goal percentage (Blacktop scoring: insides=1pt, outsides=2pt).
+        eFG% = (FGM + OutsidesMade) / FGA
+        Accounts for outsides being worth 2x insides (bonus = 1.0, not NBA's 0.5).
+        Can exceed 100% for heavy outside shooters.
         """
         if self.fg_attempted == 0:
             return 0.0
-        return (self.fg_made + 0.5 * self.threes_made) / self.fg_attempted
+        return (self.fg_made + self.threes_made) / self.fg_attempted
 
     @property
     def ts_pct(self) -> float:
         """
-        True shooting percentage.
-        TS% = PTS / (2 * (FGA + 0.44 * FTA))
-        Since we don't have FTA, we approximate with: PTS / (2 * FGA)
+        True shooting percentage (Blacktop scoring: insides=1pt, outsides=2pt).
+        TS% = PTS / (2 * FGA)
+        Measures efficiency as a fraction of max possible (all outsides made = 100%).
+        No free throws in Blacktop. The 2 is the max shot value (outside), not NBA's
+        base shot value.
         """
         if self.fg_attempted == 0:
             return 0.0
@@ -263,23 +266,25 @@ class PlayerCareerStats:
     @property
     def game_score_avg(self) -> float:
         """
-        Average game score (Hollinger's Game Score formula, simplified).
-        GmSc = PTS + 0.4*FGM - 0.7*FGA - 0.4*(FTA-FTM) + 0.7*ORB + 0.3*DRB + STL + 0.7*AST + 0.7*BLK - 0.4*PF - TO
-        Simplified without FT: PTS + 0.4*FGM - 0.7*FGA + 0.7*ORB + 0.3*DRB + STL + 0.7*AST + 0.7*BLK - 0.4*PF - TO
+        Average game score (Hollinger's Game Score, rebased for Blacktop 2/1 scoring).
+        Original NBA formula (base shot = 2pts):
+          GmSc = PTS + 0.4*FGM - 0.7*FGA + 0.7*ORB + 0.3*DRB + STL + 0.7*AST + 0.7*BLK - 0.4*PF - TO
+        Blacktop rebased (base shot = 1pt, all non-PTS coefficients scaled by 0.5):
+          GmSc = PTS + 0.2*FGM - 0.35*FGA + 0.35*ORB + 0.15*DRB + 0.5*STL + 0.35*AST + 0.35*BLK - 0.2*PF - 0.5*TO
         """
         if self.games_played == 0:
             return 0.0
         total_game_score = (
             self.total_points +
-            0.4 * self.fg_made -
-            0.7 * self.fg_attempted +
-            0.7 * self.total_offensive_rebounds +
-            0.3 * self.total_defensive_rebounds +
-            self.total_steals +
-            0.7 * self.total_assists +
-            0.7 * self.total_blocks -
-            0.4 * self.total_fouls -
-            self.total_turnovers
+            0.2 * self.fg_made -
+            0.35 * self.fg_attempted +
+            0.35 * self.total_offensive_rebounds +
+            0.15 * self.total_defensive_rebounds +
+            0.5 * self.total_steals +
+            0.35 * self.total_assists +
+            0.35 * self.total_blocks -
+            0.2 * self.total_fouls -
+            0.5 * self.total_turnovers
         )
         return total_game_score / self.games_played
 
