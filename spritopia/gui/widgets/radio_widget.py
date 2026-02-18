@@ -607,6 +607,12 @@ class HeaderRadioWidget(QFrame):
                 self.total_time.setText("--:--")
                 self.progress_bar.setValue(0)
 
+            # Sync play/pause button with actual radio state
+            actually_playing = self._radio._Radio__player.is_playing()
+            if actually_playing != self._is_playing:
+                self._is_playing = actually_playing
+                self.play_btn.setText("⏸" if actually_playing else "▶")
+
             # Sync station combo
             if self._radio.currentStation:
                 current_idx = self.station_combo.findData(self._radio.currentStation)
