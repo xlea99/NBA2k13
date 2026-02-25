@@ -546,8 +546,8 @@ class HeaderRadioWidget(QFrame):
         self._update_display()
         # Sync volume slider to actual radio volume
         if radio:
-            self.volume_slider.setValue(100)
-            radio.volume(100)
+            self.volume_slider.setValue(50)
+            radio.volume(50)
 
     def _populate_stations(self):
         if not self._radio:
