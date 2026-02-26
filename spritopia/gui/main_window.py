@@ -20,7 +20,8 @@ from spritopia.gui.app_state import get_app_state
 from spritopia.gui.audio import get_audio_player
 from spritopia.gui.widgets.player_finder import PlayerFinderWidget
 from spritopia.gui.widgets.radio_widget import HeaderRadioWidget
-from spritopia.gui.premier.picker import PremierPickerWidget
+from spritopia.gui.radio_tab import RadioTab
+from spritopia.gui.premier.play import PlayWidget
 from spritopia.gui.premier.home import PremierHomeWidget
 from spritopia.gui.create_player.create_player_page import CreatePlayerPage
 from spritopia.gui.save_manager import SaveButton, get_save_manager
@@ -134,6 +135,10 @@ class MainWindow(QMainWindow):
         self.mode_tabs.addTab(league_placeholder, "League")
         self.mode_tabs.setTabEnabled(2, False)
 
+        # Radio tab
+        self.radio_tab = RadioTab()
+        self.mode_tabs.addTab(self.radio_tab, "Radio")
+
         right_layout.addWidget(self.mode_tabs)
         splitter.addWidget(right_container)
 
@@ -240,7 +245,7 @@ class MainWindow(QMainWindow):
         self.premier_nav_buttons = {}
         nav_items = [
             ("home", "Home"),
-            ("picker", "Picker"),
+            ("play", "Play"),
             ("create", "Create Player"),
             ("stats", "Stats"),
         ]
@@ -278,15 +283,19 @@ class MainWindow(QMainWindow):
 
         # Home page
         self.premier_home = PremierHomeWidget()
-        self.premier_home.open_picker.connect(lambda: self._on_premier_nav("picker"))
+        self.premier_home.open_picker.connect(lambda: self._on_premier_nav("play"))
         self.premier_home.open_create_player.connect(lambda: self._on_premier_nav("create"))
         self.premier_home.open_stats.connect(lambda: self._on_premier_nav("stats"))
         self.premier_stack.addWidget(self.premier_home)
 
-        # Picker page
-        self.premier_picker = PremierPickerWidget()
-        self.premier_picker.load_requested.connect(self._on_load_game)
-        self.premier_stack.addWidget(self.premier_picker)
+        # Play page (setup + picker)
+        self.play_widget = PlayWidget()
+        self.play_widget.load_requested.connect(self._on_load_game)
+        self.play_widget.match_started.connect(self._on_match_started)
+        self.play_widget.match_ended.connect(self._on_match_ended)
+        self.play_widget.slot_filter_changed.connect(self._on_slot_filter_changed)
+        self.play_widget.excluded_updated.connect(self._on_draft_excluded_updated)
+        self.premier_stack.addWidget(self.play_widget)
 
         # Create player page
         self.create_player_page = CreatePlayerPage()
@@ -332,7 +341,7 @@ class MainWindow(QMainWindow):
         # Switch page
         page_map = {
             "home": 0,
-            "picker": 1,
+            "play": 1,
             "create": 2,
             "stats": 3,
         }
@@ -377,6 +386,7 @@ class MainWindow(QMainWindow):
             from spritopia.utilities.radio import r as radio
             self._radio = radio
             self.radio_widget.set_radio(radio)
+            self.radio_tab.set_radio(radio)
             log.info("Radio initialized")
         except Exception as e:
             log.warning(f"Failed to initialize radio: {e}")
@@ -406,7 +416,7 @@ class MainWindow(QMainWindow):
             elif reply == QMessageBox.Cancel:
                 return
 
-        team1, team2 = self.premier_picker.get_teams()
+        team1, team2 = self.play_widget.get_teams()
 
         # Log the teams
         team1_names = [f"{p['First_Name']} {p['Last_Name']}" for p in team1]
@@ -429,6 +439,22 @@ class MainWindow(QMainWindow):
         # Log success
         names = [f"{p['First_Name']} {p['Last_Name']}" for p in players]
         log.info(f"Created {len(players)} new players: {names}")
+
+    def _on_match_started(self, config: dict):
+        """Push game-mode constraints from match setup into the player finder."""
+        self.player_finder.set_game_constraints(config)
+
+    def _on_match_ended(self):
+        """Clear game-mode constraints when returning to setup."""
+        self.player_finder.clear_game_constraints()
+
+    def _on_draft_excluded_updated(self, ids: set):
+        """Remove picked/banned players from the sidebar search during a draft."""
+        self.player_finder.set_draft_excluded(ids)
+
+    def _on_slot_filter_changed(self, archetype: str):
+        """Apply or clear the active pick slot's archetype restriction on the finder."""
+        self.player_finder.set_slot_archetype(archetype or None)
 
     def _on_stats_player_selected(self, sprite_id: int):
         """Handle player selection from stats center - select in player finder."""

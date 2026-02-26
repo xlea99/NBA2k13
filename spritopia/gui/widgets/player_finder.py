@@ -7,6 +7,8 @@ and viewing players. The selected player can be used by other widgets
 """
 
 import os
+import random as _random
+from typing import Optional
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLineEdit, QComboBox,
     QListWidget, QListWidgetItem, QLabel, QPushButton, QFrame,
@@ -24,6 +26,7 @@ from spritopia.gui.app_state import get_app_state
 from spritopia.data_storage.data_storage import d
 from spritopia.data_storage import player_filter as pf
 from spritopia.common.paths import paths
+from spritopia.gui.stats.stats_engine import StatsEngine
 
 
 def get_player_rosters(sprite_id: int) -> list:
@@ -737,6 +740,12 @@ class PlayerFinderWidget(QWidget):
         self._advanced_condition = {}
         self._advanced_raw_conditions = []  # Store raw conditions for persistence
         self._available_rosters = []
+        # Game-mode constraints (set by Premier match setup)
+        self._constrained_ids: Optional[set] = None  # If set, only these IDs are eligible
+        self._banned_ids: set = set()                 # Pre-game exile bans
+        self._draft_excluded_ids: set = set()         # Live draft picks/bans (removed mid-draft)
+        self._pool_draw_size: Optional[int] = None    # Random cull after all other filters
+        self._slot_archetype: Optional[str] = None    # Active pick slot archetype override
         self._setup_ui()
         self._connect_signals()
         self._load_rosters()
@@ -1108,6 +1117,22 @@ class PlayerFinderWidget(QWidget):
             print(f"[PlayerFinder] Filter error: {e}")
             filtered_set = set(p["SpriteID"] for p in self._all_players)
 
+        # Apply game-mode constraints
+        if self._constrained_ids is not None:
+            filtered_set &= self._constrained_ids
+        if self._banned_ids:
+            filtered_set -= self._banned_ids
+        if self._draft_excluded_ids:
+            filtered_set -= self._draft_excluded_ids
+
+        # Apply active slot archetype override (from draft pick type)
+        if self._slot_archetype:
+            arch_ids = {
+                p["SpriteID"] for p in self._all_players
+                if (p["Archetype_Name"] or "").lower() == self._slot_archetype.lower()
+            }
+            filtered_set &= arch_ids
+
         # Apply search text filter on top
         for player in self._all_players:
             # Check if player passes the condition filter
@@ -1123,6 +1148,10 @@ class PlayerFinderWidget(QWidget):
                     continue
 
             self._filtered_players.append(player)
+
+        # Apply pool draw (random cull) last
+        if self._pool_draw_size and len(self._filtered_players) > self._pool_draw_size:
+            self._filtered_players = _random.sample(self._filtered_players, self._pool_draw_size)
 
         self._update_list()
 
@@ -1169,6 +1198,120 @@ class PlayerFinderWidget(QWidget):
         """Clear the current selection."""
         self.player_list.clearSelection()
         self.detail_view.set_player(None)
+
+    # ── Game-mode constraint API ──────────────────────────────────────────────
+
+    def set_game_constraints(self, config: dict):
+        """
+        Apply Premier match setup constraints to the player list.
+        Called when a match starts; compounds with the existing filter UI.
+        """
+        RARITY_ORDER = ["Common", "Rare", "Epic", "Legendary", "Godlike"]
+
+        constrained_ids: Optional[set] = None
+        banned_ids: set = set()
+
+        # Load Premier-only stats engine once if needed
+        player_set = config.get("player_set", "Standard")
+        stats_engine: Optional[StatsEngine] = None
+        if config.get("veterans_only") or config.get("exile_mode") or player_set == "Standard":
+            stats_engine = self._load_premier_stats_engine()
+
+        # Standard player set: restrict sidebar to players with >= 1 Premier game
+        if player_set == "Standard" and stats_engine and not config.get("veterans_only"):
+            standard_ids = {
+                cs.sprite_id
+                for cs in stats_engine.get_all_career_stats()
+                if cs.games_played >= 1
+            }
+            constrained_ids = standard_ids
+
+        # Veterans Only: players with 20+ Premier games
+        if config.get("veterans_only") and stats_engine:
+            veteran_ids = {
+                cs.sprite_id
+                for cs in stats_engine.get_all_career_stats()
+                if cs.games_played >= 20
+            }
+            constrained_ids = veteran_ids
+
+        # Rarity Cap: restrict to at-or-below tier
+        rarity_cap = config.get("rarity_cap")  # e.g. "Rare" means Common+Rare eligible
+        if rarity_cap and rarity_cap in RARITY_ORDER:
+            cap_idx = RARITY_ORDER.index(rarity_cap)
+            allowed_rarities = set(RARITY_ORDER[:cap_idx + 1])
+            rarity_ids = {
+                p["SpriteID"] for p in d.players.values()
+                if (p["Rarity"] or "Common") in allowed_rarities
+            }
+            constrained_ids = rarity_ids if constrained_ids is None else (constrained_ids & rarity_ids)
+
+        # Exile Mode: ban every player from the most recent Premier game
+        if config.get("exile_mode") and stats_engine:
+            premier_games = stats_engine.get_games()  # Already sorted newest-first
+            if premier_games:
+                last_game = premier_games[0]
+                for slot_info in last_game.player_slots.values():
+                    if slot_info.get("IsActive"):
+                        sid = slot_info.get("SpriteID", -1)
+                        if sid is not None and sid >= 0:
+                            banned_ids.add(sid)
+
+        # Pool Draw size (random cull applied as a last step in _apply_filters)
+        pool_draw = config.get("pool_draw")  # int or None from _build_config
+        self._pool_draw_size = pool_draw if isinstance(pool_draw, int) and pool_draw > 0 else None
+
+        self._constrained_ids = constrained_ids
+        self._banned_ids = banned_ids
+        self._apply_filters()
+
+    def clear_game_constraints(self):
+        """Remove all game-mode constraints (called when returning to setup)."""
+        self._constrained_ids = None
+        self._banned_ids = set()
+        self._draft_excluded_ids = set()
+        self._pool_draw_size = None
+        self._slot_archetype = None
+        self._apply_filters()
+
+    def set_slot_archetype(self, archetype: Optional[str]):
+        """
+        Restrict the visible player list to a specific archetype for the current
+        pick slot. Pass None or "" to clear the restriction.
+        Called by the draft picker as each turn begins.
+        """
+        self._slot_archetype = archetype if archetype else None
+        self._apply_filters()
+
+    def set_draft_excluded(self, ids: set):
+        """
+        Exclude already-picked and already-banned players from the visible list.
+        Called after each pick/ban during the draft.
+        """
+        self._draft_excluded_ids = set(ids)
+        self._apply_filters()
+
+    def _load_premier_stats_engine(self) -> Optional[StatsEngine]:
+        """Build a StatsEngine scoped only to Premier.ROS games."""
+        try:
+            if not hasattr(d, 'stats') or not d.stats.get("Raw"):
+                d.statsDB_Open()
+                d.statsDB_DownloadRaw()
+
+            raw_stats = d.stats.get("Raw", {})
+            if not raw_stats:
+                return None
+
+            premier_raw = {
+                gid: ginfo for gid, ginfo in raw_stats.items()
+                if "Premier" in (ginfo.get("LoadedRoster") or "")
+            }
+            return StatsEngine(premier_raw, d.players) if premier_raw else None
+        except Exception as e:
+            print(f"[PlayerFinder] Failed to load Premier stats: {e}")
+            return None
+
+    # ── Programmatic selection ────────────────────────────────────────────────
 
     def select_player_by_id(self, sprite_id: int):
         """Programmatically select a player by their sprite ID."""
