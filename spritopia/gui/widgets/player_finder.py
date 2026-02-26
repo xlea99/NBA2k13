@@ -742,8 +742,10 @@ class PlayerFinderWidget(QWidget):
         self._available_rosters = []
         # Game-mode constraints (set by Premier match setup)
         self._constrained_ids: Optional[set] = None  # If set, only these IDs are eligible
-        self._banned_ids: set = set()                 # Always excluded
+        self._banned_ids: set = set()                 # Pre-game exile bans
+        self._draft_excluded_ids: set = set()         # Live draft picks/bans (removed mid-draft)
         self._pool_draw_size: Optional[int] = None    # Random cull after all other filters
+        self._slot_archetype: Optional[str] = None    # Active pick slot archetype override
         self._setup_ui()
         self._connect_signals()
         self._load_rosters()
@@ -1120,6 +1122,16 @@ class PlayerFinderWidget(QWidget):
             filtered_set &= self._constrained_ids
         if self._banned_ids:
             filtered_set -= self._banned_ids
+        if self._draft_excluded_ids:
+            filtered_set -= self._draft_excluded_ids
+
+        # Apply active slot archetype override (from draft pick type)
+        if self._slot_archetype:
+            arch_ids = {
+                p["SpriteID"] for p in self._all_players
+                if (p["Archetype_Name"] or "").lower() == self._slot_archetype.lower()
+            }
+            filtered_set &= arch_ids
 
         # Apply search text filter on top
         for player in self._all_players:
@@ -1200,9 +1212,19 @@ class PlayerFinderWidget(QWidget):
         banned_ids: set = set()
 
         # Load Premier-only stats engine once if needed
+        player_set = config.get("player_set", "Standard")
         stats_engine: Optional[StatsEngine] = None
-        if config.get("veterans_only") or config.get("exile_mode"):
+        if config.get("veterans_only") or config.get("exile_mode") or player_set == "Standard":
             stats_engine = self._load_premier_stats_engine()
+
+        # Standard player set: restrict sidebar to players with >= 1 Premier game
+        if player_set == "Standard" and stats_engine and not config.get("veterans_only"):
+            standard_ids = {
+                cs.sprite_id
+                for cs in stats_engine.get_all_career_stats()
+                if cs.games_played >= 1
+            }
+            constrained_ids = standard_ids
 
         # Veterans Only: players with 20+ Premier games
         if config.get("veterans_only") and stats_engine:
@@ -1247,7 +1269,26 @@ class PlayerFinderWidget(QWidget):
         """Remove all game-mode constraints (called when returning to setup)."""
         self._constrained_ids = None
         self._banned_ids = set()
+        self._draft_excluded_ids = set()
         self._pool_draw_size = None
+        self._slot_archetype = None
+        self._apply_filters()
+
+    def set_slot_archetype(self, archetype: Optional[str]):
+        """
+        Restrict the visible player list to a specific archetype for the current
+        pick slot. Pass None or "" to clear the restriction.
+        Called by the draft picker as each turn begins.
+        """
+        self._slot_archetype = archetype if archetype else None
+        self._apply_filters()
+
+    def set_draft_excluded(self, ids: set):
+        """
+        Exclude already-picked and already-banned players from the visible list.
+        Called after each pick/ban during the draft.
+        """
+        self._draft_excluded_ids = set(ids)
         self._apply_filters()
 
     def _load_premier_stats_engine(self) -> Optional[StatsEngine]:

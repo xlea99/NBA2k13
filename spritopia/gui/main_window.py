@@ -288,6 +288,8 @@ class MainWindow(QMainWindow):
         self.play_widget.load_requested.connect(self._on_load_game)
         self.play_widget.match_started.connect(self._on_match_started)
         self.play_widget.match_ended.connect(self._on_match_ended)
+        self.play_widget.slot_filter_changed.connect(self._on_slot_filter_changed)
+        self.play_widget.excluded_updated.connect(self._on_draft_excluded_updated)
         self.premier_stack.addWidget(self.play_widget)
 
         # Create player page
@@ -439,6 +441,14 @@ class MainWindow(QMainWindow):
     def _on_match_ended(self):
         """Clear game-mode constraints when returning to setup."""
         self.player_finder.clear_game_constraints()
+
+    def _on_draft_excluded_updated(self, ids: set):
+        """Remove picked/banned players from the sidebar search during a draft."""
+        self.player_finder.set_draft_excluded(ids)
+
+    def _on_slot_filter_changed(self, archetype: str):
+        """Apply or clear the active pick slot's archetype restriction on the finder."""
+        self.player_finder.set_slot_archetype(archetype or None)
 
     def _on_stats_player_selected(self, sprite_id: int):
         """Handle player selection from stats center - select in player finder."""
