@@ -47,13 +47,43 @@ def _fmt_ms(ms: int) -> str:
     return f"{s // 60}:{s % 60:02d}"
 
 
-_SPLIT_RE = re.compile(r'\s*\(|\s*,\s*|\s+and\s+', re.IGNORECASE)
+_SPLIT_RE    = re.compile(r'\s*\(|\s*,\s*|\s+and\s+', re.IGNORECASE)
+_FEATURE_RE  = re.compile(r'\(\s*(?:ft\.?|feat\.?|featuring|performed\s+by|with)\s+(.+?)\s*\)', re.IGNORECASE)
+_AND_COMMA_RE = re.compile(r'\s*,\s*|\s+and\s+(?!the\b)', re.IGNORECASE)
 
 
 def _primary_artist(artist: str) -> str:
     if not artist:
         return "Unknown Artist"
     return _SPLIT_RE.split(artist, maxsplit=1)[0].strip() or "Unknown Artist"
+
+
+def _all_artists(artist: str) -> list:
+    """Return every credited artist name from an artist field string.
+
+    Handles: "A and B", "A, B", "A (ft. B, C)", "A (Performed by B)", etc.
+    Ignores non-credit parentheticals like "(Produced by X)".
+    """
+    if not artist:
+        return ["Unknown Artist"]
+
+    # Main credited artists (everything before the first parenthesis)
+    main_part = re.split(r'\s*\(', artist, maxsplit=1)[0].strip()
+    main_names = _AND_COMMA_RE.split(main_part) if main_part else []
+
+    # Feature / performed-by parentheticals
+    feature_names = []
+    for m in _FEATURE_RE.finditer(artist):
+        feature_names.extend(_AND_COMMA_RE.split(m.group(1)))
+
+    result, seen = [], set()
+    for name in main_names + feature_names:
+        name = name.strip()
+        if name and name.lower() not in seen:
+            seen.add(name.lower())
+            result.append(name)
+
+    return result if result else ["Unknown Artist"]
 
 
 def _nav_button_ss() -> str:
@@ -125,6 +155,14 @@ class _SongRow(QFrame):
         self._name_lbl.setStyleSheet(f"font-size: 13px; color: {COLORS['text_primary']}; background: transparent;")
         self._name_lbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         lo.addWidget(self._name_lbl, stretch=1)
+
+        lo.addSpacing(12)
+
+        artist_lbl = QLabel(_primary_artist(song.get("artist") or ""))
+        artist_lbl.setFixedWidth(160)
+        artist_lbl.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        artist_lbl.setStyleSheet(f"font-size: 11px; color: {COLORS['text_muted']}; background: transparent;")
+        lo.addWidget(artist_lbl)
 
         lo.addSpacing(12)
 
@@ -216,7 +254,13 @@ class _ArtistItem(QFrame):
         lo.addWidget(self._name_lbl, stretch=1)
 
         self._count_lbl = QLabel(str(count))
-        self._count_lbl.setStyleSheet(f"font-size: 11px; color: {COLORS['text_muted']}; background: transparent;")
+        self._count_lbl.setAlignment(Qt.AlignCenter)
+        self._count_lbl.setStyleSheet(f"""
+            font-size: 10px; font-weight: 600;
+            color: {COLORS['text_muted']};
+            background-color: {_rgba(COLORS['bg_dark'], 180)};
+            padding: 1px 7px; border-radius: 8px;
+        """)
         lo.addWidget(self._count_lbl)
 
         for child in self.findChildren(QLabel):
@@ -231,11 +275,11 @@ class _ArtistItem(QFrame):
         if selected:
             self.setStyleSheet(self._sel_ss)
             self._name_lbl.setStyleSheet("font-size: 13px; font-weight: 600; color: white; background: transparent;")
-            self._count_lbl.setStyleSheet("font-size: 11px; color: rgba(255,255,255,180); background: transparent;")
+            self._count_lbl.setStyleSheet("font-size: 10px; font-weight: 600; color: white; background-color: rgba(255,255,255,40); padding: 1px 7px; border-radius: 8px;")
         else:
             self.setStyleSheet(self._normal_ss)
             self._name_lbl.setStyleSheet(f"font-size: 13px; color: {COLORS['text_primary']}; background: transparent;")
-            self._count_lbl.setStyleSheet(f"font-size: 11px; color: {COLORS['text_muted']}; background: transparent;")
+            self._count_lbl.setStyleSheet(f"font-size: 10px; font-weight: 600; color: {COLORS['text_muted']}; background-color: {_rgba(COLORS['bg_dark'], 180)}; padding: 1px 7px; border-radius: 8px;")
 
     def enterEvent(self, event):
         if not self._selected:
@@ -519,7 +563,11 @@ class PlaylistView(QWidget):
         if active_id == self._pl_last_active:
             return
         if not active_id or active_id not in self._pl_set:
-            self._pl_mode = False
+            # Only exit playlist mode if we had already been tracking a song.
+            # When _pl_last_active is None we're still waiting for the queued
+            # song to become active — don't cancel playlist mode prematurely.
+            if self._pl_last_active is not None:
+                self._pl_mode = False
             return
 
         new_index            = self._pl_order.index(active_id)
@@ -997,14 +1045,15 @@ class PlaylistView(QWidget):
         self._pl_order       = order
         self._pl_set         = set(order)
         self._pl_index       = start
-        self._pl_last_active = song_id
+        self._pl_last_active = None  # Reset; refresh_playing enqueues next once active changes
 
         self._radio.setSong(song_id)
-
-        # Immediately push the next song to the front so skip works right away,
-        # before the 500 ms timer has a chance to fire
-        if n > 1:
-            self._radio.enqueueSong(order[(start + 1) % n], placeAtFront=True)
+        # NOTE: We do NOT call enqueueSong here.
+        # setSong() enqueues song_id at front then signals an async skip. If we
+        # called enqueueSong(next_song, placeAtFront=True) right after, next_song
+        # would land at position 0 BEFORE the skip fires, so the skip would pop
+        # next_song instead of song_id — causing it to play the wrong track.
+        # refresh_playing() handles the enqueue once the song actually becomes active.
 
     def _on_shuffle_toggle(self, checked: bool):
         self._pl_shuffle = checked
@@ -1024,6 +1073,7 @@ class RadioTab(QWidget):
         # Browse catalog data
         self._all_songs:     list = []
         self._artists:       list = []
+        self._artist_songs:  dict = {}   # artist_name → [song, ...]
         self._song_stations: dict = {}
         self._selected_artist: Optional[str] = None
 
@@ -1203,6 +1253,7 @@ class RadioTab(QWidget):
 
         _ch("#", 36, Qt.AlignCenter)
         _ch("TITLE")
+        _ch("ARTIST", 172, Qt.AlignRight | Qt.AlignVCenter)
         _ch("TIME", 40, Qt.AlignRight | Qt.AlignVCenter)
         lo.addWidget(col_hdr)
 
@@ -1247,13 +1298,12 @@ class RadioTab(QWidget):
             key=lambda s: (s.get("artist", "").lower(), s.get("name", "").lower()),
         )
 
-        seen, artists = set(), []
+        # Build artist → songs map; each song appears under every credited artist
+        self._artist_songs = {}
         for s in self._all_songs:
-            a = _primary_artist(s.get("artist") or "")
-            if a not in seen:
-                seen.add(a)
-                artists.append(a)
-        self._artists = sorted(artists, key=str.lower)
+            for artist in _all_artists(s.get("artist") or ""):
+                self._artist_songs.setdefault(artist, []).append(s)
+        self._artists = sorted(self._artist_songs.keys(), key=str.lower)
 
     def _populate_sidebar(self):
         for item in self._artist_items:
@@ -1267,7 +1317,7 @@ class RadioTab(QWidget):
         self._artist_items.append(all_item)
 
         for i, artist in enumerate(self._artists):
-            count = sum(1 for s in self._all_songs if _primary_artist(s.get("artist") or "") == artist)
+            count = len(self._artist_songs.get(artist, []))
             item = _ArtistItem(artist, artist, count)
             item.clicked.connect(self._select_artist)
             self._artist_lo.insertWidget(i + 1, item)
@@ -1284,7 +1334,7 @@ class RadioTab(QWidget):
             songs = self._all_songs
             self._hdr_title.setText("All Songs")
         else:
-            songs = [s for s in self._all_songs if _primary_artist(s.get("artist") or "") == artist]
+            songs = self._artist_songs.get(artist, [])
             self._hdr_title.setText(artist)
 
         n = len(songs)
