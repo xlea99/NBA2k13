@@ -5,10 +5,7 @@ Browse view  — searchable artist list + track list.
 Playlist view — create/edit/save named playlists, play them via the Radio singleton.
 """
 
-import json
-import os
 import re
-import uuid
 from typing import Optional
 
 from PySide6.QtWidgets import (
@@ -19,10 +16,6 @@ from PySide6.QtCore import Qt, QTimer, Signal
 
 from spritopia.gui.theme import COLORS
 
-# Playlists are stored next to the existing stations / songs data
-_PLAYLIST_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "data", "music", "playlists")
-)
 
 # ── Station display config ────────────────────────────────────────────────────
 
@@ -487,7 +480,6 @@ class PlaylistView(QWidget):
         self._radio          = None
         self._catalog_songs: list = []
         self._catalog_map:   dict = {}
-        self._playlists:     dict = {}
         self._selected_id:   Optional[str] = None
         self._pl_items:      list = []
         self._song_rows:     list = []
@@ -507,8 +499,14 @@ class PlaylistView(QWidget):
         self._radio         = radio
         self._catalog_songs = catalog_songs
         self._catalog_map   = {s["id"]: s for s in catalog_songs}
-        self._load_playlists()
         self._populate_pl_sidebar()
+
+    def _get_user_playlists(self) -> dict:
+        """Return {id: station_dict} for all user playlists from radio backend."""
+        if not self._radio:
+            return {}
+        return {sid: s for sid, s in self._radio.stations.items()
+                if self._radio.isUserPlaylist(sid)}
 
     def refresh_playing(self, active_id: Optional[str]):
         for row in self._song_rows:
@@ -773,42 +771,6 @@ class PlaylistView(QWidget):
 
         return w
 
-    # ── Persistence ───────────────────────────────────────────────────────────
-
-    def _load_playlists(self):
-        os.makedirs(_PLAYLIST_DIR, exist_ok=True)
-        self._playlists = {}
-        for fname in sorted(os.listdir(_PLAYLIST_DIR)):
-            if not fname.endswith(".json"):
-                continue
-            path = os.path.join(_PLAYLIST_DIR, fname)
-            try:
-                with open(path, "r", encoding="utf-8") as f:
-                    data = json.load(f)
-                pl_id = data.get("id") or fname[:-5]
-                self._playlists[pl_id] = {
-                    "name":  data.get("name", "Untitled"),
-                    "songs": data.get("songs", []),
-                }
-            except Exception:
-                pass
-
-    def _save_playlist(self, pl_id: str):
-        os.makedirs(_PLAYLIST_DIR, exist_ok=True)
-        pl = self._playlists.get(pl_id)
-        if pl is None:
-            return
-        path = os.path.join(_PLAYLIST_DIR, f"{pl_id}.json")
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump({"id": pl_id, "name": pl["name"], "songs": pl["songs"]}, f, indent=2)
-
-    def _delete_file(self, pl_id: str):
-        path = os.path.join(_PLAYLIST_DIR, f"{pl_id}.json")
-        try:
-            os.remove(path)
-        except FileNotFoundError:
-            pass
-
     # ── Sidebar population ────────────────────────────────────────────────────
 
     def _populate_pl_sidebar(self):
@@ -817,15 +779,17 @@ class PlaylistView(QWidget):
             item.deleteLater()
         self._pl_items.clear()
 
-        for i, (pl_id, pl) in enumerate(self._playlists.items()):
-            item = _PlaylistItem(pl_id, pl["name"], len(pl["songs"]))
+        playlists = self._get_user_playlists()
+        for i, (pl_id, pl) in enumerate(playlists.items()):
+            song_count = len(pl.get("songOrder", pl.get("songChances", {})))
+            item = _PlaylistItem(pl_id, pl["name"], song_count)
             item.clicked.connect(self._select_playlist)
             item.delete_requested.connect(self._delete_playlist)
             self._pl_lo.insertWidget(i, item)
             self._pl_items.append(item)
 
         # Restore selection if still valid
-        if self._selected_id and self._selected_id in self._playlists:
+        if self._selected_id and self._selected_id in playlists:
             self._select_playlist(self._selected_id)
         else:
             self._selected_id = None
@@ -834,9 +798,8 @@ class PlaylistView(QWidget):
     # ── Playlist actions ──────────────────────────────────────────────────────
 
     def _new_playlist(self):
-        pl_id = uuid.uuid4().hex[:10]
         # Avoid name collisions
-        existing_names = {pl["name"] for pl in self._playlists.values()}
+        existing_names = {pl["name"] for pl in self._get_user_playlists().values()}
         base = "New Playlist"
         name = base
         n = 2
@@ -844,8 +807,7 @@ class PlaylistView(QWidget):
             name = f"{base} {n}"
             n += 1
 
-        self._playlists[pl_id] = {"name": name, "songs": []}
-        self._save_playlist(pl_id)
+        pl_id = self._radio.createPlaylist(name)
         self._populate_pl_sidebar()
         self._select_playlist(pl_id)
         # Focus the name field so user can rename immediately
@@ -860,8 +822,7 @@ class PlaylistView(QWidget):
         self._refresh_editor()
 
     def _delete_playlist(self, pl_id: str):
-        self._delete_file(pl_id)
-        self._playlists.pop(pl_id, None)
+        self._radio.deletePlaylist(pl_id)
         if self._selected_id == pl_id:
             self._selected_id = None
         self._populate_pl_sidebar()
@@ -873,8 +834,7 @@ class PlaylistView(QWidget):
         if not new_name:
             new_name = "Untitled"
             self._name_edit.setText(new_name)
-        self._playlists[self._selected_id]["name"] = new_name
-        self._save_playlist(self._selected_id)
+        self._radio.renamePlaylist(self._selected_id, new_name)
         # Update sidebar label
         for item in self._pl_items:
             if item.pl_id == self._selected_id:
@@ -884,37 +844,35 @@ class PlaylistView(QWidget):
     def _add_song(self, song_id: str):
         if not self._selected_id:
             return
-        pl = self._playlists[self._selected_id]
-        if song_id in pl["songs"]:
-            return
-        pl["songs"].append(song_id)
-        self._save_playlist(self._selected_id)
+        self._radio.addSongToPlaylist(self._selected_id, song_id)
         self._refresh_editor()
 
     def _remove_song(self, song_id: str):
         if not self._selected_id:
             return
-        pl = self._playlists[self._selected_id]
-        if song_id in pl["songs"]:
-            pl["songs"].remove(song_id)
-            self._save_playlist(self._selected_id)
-            self._refresh_editor()
+        self._radio.removeSongFromPlaylist(self._selected_id, song_id)
+        self._refresh_editor()
 
     def _play_all(self):
-        pl = self._playlists.get(self._selected_id)
-        if not pl or not pl["songs"]:
+        station = self._radio.stations.get(self._selected_id)
+        if not station:
             return
-        self._start_playlist_at(pl["songs"][0])
+        songs = station.get("songOrder", list(station.get("songChances", {}).keys()))
+        if not songs:
+            return
+        self._start_playlist_at(songs[0])
 
     # ── Editor refresh ────────────────────────────────────────────────────────
 
     def _refresh_editor(self):
-        pl = self._playlists.get(self._selected_id)
-        if not pl:
+        station = self._radio.stations.get(self._selected_id)
+        if not station:
             return
 
-        self._name_edit.setText(pl["name"])
-        n = len(pl["songs"])
+        songs = station.get("songOrder", list(station.get("songChances", {}).keys()))
+
+        self._name_edit.setText(station["name"])
+        n = len(songs)
         self._pl_sub.setText(f"{n} song{'s' if n != 1 else ''}")
         self._play_btn.setEnabled(n > 0)
 
@@ -930,7 +888,7 @@ class PlaylistView(QWidget):
             row.deleteLater()
         self._song_rows.clear()
 
-        for i, song_id in enumerate(pl["songs"], start=1):
+        for i, song_id in enumerate(songs, start=1):
             song = self._catalog_map.get(song_id)
             if not song:
                 continue
@@ -955,7 +913,8 @@ class PlaylistView(QWidget):
         if not q:
             return
 
-        added = set(self._playlists.get(self._selected_id, {}).get("songs", []))
+        station = self._radio.stations.get(self._selected_id, {})
+        added = set(station.get("songOrder", station.get("songChances", {}).keys()))
         matches = [
             s for s in self._catalog_songs
             if q in s.get("name", "").lower() or q in (s.get("artist") or "").lower()
@@ -975,11 +934,14 @@ class PlaylistView(QWidget):
     def _start_playlist_at(self, song_id: str):
         """Begin playlist playback from song_id, queueing the rest in order (or shuffled)."""
         import random
-        pl = self._playlists.get(self._selected_id)
-        if not pl or not pl["songs"] or not self._radio:
+        station = self._radio.stations.get(self._selected_id) if self._radio else None
+        if not station:
+            return
+        song_list = station.get("songOrder", list(station.get("songChances", {}).keys()))
+        if not song_list:
             return
 
-        songs = list(pl["songs"])
+        songs = list(song_list)
         if song_id not in songs:
             song_id = songs[0]
 
@@ -1230,6 +1192,8 @@ class RadioTab(QWidget):
 
         self._song_stations = {}
         for station_id, station in stations.items():
+            if self._radio.isUserPlaylist(station_id):
+                continue
             for song_id in station.get("songChances", {}):
                 self._song_stations.setdefault(song_id, []).append(station_id)
 

@@ -418,7 +418,7 @@ class HeaderRadioWidget(QFrame):
         station_row.addWidget(station_icon)
 
         self.station_combo = QComboBox()
-        self.station_combo.setFixedWidth(90)
+        self.station_combo.setFixedWidth(120)
         self.station_combo.setFixedHeight(18)
         self.station_combo.setStyleSheet(f"""
             QComboBox {{
@@ -556,8 +556,18 @@ class HeaderRadioWidget(QFrame):
         self.station_combo.blockSignals(True)
         self.station_combo.clear()
 
+        # Built-in stations first
         for station_id, station_info in self._radio.stations.items():
-            self.station_combo.addItem(station_info['name'], station_id)
+            if not self._radio.isUserPlaylist(station_id):
+                self.station_combo.addItem(station_info['name'], station_id)
+
+        # Separator + user playlists
+        user_playlists = {sid: s for sid, s in self._radio.stations.items()
+                          if self._radio.isUserPlaylist(sid)}
+        if user_playlists:
+            self.station_combo.insertSeparator(self.station_combo.count())
+            for pl_id, pl_info in user_playlists.items():
+                self.station_combo.addItem(f"♫ {pl_info['name']}", pl_id)
 
         if self._radio.currentStation:
             idx = self.station_combo.findData(self._radio.currentStation)

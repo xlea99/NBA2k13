@@ -1,4 +1,5 @@
 import os
+import uuid
 from datetime import datetime
 import time
 import re
@@ -39,10 +40,12 @@ class Radio:
         self.catalog = {}
         self.stations = {}
         self.currentStation = None
+        self.__playlistDir = paths.paths["musicData"] / "playlists"
         # Import all songs in base music directory by default.
         if(importAll):
             self.loadAllSongs()
             self.loadAllStations()
+            self.loadAllPlaylists()
 
 
         # Queue helper members
@@ -107,6 +110,111 @@ class Radio:
             return True
         else:
             return False
+
+    #region === Playlist CRUD ===
+
+    # Loads user-created playlists from data/music/playlists/ as stations.
+    def loadAllPlaylists(self):
+        os.makedirs(self.__playlistDir, exist_ok=True)
+        for root,dirs,files in os.walk(self.__playlistDir):
+            for file in files:
+                if file.endswith(".json"):
+                    self._importPlaylist(os.path.join(root,file))
+
+    def _importPlaylist(self,playlistJSONPath):
+        with open(playlistJSONPath,"r",encoding="utf-8") as f:
+            data = json.load(f)
+        plID = data.get("id", Path(playlistJSONPath).stem)
+        songs = data.get("songs",[])
+        thisStation = {
+            "type": "station",
+            "id": plID,
+            "name": data.get("name","Untitled"),
+            "songChances": {sid: 1.0 for sid in songs},
+            "songOrder": list(songs),
+            "userPlaylist": True,
+            "queue": [],
+            "history": [],
+            "lastPlayingSong": {"SongID": None, "Time": 0},
+        }
+        self.stations[plID] = thisStation
+        self.refreshStationQueue(stationID=plID)
+
+    def _savePlaylistFile(self,playlistID):
+        station = self.stations.get(playlistID)
+        if not station or not station.get("userPlaylist"):
+            return
+        os.makedirs(self.__playlistDir, exist_ok=True)
+        path = self.__playlistDir / f"{playlistID}.json"
+        data = {
+            "id": playlistID,
+            "name": station["name"],
+            "songs": list(station.get("songOrder",station["songChances"].keys())),
+        }
+        with open(path,"w",encoding="utf-8") as f:
+            json.dump(data,f,indent=2)
+
+    def isUserPlaylist(self,stationID):
+        station = self.stations.get(stationID)
+        return station is not None and station.get("userPlaylist",False)
+
+    def createPlaylist(self,name="New Playlist"):
+        plID = uuid.uuid4().hex[:10]
+        self.stations[plID] = {
+            "type": "station",
+            "id": plID,
+            "name": name,
+            "songChances": {},
+            "songOrder": [],
+            "userPlaylist": True,
+            "queue": [],
+            "history": [],
+            "lastPlayingSong": {"SongID": None, "Time": 0},
+        }
+        self._savePlaylistFile(plID)
+        return plID
+
+    def deletePlaylist(self,playlistID):
+        if not self.isUserPlaylist(playlistID):
+            return
+        # If currently playing this playlist, switch away
+        if self.currentStation == playlistID:
+            for sid in self.stations:
+                if sid != playlistID:
+                    self.station(sid)
+                    break
+        self.stations.pop(playlistID, None)
+        path = self.__playlistDir / f"{playlistID}.json"
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
+
+    def renamePlaylist(self,playlistID,name):
+        if not self.isUserPlaylist(playlistID):
+            return
+        self.stations[playlistID]["name"] = name
+        self._savePlaylistFile(playlistID)
+
+    def addSongToPlaylist(self,playlistID,songID):
+        if not self.isUserPlaylist(playlistID):
+            return
+        station = self.stations[playlistID]
+        if songID not in station["songChances"]:
+            station["songChances"][songID] = 1.0
+            station["songOrder"].append(songID)
+            self._savePlaylistFile(playlistID)
+
+    def removeSongFromPlaylist(self,playlistID,songID):
+        if not self.isUserPlaylist(playlistID):
+            return
+        station = self.stations[playlistID]
+        station["songChances"].pop(songID, None)
+        if songID in station["songOrder"]:
+            station["songOrder"].remove(songID)
+        self._savePlaylistFile(playlistID)
+
+    #endregion === Playlist CRUD ===
 
     # Gets the current song played, a target song, OR the full queue.
     def getSong(self,songID=None):
