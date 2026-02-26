@@ -20,6 +20,7 @@ from spritopia.gui.app_state import get_app_state
 from spritopia.gui.audio import get_audio_player
 from spritopia.gui.widgets.player_finder import PlayerFinderWidget
 from spritopia.gui.widgets.radio_widget import HeaderRadioWidget
+from spritopia.gui.radio_tab import RadioTab
 from spritopia.gui.premier.play import PlayWidget
 from spritopia.gui.premier.home import PremierHomeWidget
 from spritopia.gui.create_player.create_player_page import CreatePlayerPage
@@ -133,6 +134,10 @@ class MainWindow(QMainWindow):
         league_placeholder = self._create_placeholder("League", "Coming soon...")
         self.mode_tabs.addTab(league_placeholder, "League")
         self.mode_tabs.setTabEnabled(2, False)
+
+        # Radio tab
+        self.radio_tab = RadioTab()
+        self.mode_tabs.addTab(self.radio_tab, "Radio")
 
         right_layout.addWidget(self.mode_tabs)
         splitter.addWidget(right_container)
@@ -381,6 +386,7 @@ class MainWindow(QMainWindow):
             from spritopia.utilities.radio import r as radio
             self._radio = radio
             self.radio_widget.set_radio(radio)
+            self.radio_tab.set_radio(radio)
             log.info("Radio initialized")
         except Exception as e:
             log.warning(f"Failed to initialize radio: {e}")
