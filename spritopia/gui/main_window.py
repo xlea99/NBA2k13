@@ -21,6 +21,7 @@ from spritopia.gui.audio import get_audio_player
 from spritopia.gui.widgets.player_finder import PlayerFinderWidget
 from spritopia.gui.widgets.radio_widget import HeaderRadioWidget
 from spritopia.gui.radio_tab import RadioTab
+from spritopia.gui.tournament_tab import TournamentTab
 from spritopia.gui.premier.play import PlayWidget
 from spritopia.gui.premier.home import PremierHomeWidget
 from spritopia.gui.create_player.create_player_page import CreatePlayerPage
@@ -134,6 +135,10 @@ class MainWindow(QMainWindow):
         league_placeholder = self._create_placeholder("League", "Coming soon...")
         self.mode_tabs.addTab(league_placeholder, "League")
         self.mode_tabs.setTabEnabled(2, False)
+
+        # Tournaments tab
+        self.tournament_tab = TournamentTab()
+        self.mode_tabs.addTab(self.tournament_tab, "Tournaments")
 
         # Radio tab
         self.radio_tab = RadioTab()
@@ -355,6 +360,11 @@ class MainWindow(QMainWindow):
         save_manager.save_started.connect(self._on_save_started)
         save_manager.save_completed.connect(self._on_save_completed)
 
+        # Tournament draft ↔ sidebar
+        self.tournament_tab.draft_excluded_updated.connect(self._on_tournament_draft_excluded)
+        self.tournament_tab.slot_filter_changed.connect(self._on_tournament_slot_filter)
+        self.player_finder.player_selected.connect(self.tournament_tab.on_sidebar_pick)
+
     def _load_initial_data(self):
         """Load initial data from the database."""
         try:
@@ -454,6 +464,14 @@ class MainWindow(QMainWindow):
 
     def _on_slot_filter_changed(self, archetype: str):
         """Apply or clear the active pick slot's archetype restriction on the finder."""
+        self.player_finder.set_slot_archetype(archetype or None)
+
+    def _on_tournament_draft_excluded(self, ids: set):
+        """Hide already-picked players from the sidebar during a tournament draft."""
+        self.player_finder.set_draft_excluded(ids)
+
+    def _on_tournament_slot_filter(self, archetype: str):
+        """Apply or clear an archetype filter on the sidebar for tournament draft slots."""
         self.player_finder.set_slot_archetype(archetype or None)
 
     def _on_stats_player_selected(self, sprite_id: int):
