@@ -46,10 +46,12 @@ class MainWindow(QMainWindow):
         self.setStyleSheet(STYLESHEET)
 
         self._radio = None
+        self._tracker_bridge = None
         self._setup_ui()
         self._connect_signals()
         self._load_initial_data()
         self._init_radio()
+        self._init_tracker_bridge()
 
         self.showMaximized()
 
@@ -295,7 +297,6 @@ class MainWindow(QMainWindow):
 
         # Play page (setup + picker)
         self.play_widget = PlayWidget()
-        self.play_widget.load_requested.connect(self._on_load_game)
         self.play_widget.match_started.connect(self._on_match_started)
         self.play_widget.match_ended.connect(self._on_match_ended)
         self.play_widget.slot_filter_changed.connect(self._on_slot_filter_changed)
@@ -401,6 +402,17 @@ class MainWindow(QMainWindow):
         except Exception as e:
             log.warning(f"Failed to initialize radio: {e}")
 
+    def _init_tracker_bridge(self):
+        """Initialize the tracker bridge for 2K13 integration."""
+        try:
+            from spritopia.gui.tracker_bridge import get_tracker_bridge
+            self._tracker_bridge = get_tracker_bridge()
+            self._tracker_bridge.connection_changed.connect(self._on_tracker_connection_changed)
+            log.info("Tracker bridge initialized")
+        except Exception as e:
+            self._tracker_bridge = None
+            log.warning(f"Failed to initialize tracker bridge: {e}")
+
     def _on_save_started(self):
         """Handle save process starting - disable UI."""
         self.setEnabled(False)
@@ -409,37 +421,12 @@ class MainWindow(QMainWindow):
         """Handle save process completing - re-enable UI."""
         self.setEnabled(True)
 
-    def _on_load_game(self):
-        """Handle load game request from picker."""
-        # Check for pending saves first
-        save_manager = get_save_manager()
-        if save_manager.has_pending_changes:
-            reply = QMessageBox.warning(
-                self,
-                "Pending Changes",
-                "You have unsaved changes. Save them before loading a game?",
-                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
-                QMessageBox.Save
-            )
-            if reply == QMessageBox.Save:
-                save_manager.execute_all(self)
-            elif reply == QMessageBox.Cancel:
-                return
-
-        team1, team2 = self.play_widget.get_teams()
-
-        # Log the teams
-        team1_names = [f"{p['First_Name']} {p['Last_Name']}" for p in team1]
-        team2_names = [f"{p['First_Name']} {p['Last_Name']}" for p in team2]
-
-        log.info(f"Load game requested - Team 1: {team1_names}, Team 2: {team2_names}")
-
-        # TODO: Actually load into 2K13 via tracker
-        QMessageBox.information(
-            self,
-            "Load Game",
-            f"Team 1: {', '.join(team1_names)}\n\nTeam 2: {', '.join(team2_names)}\n\n(Actual loading not yet implemented)"
-        )
+    def _on_tracker_connection_changed(self, connected):
+        """Log tracker connection state changes."""
+        if connected:
+            log.info("Connected to NBA 2K13")
+        else:
+            log.info("Disconnected from NBA 2K13")
 
     def _on_players_created(self, players: list):
         """Handle newly created players."""
@@ -499,6 +486,11 @@ class MainWindow(QMainWindow):
         # Cleanup
         try:
             get_audio_player().stop()
+        except:
+            pass
+        try:
+            if self._tracker_bridge:
+                self._tracker_bridge._poll_timer.stop()
         except:
             pass
 

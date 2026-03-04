@@ -35,8 +35,7 @@ class Tracker:
         self.gameCount = 0
         self.gameStatus = "OutOfGame"
         self.haveFinalStatsBeenRipped = False
-        self.needsCoin = None
-        self.coinHasBeenAdded = None
+        self._coinActive = False
         self.ballHolding = {"InPlay" : {},"OutOfPlay" : {}}
         self.lastTime = 0
         self.canCalcBallHolding = False
@@ -157,19 +156,33 @@ class Tracker:
                         self.gameStatus = "Paused"
                     else:
                         if (self.testIfGameIsWon()):
+                            # Remove coin BEFORE final rip
+                            if self._coinActive:
+                                try:
+                                    self.removeCoin("ringers")
+                                    self._coinActive = False
+                                    log.info("Removed Ringers coin before final stat rip.")
+                                except Exception as e:
+                                    log.error(f"Failed to remove coin: {e}")
                             self.gameStatus = "Won"
                             log.info("Found that blacktop game has been won. Doing final rip.")
-                            #TODO COIN MANAGEMENT CLEAN UP GOES HERE?
                         else:
                             if(self.gameStatus == "Paused"):
                                 log.debug("Resumed blacktop game after being paused")
+                            # Add coin on first Running transition
+                            if self.gameStatus != "Running" and not self._coinActive:
+                                try:
+                                    self.addCoin("ringers")
+                                    self._coinActive = True
+                                    log.info("Added Ringers coin at game start.")
+                                except Exception as e:
+                                    log.error(f"Failed to add coin: {e}")
                             self.gameStatus = "Running"
             else:
                 if(self.gameStatus != "OutOfGame"):
                     self.gameCount += 1
                     self.gameStatus = "OutOfGame"
-                    self.needsCoin = None
-                    self.coinHasBeenAdded = None
+                    self._coinActive = False
                     self.haveFinalStatsBeenRipped = False
                     self.ballHolding = {}
                     self.canCalcBallHolding = False
@@ -779,9 +792,6 @@ class Tracker:
             else:
                 slotInfo["SpriteID"] = -1
 
-        # Remove the coin given. # TODO
-        if(gameStats["GameMode"] >= 4):
-            pass
         returnStats = {"GameStats" : gameStats,"SlotStats" : slotStats}
 
         # Store all ripped stats into object.

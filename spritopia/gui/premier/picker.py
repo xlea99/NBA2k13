@@ -1272,7 +1272,7 @@ class ActionBar(QFrame):
         msg.setStyleSheet(f"font-size: 14px; font-weight: 600; color: {COLORS['accent_success']};")
         lo.addWidget(msg, stretch=1)
 
-        btn = QPushButton("Load Game  →")
+        btn = QPushButton("Start Game  →")
         btn.setFixedHeight(40)
         btn.setMinimumWidth(150)
         btn.setStyleSheet(f"""

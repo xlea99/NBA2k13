@@ -1,7 +1,7 @@
 """
 Play Widget - Match setup and picker flow for Premier mode.
 
-Flow: Game Setup screen → (Start Match) → Draft/Picker screen
+Flow: Game Setup screen → (Start Match) → Draft/Picker screen → (Start Game) → Game Screen
 """
 
 import random
@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt, Signal
 
 from spritopia.gui.theme import COLORS, get_archetype_color
 from spritopia.gui.premier.picker import PremierPickerWidget
+from spritopia.gui.premier.game_screen import GameScreen
 
 
 # ── Data ─────────────────────────────────────────────────────────────────────
@@ -747,7 +748,7 @@ class GameSetupWidget(QWidget):
 # ── PlayWidget ────────────────────────────────────────────────────────────────
 
 class PlayWidget(QWidget):
-    """Top-level Play tab widget. Manages Game Setup → Picker flow."""
+    """Top-level Play tab widget. Manages Game Setup → Picker → Game Screen flow."""
 
     load_requested      = Signal()
     match_started       = Signal(dict)  # Emits config when entering the picker
@@ -775,6 +776,12 @@ class PlayWidget(QWidget):
 
         # Page 1: Picker with back bar
         self._stack.addWidget(self._build_picker_page())
+
+        # Page 2: Game screen (live box score)
+        self._game_screen = GameScreen()
+        self._game_screen.back_requested.connect(self._on_game_back_to_setup)
+        self._stack.addWidget(self._game_screen)
+
         self._stack.setCurrentIndex(0)
 
     def _build_picker_page(self) -> QWidget:
@@ -817,7 +824,7 @@ class PlayWidget(QWidget):
         lo.addWidget(back_bar)
 
         self._picker = PremierPickerWidget()
-        self._picker.load_requested.connect(self.load_requested)
+        self._picker.load_requested.connect(self._on_start_game)
         self._picker.slot_filter_changed.connect(self.slot_filter_changed)
         self._picker.excluded_updated.connect(self.excluded_updated)
         lo.addWidget(self._picker, stretch=1)
@@ -826,6 +833,19 @@ class PlayWidget(QWidget):
 
     def _on_back_to_setup(self):
         self._picker.stop_draft()
+        self._stack.setCurrentIndex(0)
+        self.match_ended.emit()
+
+    def _on_start_game(self):
+        """Transition from picker to game screen."""
+        team1, team2 = self._picker.get_teams()
+        self._picker.stop_draft()
+        self._game_screen.start_game(team1, team2, self._match_config)
+        self._stack.setCurrentIndex(2)
+
+    def _on_game_back_to_setup(self):
+        """Return from game screen to setup."""
+        self._game_screen.stop()
         self._stack.setCurrentIndex(0)
         self.match_ended.emit()
 
