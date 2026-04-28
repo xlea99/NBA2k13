@@ -190,9 +190,23 @@ class GameScreen(QWidget):
         post_lo = QHBoxLayout(self._postgame_bar)
         post_lo.setContentsMargins(24, 8, 24, 8)
 
+        # Stack save-status and ball-holding warning vertically in the left slot
+        # so each can be styled and toggled independently of the other.
+        post_status_col = QVBoxLayout()
+        post_status_col.setContentsMargins(0, 0, 0, 0)
+        post_status_col.setSpacing(2)
+
         self._save_status_lbl = QLabel("")
         self._save_status_lbl.setStyleSheet(f"font-size: 11px; color: {COLORS['text_muted']};")
-        post_lo.addWidget(self._save_status_lbl, stretch=1)
+        post_status_col.addWidget(self._save_status_lbl)
+
+        self._ballholding_warning_lbl = QLabel("")
+        self._ballholding_warning_lbl.setStyleSheet(
+            f"font-size: 11px; font-weight: bold; color: {COLORS['accent_warning']};")
+        self._ballholding_warning_lbl.setVisible(False)
+        post_status_col.addWidget(self._ballholding_warning_lbl)
+
+        post_lo.addLayout(post_status_col, stretch=1)
 
         self._back_btn = QPushButton("← Back to Setup")
         self._back_btn.setFixedHeight(32)
@@ -274,6 +288,9 @@ class GameScreen(QWidget):
         self._load_success = False
         self._save_status = ""
         self._last_stats = None
+        self._save_status_lbl.setText("")
+        self._ballholding_warning_lbl.setText("")
+        self._ballholding_warning_lbl.setVisible(False)
 
         self._set_phase("pre_game")
 
@@ -532,6 +549,28 @@ class GameScreen(QWidget):
 
         ballerz_score = game_stats.get("BallerzScore", 0)
         ringers_score = game_stats.get("RingersScore", 0)
+
+        # Detect the "nuclear" ball-holding case: the tracker only injects
+        # BallHolding_InPlay into active slots once every player has touched the
+        # ball at least once. If any active slot is missing it (or it's None),
+        # the iValue list never completed and ball-holding will be NULL for the
+        # whole game. Warn the user visibly.
+        active_slots = [s for s in slot_stats.values() if s.get("IsActive") == 1]
+        ballholding_missing = any(
+            s.get("BallHolding_InPlay") is None for s in active_slots
+        ) if active_slots else False
+
+        if ballholding_missing:
+            self._ballholding_warning_lbl.setText(
+                "⚠ Ball-holding stats unavailable for this game — at least one player "
+                "never touched the ball, so the iValue map could not be solved. The "
+                "rest of the box score saved normally."
+            )
+            self._ballholding_warning_lbl.setVisible(True)
+            log.warning("Ball holding incomplete for this game — saving with NULL ball-holding columns.")
+        else:
+            self._ballholding_warning_lbl.setVisible(False)
+            self._ballholding_warning_lbl.setText("")
 
         class _StatsWrapper:
             def __init__(self, gs, ss):

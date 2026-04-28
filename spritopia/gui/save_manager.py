@@ -13,7 +13,7 @@ from datetime import datetime
 from PySide6.QtCore import QObject, Signal, QTimer
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QLabel,
-    QFrame, QDialog, QScrollArea, QProgressDialog, QApplication
+    QFrame, QDialog, QScrollArea, QProgressDialog, QApplication, QMessageBox
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QColor
@@ -359,8 +359,30 @@ class SaveButton(QWidget):
     def _on_save_error(self, error_msg: str):
         self.save_btn.setText("Save")
         self._on_changes_updated()
-        # Could show error dialog here
         log.error(f"Save error: {error_msg}")
+
+        # Surface the failure to the user. The most actionable case is height-bucket
+        # exhaustion ("Out of space to add more players to roster with this height: …"),
+        # which we call out explicitly so the user knows to pick a different height.
+        is_height_exhaustion = "Out of space to add more players to roster with this height" in error_msg
+        if is_height_exhaustion:
+            title = "Roster Height Bucket Full"
+            preamble = (
+                "One or more players couldn't be added to the roster because every "
+                "height-adjustment slot for that height is already taken (max 254 players "
+                "per RealHeight). Pick a different height for the affected player(s) and "
+                "try saving again.\n\n"
+            )
+        else:
+            title = "Save Failed"
+            preamble = "One or more queued changes failed to save:\n\n"
+
+        box = QMessageBox(self.window())
+        box.setWindowTitle(title)
+        box.setIcon(QMessageBox.Warning)
+        box.setText(preamble + error_msg)
+        box.setStandardButtons(QMessageBox.Ok)
+        box.exec()
 
 
 class SaveConfirmDialog(QDialog):

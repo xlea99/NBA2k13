@@ -333,23 +333,19 @@ class DataStorage:
             self.__csvCursorDict[rosterName].execute(query)
             self.__csvDBDict[rosterName].commit()
         else:
-            query = f"SELECT HeightAdjustment FROM HeightMap WHERE RealHeight = {realHeight}"
+            query = f"SELECT HeightAdjustment FROM HeightMap WHERE RealHeight = {realHeight} AND RosterID != {rosterID}"
             self.__csvCursorDict[rosterName].execute(query)
             records = self.__csvCursorDict[rosterName].fetchall()
-            allCurrentAdjustments = [record[0] for record in records]
+            allCurrentAdjustments = set(record[0] for record in records)
 
-            validAdjustments = []
-            for i in range(254):
-                if (i in allCurrentAdjustments):
-                    continue
-                else:
-                    validAdjustments.append(i)
+            validAdjustments = [i for i in range(254) if i not in allCurrentAdjustments]
 
             if (len(validAdjustments) == 0):
                 error = ValueError(f"Out of space to add more players to roster with this height: {realHeight}. Quite sad.")
                 log.exception(error)
                 raise error
-            thisAdjustment = random.choice(validAdjustments)
+            # Deterministic pick — smallest available adjustment.
+            thisAdjustment = validAdjustments[0]
 
             query = f"UPDATE HeightMap SET RealHeight = {realHeight}, HeightAdjustment = {thisAdjustment} WHERE RosterID = {rosterID}"
             self.__csvCursorDict[rosterName].execute(query)
@@ -982,8 +978,36 @@ class DataStorage:
         for slotName,slotInfo in statsObject.slotStats["slotStats"].items():
             slotId = int(slotName.split("Slot")[1])
             if not slotInfo.get("IsActive"):
-                playerSlots[slotId] = {"DataState": "New", "GameID": newGameID,
-                                       "PlayerSlot": slotId, "IsActive": 0}
+                # Inactive slots have only IsActive=0 from the tracker rip. The DB
+                # convention (preserved across all 237 historic games) is one row
+                # per slot per game, with stat columns NULL on inactive rows.
+                playerSlots[slotId] = {
+                    "DataState"             : "New",
+                    "GameID"                : newGameID,
+                    "PlayerSlot"            : slotId,
+                    "IsActive"              : 0,
+                    "SpriteID"              : None,
+                    "RosterID"              : None,
+                    "Points"                : None,
+                    "DefensiveRebounds"     : None,
+                    "OffensiveRebounds"     : None,
+                    "PointsPerAssist"       : None,
+                    "AssistCount"           : None,
+                    "Steals"                : None,
+                    "Blocks"                : None,
+                    "Turnovers"             : None,
+                    "InsidesMade"           : None,
+                    "InsidesAttempted"      : None,
+                    "ThreesMade"            : None,
+                    "ThreesAttempted"       : None,
+                    "Fouls"                 : None,
+                    "Dunks"                 : None,
+                    "Layups"                : None,
+                    "Unknown1"              : None,
+                    "Unknown2"              : None,
+                    "BallHolding_InPlay"    : None,
+                    "BallHolding_OutOfPlay" : None,
+                }
                 continue
             thisPlayerSlot = {"DataState" : "New",
                               "GameID" : newGameID,
@@ -1007,7 +1031,9 @@ class DataStorage:
                               "Dunks" : slotInfo["Dunks"],
                               "Layups" : slotInfo["Layups"],
                               "Unknown1" : slotInfo["Unknown1"],
-                              "Unknown2" : slotInfo["Unknown2"]
+                              "Unknown2" : slotInfo["Unknown2"],
+                              "BallHolding_InPlay" : slotInfo.get("BallHolding_InPlay"),
+                              "BallHolding_OutOfPlay" : slotInfo.get("BallHolding_OutOfPlay")
                               }
             playerSlots[slotId] = thisPlayerSlot
         newGame["PlayerSlots"] = playerSlots

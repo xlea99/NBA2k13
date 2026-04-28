@@ -37,7 +37,7 @@ class Tracker:
         self.haveFinalStatsBeenRipped = False
         self._coinActive = False
         self.ballHolding = {"InPlay" : {},"OutOfPlay" : {}}
-        self.lastTime = 0
+        self.lastTime = time.perf_counter()
         self.canCalcBallHolding = False
 
         # When a game ends, all ripped stats are temporarily stored here for use elsewhere.
@@ -222,6 +222,7 @@ class Tracker:
 
                     if(thisStatRip is not None):
                         # Calculate ball holding times here
+                        ballHoldingTimes = None
                         if(self.canCalcBallHolding or thisStatRip["GameStats"]["LoadedRoster"].split(".ROS")[0] in self.dataStorage.rosters.keys()):
                             ballHoldingTimes = self.convertIValueTimesToRosterIDs(rosterName=thisStatRip["GameStats"]["LoadedRoster"].split(".ROS")[0],
                                                            rippedStats=thisStatRip,iValueTimes=self.ballHolding)
@@ -230,7 +231,7 @@ class Tracker:
                                     log.debug("All PIDs ripped, can now correctly calculate ball holding times.")
                                 self.canCalcBallHolding = True
                         if(self.gameStatus == "Won"):
-                            if(ballHoldingTimes is None):
+                            if(not ballHoldingTimes):
                                 async_sound.playsoundAsync(paths["media"] / "Ehrmantraut/ball_handling_not_complete.mp3")
                                 log.warning(f"Successfully ripped finished game stats, but ball holding times COULD NOT be calculated.")
                             else:
