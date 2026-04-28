@@ -546,6 +546,7 @@ class GameScreen(QWidget):
         try:
             wrapper = _StatsWrapper(game_stats, slot_stats)
             game_id = d.statsDB_AddRippedGame(wrapper)
+            d.statsDB_UploadRaw()
             self._save_status = f"Game saved successfully (ID: {game_id})  ·  Ballerz {ballerz_score} - {ringers_score} Ringers"
             self._save_status_lbl.setText(self._save_status)
             self._save_status_lbl.setStyleSheet(

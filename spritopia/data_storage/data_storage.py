@@ -981,11 +981,15 @@ class DataStorage:
         playerSlots = {}
         for slotName,slotInfo in statsObject.slotStats["slotStats"].items():
             slotId = int(slotName.split("Slot")[1])
+            if not slotInfo.get("IsActive"):
+                playerSlots[slotId] = {"DataState": "New", "GameID": newGameID,
+                                       "PlayerSlot": slotId, "IsActive": 0}
+                continue
             thisPlayerSlot = {"DataState" : "New",
                               "GameID" : newGameID,
                               "PlayerSlot" : slotId,
                               "IsActive" : slotInfo["IsActive"],
-                              "SpriteID" : self.csv_GetSpriteIDFromRosterID(statsObject.loadedRoster.split(".ROS")[0], slotInfo['RosterID']),
+                              "SpriteID" : self.csv_GetSpriteIDFromRosterID(statsObject.loadedRoster.split(".ROS")[0], slotInfo.get('RosterID')),
                               "RosterID" : slotInfo['RosterID'],
                               "Points" : slotInfo["Points"],
                               "DefensiveRebounds" : slotInfo["DefensiveRebounds"],

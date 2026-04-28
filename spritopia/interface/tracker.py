@@ -184,7 +184,7 @@ class Tracker:
                     self.gameStatus = "OutOfGame"
                     self._coinActive = False
                     self.haveFinalStatsBeenRipped = False
-                    self.ballHolding = {}
+                    self.ballHolding = {"InPlay" : {}, "OutOfPlay" : {}}
                     self.canCalcBallHolding = False
                     log.debug("Exited blacktop game, cleaned up Tracker object after finished game")
 
