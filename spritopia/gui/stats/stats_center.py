@@ -95,7 +95,7 @@ class LeaderboardTable(QTableWidget):
         "Rarity": "Player's rarity tier",
         "GP": "Games Played - Total number of games",
         "PPG": "Points Per Game - Average points scored per game",
-        "FG%": "Field Goal Percentage - (FG Made / FG Attempted) x 100",
+        "1s%": "1-Point Shot Percentage - (Inside Shots Made / Inside Shots Attempted) x 100",
         "3P%": "Three-Point Percentage - (3PT Made / 3PT Attempted) x 100",
         "TS%": "True Shooting Percentage - Measures scoring efficiency (points relative to max possible from attempts)",
         "APG": "Assists Per Game - Average assists per game",
@@ -638,10 +638,12 @@ class UnifiedLeaderboardTable(QTableWidget):
         ("RPG", "Rebounds Per Game", 45),
         ("SPG", "Steals Per Game", 40),
         ("BPG", "Blocks Per Game", 40),
-        ("FG%", "Field Goal Percentage", 45),
+        ("1s%", "1-Point (Inside) Shot Percentage", 45),
         ("3P%", "Three-Point Percentage", 45),
         ("TS%", "True Shooting Percentage", 45),
-        ("eFG%", "Effective FG%", 45),
+        ("TH/TO", "In-Play Ball Holding Time per Turnover (seconds)", 50),
+        ("THpG", "Avg. In-Play Ball Holding Time per Game (seconds)", 50),
+        ("TH/FGA", "In-Play Ball Holding Time per Field Goal Attempt (seconds)", 55),
         ("EFF", "Efficiency Rating", 45),
         ("GmSc", "Game Score (Hollinger)", 45),
         ("AST/TO", "Assist to Turnover Ratio", 55),
@@ -687,9 +689,12 @@ class UnifiedLeaderboardTable(QTableWidget):
         self.verticalHeader().setVisible(False)
         self.setSortingEnabled(True)
 
-        # Column sizing
+        # Column sizing — Player column is Interactive with a fixed default so it
+        # never collapses when many ResizeToContents columns fill the viewport.
         header = self.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)  # Player stretches
+        header.setSectionResizeMode(0, QHeaderView.Interactive)
+        header.resizeSection(0, 160)
+        header.setMinimumSectionSize(80)
         for i in range(1, len(self.COLUMNS)):
             header.setSectionResizeMode(i, QHeaderView.ResizeToContents)
 
@@ -739,10 +744,12 @@ class UnifiedLeaderboardTable(QTableWidget):
                 stats.rpg,
                 stats.spg,
                 stats.bpg,
-                stats.fg_pct * 100,
+                stats.two_pt_pct * 100,
                 stats.three_pt_pct * 100,
                 stats.ts_pct * 100,
-                stats.efg_pct * 100,
+                stats.time_held_per_to,
+                stats.ball_time_in_play_per_game,
+                stats.time_held_per_fga,
                 stats.efficiency_rating,
                 stats.game_score_avg,
                 stats.ast_to_ratio,
@@ -750,22 +757,24 @@ class UnifiedLeaderboardTable(QTableWidget):
 
             # Format strings for display
             formats = [
-                "{:.0f}",  # GP
-                "{:.0f}",  # W
-                "{:.0f}",  # L
+                "{:.0f}",   # GP
+                "{:.0f}",   # W
+                "{:.0f}",   # L
                 "{:.1f}%",  # WIN%
-                "{:.1f}",  # PPG
-                "{:.1f}",  # APG
-                "{:.1f}",  # RPG
-                "{:.1f}",  # SPG
-                "{:.1f}",  # BPG
-                "{:.1f}%",  # FG%
+                "{:.1f}",   # PPG
+                "{:.1f}",   # APG
+                "{:.1f}",   # RPG
+                "{:.1f}",   # SPG
+                "{:.1f}",   # BPG
+                "{:.1f}%",  # 1s%
                 "{:.1f}%",  # 3P%
                 "{:.1f}%",  # TS%
-                "{:.1f}%",  # eFG%
-                "{:.1f}",  # EFF
-                "{:.1f}",  # GmSc
-                "{:.2f}",  # AST/TO
+                "{:.1f}s",  # TH/TO
+                "{:.1f}s",  # THpG
+                "{:.1f}s",  # TH/FGA
+                "{:.1f}",   # EFF
+                "{:.1f}",   # GmSc
+                "{:.2f}",   # AST/TO
             ]
 
             for j, (val, fmt) in enumerate(zip(numeric_values, formats)):
@@ -1195,7 +1204,7 @@ class GameHistoryWidget(QWidget):
         """Create a box score table for one team."""
         table = QTableWidget()
         table.setColumnCount(9)
-        table.setHorizontalHeaderLabels(["Player", "Arch", "PTS", "AST", "REB", "STL", "BLK", "TO", "FG"])
+        table.setHorizontalHeaderLabels(["Player", "Arch", "PTS", "AST", "REB", "STL", "BLK", "TO", "1s"])
 
         table.setStyleSheet(f"""
             QTableWidget {{
@@ -1416,8 +1425,8 @@ class GameHistoryWidget(QWidget):
                         "steals": slot.get("Steals", 0) or 0,
                         "blocks": slot.get("Blocks", 0) or 0,
                         "turnovers": slot.get("Turnovers", 0) or 0,
-                        "fg_made": (slot.get("InsidesMade", 0) or 0) + (slot.get("ThreesMade", 0) or 0),
-                        "fg_attempted": (slot.get("InsidesAttempted", 0) or 0) + (slot.get("ThreesAttempted", 0) or 0),
+                        "fg_made": slot.get("InsidesMade", 0) or 0,
+                        "fg_attempted": slot.get("InsidesAttempted", 0) or 0,
                     })
 
         # Sort by points (highest first) for initial display
@@ -1749,7 +1758,7 @@ class PlayerStatsWidget(QWidget):
         if game_log:
             log_table = QTableWidget()
             log_table.setColumnCount(9)
-            log_table.setHorizontalHeaderLabels(["Date", "W/L", "PTS", "AST", "REB", "STL", "BLK", "TO", "FG"])
+            log_table.setHorizontalHeaderLabels(["Date", "W/L", "PTS", "AST", "REB", "STL", "BLK", "TO", "1s"])
             log_table.setRowCount(len(game_log))
             log_table.verticalHeader().setVisible(False)
             log_table.setFocusPolicy(Qt.NoFocus)
@@ -1880,8 +1889,7 @@ class PlayerStatsWidget(QWidget):
         shoot_grid = QGridLayout()
         shoot_grid.setSpacing(8)
         shoot_stats = [
-            ("FG%", f"{stats.fg_pct*100:.1f}%", "Field Goal Percentage"),
-            ("2P%", f"{stats.two_pt_pct*100:.1f}%", "Two-Point Percentage"),
+            ("1s%", f"{stats.two_pt_pct*100:.1f}%", "1-Point (Inside) Shot Percentage"),
             ("3P%", f"{stats.three_pt_pct*100:.1f}%", "Three-Point Percentage"),
             ("TS%", f"{stats.ts_pct*100:.1f}%", "True Shooting %"),
             ("eFG%", f"{stats.efg_pct*100:.1f}%", "Effective FG%"),

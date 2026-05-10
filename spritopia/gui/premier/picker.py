@@ -1504,7 +1504,10 @@ class PremierPickerWidget(QWidget):
         app_state.selected_player_changed.connect(self._on_sidebar_changed)
         app_state.clear_all_picker_slots()
 
-        self._process_turn()
+        if config.get("draft_content") == "Random Fast":
+            self._fast_random_all()
+        else:
+            self._process_turn()
 
     def get_teams(self) -> tuple:
         danny = [self._picks[i] for i in range(self._n) if i in self._picks]
@@ -1885,6 +1888,31 @@ class PremierPickerWidget(QWidget):
         except Exception:
             pass
         self._advance()
+
+    # ── Random Fast ────────────────────────────────────────────────────────────
+
+    def _fast_random_all(self):
+        """Assign all picks randomly in one pass — no per-pick animation or waiting."""
+        N = self._n
+        pool = _get_pool(self._config, self._picked_ids, self._banned_ids,
+                         eligible_ids=self._eligible_ids)
+
+        pick_turns = [t for t in self._turns if t.action == "pick"]
+        need = len(pick_turns)
+        sample = random.sample(pool, min(need, len(pool)))
+
+        for turn, player in zip(pick_turns, sample):
+            self._picked_ids.add(player["SpriteID"])
+            self._picks[turn.global_slot] = player
+            if turn.global_slot < N:
+                self._danny_panel.fill_slot_slam(turn.global_slot, player)
+            else:
+                self._alex_panel.fill_slot_slam(turn.global_slot - N, player)
+
+        self._current_idx = len(self._turns)
+        self.excluded_updated.emit(self._picked_ids | self._banned_ids)
+        self._timeline.highlight(self._current_idx)
+        QTimer.singleShot(400, self._on_draft_complete)
 
     # ── Draft complete ─────────────────────────────────────────────────────────
 
