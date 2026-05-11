@@ -44,6 +44,12 @@ class PlayerCareerStats:
     ball_holding_in_play: float = 0.0
     ball_holding_out_of_play: float = 0.0
 
+    # Counters scoped to games where ball-holding was actually tracked (BallHolding_InPlay > 0).
+    # Used as denominators for ball-holding derived stats so pre-tracking games don't dilute them.
+    bh_games: int = 0       # games where ball-holding was captured
+    bh_turnovers: int = 0   # turnovers in those games only
+    bh_fga: int = 0         # field goal attempts in those games only
+
     # Points generated via assists
     total_points_per_assist: int = 0
 
@@ -233,6 +239,27 @@ class PlayerCareerStats:
         return (self.ball_holding_in_play + self.ball_holding_out_of_play) / self.games_played
 
     @property
+    def ball_time_in_play_per_game(self) -> float:
+        """Average in-play seconds holding the ball, per tracked game only."""
+        if self.bh_games == 0:
+            return 0.0
+        return self.ball_holding_in_play / self.bh_games
+
+    @property
+    def time_held_per_to(self) -> float:
+        """In-play ball holding time (seconds) per turnover, using only tracked games."""
+        if self.bh_turnovers == 0:
+            return 0.0
+        return self.ball_holding_in_play / self.bh_turnovers
+
+    @property
+    def time_held_per_fga(self) -> float:
+        """In-play ball holding time (seconds) per FGA, using only tracked games."""
+        if self.bh_fga == 0:
+            return 0.0
+        return self.ball_holding_in_play / self.bh_fga
+
+    @property
     def points_created(self) -> int:
         """Total points created (own points + assisted points)."""
         return self.total_points + self.total_points_per_assist
@@ -330,6 +357,9 @@ class PlayerCareerStats:
             "game_score_avg": self.game_score_avg,
             "points_created_per_game": self.points_created_per_game,
             "ball_time_per_game": self.ball_time_per_game,
+            "ball_time_in_play_per_game": self.ball_time_in_play_per_game,
+            "time_held_per_to": self.time_held_per_to,
+            "time_held_per_fga": self.time_held_per_fga,
             # Totals
             "total_points": self.total_points,
             "total_assists": self.total_assists,
@@ -461,7 +491,12 @@ class StatsEngine:
                 stats.threes_made += slot_info.get("ThreesMade", 0) or 0
                 stats.threes_attempted += slot_info.get("ThreesAttempted", 0) or 0
                 stats.total_points_per_assist += slot_info.get("PointsPerAssist", 0) or 0
-                stats.ball_holding_in_play += slot_info.get("BallHolding_InPlay", 0) or 0
+                bh_in_play = slot_info.get("BallHolding_InPlay")
+                if bh_in_play is not None and bh_in_play > 0:
+                    stats.ball_holding_in_play += bh_in_play
+                    stats.bh_games += 1
+                    stats.bh_turnovers += slot_info.get("Turnovers", 0) or 0
+                    stats.bh_fga += (slot_info.get("InsidesAttempted", 0) or 0) + (slot_info.get("ThreesAttempted", 0) or 0)
                 stats.ball_holding_out_of_play += slot_info.get("BallHolding_OutOfPlay", 0) or 0
 
         # Sort games by date (newest first), handling None dates
@@ -779,8 +814,8 @@ class StatsEngine:
                     "steals": slot_info.get("Steals", 0) or 0,
                     "blocks": slot_info.get("Blocks", 0) or 0,
                     "turnovers": slot_info.get("Turnovers", 0) or 0,
-                    "fg_made": (slot_info.get("InsidesMade", 0) or 0) + (slot_info.get("ThreesMade", 0) or 0),
-                    "fg_attempted": (slot_info.get("InsidesAttempted", 0) or 0) + (slot_info.get("ThreesAttempted", 0) or 0),
+                    "fg_made": slot_info.get("InsidesMade", 0) or 0,
+                    "fg_attempted": slot_info.get("InsidesAttempted", 0) or 0,
                     "threes_made": slot_info.get("ThreesMade", 0) or 0,
                     "threes_attempted": slot_info.get("ThreesAttempted", 0) or 0,
                 })

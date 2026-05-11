@@ -232,6 +232,23 @@ class GameScreen(QWidget):
 
         post_lo.addLayout(post_status_col, stretch=1)
 
+        self._rematch_btn = QPushButton("↺ Rematch")
+        self._rematch_btn.setFixedHeight(32)
+        self._rematch_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS['accent_primary']};
+                color: white;
+                border: none;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+                padding: 0 16px;
+            }}
+            QPushButton:hover {{ background-color: #3b8bdb; }}
+        """)
+        self._rematch_btn.clicked.connect(self._on_rematch)
+        post_lo.addWidget(self._rematch_btn)
+
         self._back_btn = QPushButton("← Back to Setup")
         self._back_btn.setFixedHeight(32)
         self._back_btn.setStyleSheet(f"""
@@ -253,8 +270,8 @@ class GameScreen(QWidget):
 
     def _create_box_table(self):
         table = QTableWidget()
-        table.setColumnCount(9)
-        table.setHorizontalHeaderLabels(["Player", "Arch", "PTS", "AST", "REB", "STL", "BLK", "TO", "FG"])
+        table.setColumnCount(11)
+        table.setHorizontalHeaderLabels(["Player", "Arch", "PTS", "AST", "REB", "STL", "BLK", "TO", "1s", "3P", "TH"])
         table.setStyleSheet(f"""
             QTableWidget {{
                 background-color: transparent;
@@ -281,7 +298,7 @@ class GameScreen(QWidget):
 
         hdr = table.horizontalHeader()
         hdr.setSectionResizeMode(0, QHeaderView.Stretch)
-        for i in range(1, 9):
+        for i in range(1, 11):
             hdr.setSectionResizeMode(i, QHeaderView.ResizeToContents)
 
         return table
@@ -464,6 +481,9 @@ class GameScreen(QWidget):
         self._set_phase("post_game")
         self._auto_save_stats(stats)
 
+    def _on_rematch(self):
+        self.start_game(self._team1, self._team2, self._match_config)
+
     # ── Box score display ─────────────────────────────────────────────────────
 
     def _populate_team_table(self, table, team):
@@ -496,6 +516,14 @@ class GameScreen(QWidget):
             fg_item = QTableWidgetItem("0/0")
             fg_item.setTextAlignment(Qt.AlignCenter)
             table.setItem(i, 8, fg_item)
+
+            threept_item = QTableWidgetItem("0/0")
+            threept_item.setTextAlignment(Qt.AlignCenter)
+            table.setItem(i, 9, threept_item)
+
+            th_item = QTableWidgetItem("—")
+            th_item.setTextAlignment(Qt.AlignCenter)
+            table.setItem(i, 10, th_item)
 
     def _update_box_score(self, stats):
         """Update tables and score from a ripped stats dict."""
@@ -547,13 +575,19 @@ class GameScreen(QWidget):
             stl = slot.get("Steals", 0) or 0
             blk = slot.get("Blocks", 0) or 0
             tov = slot.get("Turnovers", 0) or 0
-            fg_made = (slot.get("InsidesMade", 0) or 0) + (slot.get("ThreesMade", 0) or 0)
-            fg_att = (slot.get("InsidesAttempted", 0) or 0) + (slot.get("ThreesAttempted", 0) or 0)
+            threes_made = slot.get("ThreesMade", 0) or 0
+            threes_att = slot.get("ThreesAttempted", 0) or 0
+            fg_made = slot.get("InsidesMade", 0) or 0
+            fg_att = slot.get("InsidesAttempted", 0) or 0
+            bh_raw = slot.get("BallHolding_InPlay")
+            ball_held = round(bh_raw, 1) if bh_raw is not None else None
 
             rows.append({
                 "sprite_id": sprite_id, "name": name, "arch": arch,
                 "pts": pts, "ast": ast, "reb": reb, "stl": stl,
                 "blk": blk, "tov": tov, "fg_made": fg_made, "fg_att": fg_att,
+                "threes_made": threes_made, "threes_att": threes_att,
+                "ball_held": ball_held,
             })
 
         # Sort by points desc
@@ -585,6 +619,15 @@ class GameScreen(QWidget):
             fg_item = QTableWidgetItem(f"{r['fg_made']}/{r['fg_att']}")
             fg_item.setTextAlignment(Qt.AlignCenter)
             table.setItem(i, 8, fg_item)
+
+            threept_item = QTableWidgetItem(f"{r['threes_made']}/{r['threes_att']}")
+            threept_item.setTextAlignment(Qt.AlignCenter)
+            table.setItem(i, 9, threept_item)
+
+            bh = r["ball_held"]
+            th_item = QTableWidgetItem(f"{bh:.1f}s" if bh is not None else "—")
+            th_item.setTextAlignment(Qt.AlignCenter)
+            table.setItem(i, 10, th_item)
 
     # ── Post-game: auto-save ──────────────────────────────────────────────────
 

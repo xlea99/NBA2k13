@@ -57,6 +57,8 @@ DRAFT_CONTENTS = {
         "Each pick presents 2 random players — choose the one you want.",
     "Choice 3":
         "Each pick presents 3 random players — choose the one you want.",
+    "Random Fast":
+        "All picks are randomly assigned in one instant roll — no per-pick waiting.",
 }
 
 PICK_TYPE_OPTIONS = [
@@ -171,6 +173,9 @@ def gen_pick_slots(preset: str, player_count: int) -> list:
 
     elif preset == "Choice 3":
         slots = ["Choice 3"] * total
+
+    elif preset == "Random Fast":
+        slots = ["Random"] * total
 
     else:
         slots = ["Normal"] * total
