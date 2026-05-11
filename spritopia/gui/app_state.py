@@ -6,8 +6,9 @@ for updates. When the selected player changes, all subscribed widgets are notifi
 """
 
 from PySide6.QtCore import QObject, Signal
-from typing import Optional, List, Callable
+from typing import Optional, List, Callable, Set
 from spritopia.players.players import Player
+from spritopia.gui.roster_registry import RosterRegistry
 
 
 class AppState(QObject):
@@ -21,6 +22,7 @@ class AppState(QObject):
     selected_player_changed = Signal(object)  # Emits Player or None
     player_list_changed = Signal()  # Emits when player roster updates
     picker_updated = Signal()  # Emits when picker slots change
+    incoming_sync_state_changed = Signal()  # Emits when CAP-import dirty state changes
 
     def __init__(self):
         super().__init__()
@@ -43,6 +45,16 @@ class AppState(QObject):
 
         # Player creation queue
         self._creation_queue: List[dict] = []
+
+        # Incoming CAP-sync state — rosters whose .ROS may have new face data
+        # we need to suck back into Players.db. See CAPSyncCoordinator for the
+        # state machine.
+        self._dirty_rosters: Set[str] = set()
+        self._saved_in_2k_since_dirty: Set[str] = set()
+
+        # First-class roster lifecycle / working-roster state. Single source of
+        # truth for "what roster is the app operating on" — see roster_registry.py.
+        self.roster_registry = RosterRegistry(self)
 
     # --- Selected Player ---
 
@@ -154,6 +166,55 @@ class AppState(QObject):
         if self._creation_queue:
             return self._creation_queue.pop(0)
         return None
+
+    # --- Incoming CAP-Sync State ---
+
+    def mark_roster_dirty(self, roster_name: str):
+        """Flag a roster as needing CAP/headshape sync from .ROS into Players.db."""
+        if not roster_name:
+            return
+        changed = False
+        if roster_name not in self._dirty_rosters:
+            self._dirty_rosters.add(roster_name)
+            changed = True
+        # Visiting CreatePlayer invalidates any prior "saved-in-2K" guarantee for
+        # this roster — the user is presumed to be making new edits.
+        if roster_name in self._saved_in_2k_since_dirty:
+            self._saved_in_2k_since_dirty.discard(roster_name)
+            changed = True
+        if changed:
+            self.incoming_sync_state_changed.emit()
+
+    def mark_roster_saved_in_2k(self, roster_name: str):
+        """Record that the user pressed 'Save Roster' in 2K for this roster."""
+        if not roster_name:
+            return
+        if roster_name in self._dirty_rosters and roster_name not in self._saved_in_2k_since_dirty:
+            self._saved_in_2k_since_dirty.add(roster_name)
+            self.incoming_sync_state_changed.emit()
+
+    def is_roster_safe_to_import(self, roster_name: str) -> bool:
+        """True iff a CAP import for this roster won't read a stale .ROS file."""
+        return roster_name in self._saved_in_2k_since_dirty
+
+    def is_roster_dirty(self, roster_name: str) -> bool:
+        return roster_name in self._dirty_rosters
+
+    def clear_roster_dirty(self, roster_name: str):
+        """Clear all incoming-sync state for a roster (called after a successful import)."""
+        changed = False
+        if roster_name in self._dirty_rosters:
+            self._dirty_rosters.discard(roster_name)
+            changed = True
+        if roster_name in self._saved_in_2k_since_dirty:
+            self._saved_in_2k_since_dirty.discard(roster_name)
+            changed = True
+        if changed:
+            self.incoming_sync_state_changed.emit()
+
+    @property
+    def dirty_rosters(self) -> Set[str]:
+        return set(self._dirty_rosters)
 
 
 # Global singleton instance

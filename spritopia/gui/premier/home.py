@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 
 from spritopia.gui.theme import COLORS
+from spritopia.gui.widgets.roster_state_banner import RosterStateBanner
 
 
 class QuickActionCard(QFrame):
@@ -79,6 +80,10 @@ class PremierHomeWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(24, 24, 24, 24)
         layout.setSpacing(24)
+
+        # Roster state banner — auto-shows on mismatch / stale, hides otherwise.
+        self._roster_banner = RosterStateBanner()
+        layout.addWidget(self._roster_banner)
 
         # Header
         header = QLabel("Premier Mode")

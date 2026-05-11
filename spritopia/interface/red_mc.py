@@ -85,7 +85,8 @@ class RedMC:
 
     @staticmethod
     # Uses the open RedMC program window to export the currently loaded Roster's
-    # CSV files. Will always export to the Airlock CSV folder.
+    # CSV files into save/roster_csvs/<rosterName>/ so the data_storage layer
+    # can immediately consume them via csv_ImportCSVs.
     def exportCSVs(rosterName):
         pyautogui.press("altleft")
         pyautogui.press("up")
@@ -96,7 +97,7 @@ class RedMC:
         pyautogui.press("enter")
 
         pyautogui.press("up")
-        pyautogui.write(str(paths["gameRosters"] / rosterName))
+        pyautogui.write(str((paths["rosterCSVs"] / rosterName).resolve()))
         pyautogui.press("tab")
 
         pyautogui.press("tab")

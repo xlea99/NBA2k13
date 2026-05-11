@@ -16,6 +16,7 @@ from PySide6.QtCore import Qt, Signal
 from spritopia.gui.theme import COLORS, get_archetype_color
 from spritopia.gui.premier.picker import PremierPickerWidget
 from spritopia.gui.premier.game_screen import GameScreen
+from spritopia.gui.widgets.roster_state_banner import RosterStateBanner
 
 
 # ── Data ─────────────────────────────────────────────────────────────────────
@@ -765,6 +766,18 @@ class PlayWidget(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
+
+        # Roster state banner — sits above all three stack pages (setup, picker,
+        # game screen) so a mismatched/stale state is visible regardless of which
+        # phase of the play flow the user is currently in. Self-hides when healthy.
+        self._roster_banner = RosterStateBanner()
+        banner_container_margins = (16, 12, 16, 0)
+        banner_wrap = QWidget()
+        bwrap_lo = QVBoxLayout(banner_wrap)
+        bwrap_lo.setContentsMargins(*banner_container_margins)
+        bwrap_lo.setSpacing(0)
+        bwrap_lo.addWidget(self._roster_banner)
+        layout.addWidget(banner_wrap)
 
         self._stack = QStackedWidget()
         layout.addWidget(self._stack)

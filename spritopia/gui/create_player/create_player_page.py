@@ -250,6 +250,9 @@ class CreatePlayerPage(QWidget):
         roster_name = data['roster_name']
         log.info(f"Starting RedMC sync for roster: {roster_name}")
         exportRosterData(roster_name, d)
+        # Phase 1 hook: mark this roster as stale in the registry so Phase 2's
+        # HUD/refusal logic knows 2K's in-memory copy is now out of date.
+        get_app_state().roster_registry.mark_synced(roster_name)
         log.info(f"Completed RedMC sync for roster: {roster_name}")
 
     def _on_generation_error(self, error_msg: str):

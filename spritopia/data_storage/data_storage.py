@@ -267,6 +267,44 @@ JERSEY_DICT = {
 "WizardsClassicAwayIV" : {'Texture': 'r4a002', 'Logo': 'logo002', 'Name': 'C151ECC2', 'CATTmplNm': '00000000', 'ShortsStl': '0', 'JModel': '1', 'SocksCol': '1', 'UseCusClrs': '0', 'CusClrs4Nm': '0', 'TColor1': '141414', 'TColor2': '005083', 'TColor3': 'BC9B6A', 'TColor4': '141414', 'TColor5': 'FFFFFF', 'TColor6': '323232', 'JColor1': '0', 'JColor2': '0', 'JColor3': '0', 'LColor1': '0', 'LColor2': '0', 'LColor3': '0', 'NameColor': '0', 'FrNumCol1': '0', 'FrNumCol2': '0', 'BkNumCol1': '0', 'BkNumCol2': '0', 'ShsColor1': '0', 'ShsColor2': '1', 'ShsColor3': '2'},
 "WizardsClassicAwayIVAlt" : {'Texture': 'r4x002', 'Logo': 'logo002', 'Name': '248E0A7B', 'CATTmplNm': '00000000', 'ShortsStl': '0', 'JModel': '1', 'SocksCol': '1', 'UseCusClrs': '0', 'CusClrs4Nm': '0', 'TColor1': '141414', 'TColor2': 'BC9B6A', 'TColor3': '191919', 'TColor4': '141414', 'TColor5': 'FFFFFF', 'TColor6': '323232', 'JColor1': '0', 'JColor2': '0', 'JColor3': '0', 'LColor1': '0', 'LColor2': '0', 'LColor3': '0', 'NameColor': '0', 'FrNumCol1': '0', 'FrNumCol2': '0', 'BkNumCol1': '0', 'BkNumCol2': '0', 'ShsColor1': '0', 'ShsColor2': '1', 'ShsColor3': '2'}}
 
+# Column lists used by `updatePlayerCAPInfoFromRoster` to copy face/CAP data from a
+# refreshed roster CSV back into Players.db. Declared at module level so it's the
+# single source of truth — if the schema gains/loses a column, edit it here only.
+CAP_FIELDS = [
+    "CAP_FaceT", "CAP_Hstl", "CAP_Hcol", "CAP_Hlen", "CAP_BStyle", "CAP_Moust",
+    "CAP_Goatee", "CAP_Fhcol", "CAP_Eyebr", "CAP_T_LftN", "CAP_T_LftS",
+    "CAP_T_RgtS", "CAP_T_LftB", "CAP_T_RgtB", "CAP_T_LftF", "CAP_T_RgtF",
+    "GHeadband", "GHdbndLg", "GUndrshrt", "GUndrsCol",
+    "GLeftArm", "GLArmCol", "GLeftElb", "GLElbCol", "GLeftWrst", "GLWrstC1",
+    "GLWrstC2", "GLeftFngr", "GLFngrCol",
+    "GRghtArm", "GRArmCol", "GRghtElb", "GRElbCol", "GRghtWrst", "GRWrstC1",
+    "GRWrstC2", "GRghtFngr", "GRFngrCol",
+    "GPresShrt", "GPrsShCol",
+    "GLeftLeg", "GLLegCol", "GLeftKnee", "GLKneeCol", "GLeftAnkl", "GLAnklCol",
+    "GRghtLeg", "GRLegCol", "GRghtKnee", "GRKneeCol", "GRghtAnkl", "GRAnklCol",
+    "GSockLngh",
+    "GShsBrLck", "GShsBrand", "GShsModel", "GShsUCusC",
+    "GShsTHC1", "GShsTHC2", "GShsTAC1", "GShsTAC2",
+    "GShsHCol1", "GShsHCol2", "GShsHCol3", "GShsACol1", "GShsACol2", "GShsACol3",
+    "Weight", "SkinTone", "Muscles", "EyeColor", "Bodytype", "Clothes", "Number",
+]
+
+HEADSHAPE_FIELDS = [
+    "HParam1", "HParam2",
+    "HdBrwHght", "HdBrwWdth", "HdBrwSlpd", "HdNkThck", "HdNkFat",
+    "HdChnLen", "HdChnWdth", "HdChnProt", "HdJawSqr", "HdJawWdth",
+    "HdChkHght", "HdChkWdth", "HdChkFull", "HdDefinit",
+    "MtULCurve", "MtULThick", "MtULProtr", "MtLLCurve", "MtLLThick", "MtLLProtr",
+    "MtSzHght", "MtSzWdth", "MtCrvCorn",
+    "ErHeight", "ErWidth", "ErEarLobe", "ErTilt",
+    "NsNsHght", "NsNsWdth", "NsNsProtr", "NsBnBridge", "NsBnDefin", "NsBnWdth",
+    "NsTipHght", "NsTipWdth", "NsTipTip", "NsTipBnd", "NsNtHght", "NsNtWdth",
+    "EsFrmOpen", "EsFrmSpac", "EsFrmLwEl", "EsFrmUpEl",
+    "EsPlcHght", "EsPlcWdth", "EsPlcRot", "EsPlcProt",
+    "EsShpOtEl", "EsShpInEl",
+]
+
+
 # This class handles all communications with Databases and CSV sets.
 class DataStorage:
 
@@ -1048,143 +1086,24 @@ class DataStorage:
     #region === Helpers ===
 
     # This method uses CAP information from a Roster CSV set to overwrite the given Player with.
-    # with. This method assumes that the roster set is already exported and up to date. Should
+    # This method assumes that the roster set is already exported and up to date. Should
     # be used after we make changes to Player's faces in game to save them permanently on Players.db.
-    def updatePlayerCAPInfoFromRoster(self,rosterName,spriteID):
+    #
+    # `commit` defaults True so a one-off call from anywhere automatically persists. Bulk
+    # callers (e.g. an entire-roster sync) should pass commit=False and call
+    # `playersDB_UploadPlayers()` once at the end to avoid an upload per player.
+    def updatePlayerCAPInfoFromRoster(self, rosterName, spriteID, commit: bool = True):
         rosterID = self.csv_GetRosterIDFromSpriteID(rosterName, spriteID)
 
-        capVals = ["CAP_FaceT",
-                     "CAP_Hstl",
-                     "CAP_Hcol",
-                     "CAP_Hlen",
-                     "CAP_BStyle",
-                     "CAP_Moust",
-                     "CAP_Goatee",
-                     "CAP_Fhcol",
-                     "CAP_Eyebr",
-                     "CAP_T_LftN",
-                     "CAP_T_LftS",
-                     "CAP_T_RgtS",
-                     "CAP_T_LftB",
-                     "CAP_T_RgtB",
-                     "CAP_T_LftF",
-                     "CAP_T_RgtF",
-                     "GHeadband",
-                    "GHdbndLg",
-                    "GUndrshrt",
-                    "GUndrsCol",
-                    "GLeftArm",
-                    "GLArmCol",
-                    "GLeftElb",
-                    "GLElbCol",
-                    "GLeftWrst",
-                    "GLWrstC1",
-                    "GLWrstC2",
-                    "GLeftFngr",
-                    "GLFngrCol",
-                    "GRghtArm",
-                    "GRArmCol",
-                    "GRghtElb",
-                    "GRElbCol",
-                    "GRghtWrst",
-                    "GRWrstC1",
-                    "GRWrstC2",
-                    "GRghtFngr",
-                    "GRFngrCol",
-                    "GPresShrt",
-                    "GPrsShCol",
-                    "GLeftLeg",
-                    "GLLegCol",
-                    "GLeftKnee",
-                    "GLKneeCol",
-                    "GLeftAnkl",
-                    "GLAnklCol",
-                    "GRghtLeg",
-                    "GRLegCol",
-                    "GRghtKnee",
-                    "GRKneeCol",
-                    "GRghtAnkl",
-                    "GRAnklCol",
-                    "GSockLngh",
-                    "GShsBrLck",
-                    "GShsBrand",
-                    "GShsModel",
-                    "GShsUCusC",
-                    "GShsTHC1",
-                    "GShsTHC2",
-                    "GShsTAC1",
-                    "GShsTAC2",
-                    "GShsHCol1",
-                    "GShsHCol2",
-                    "GShsHCol3",
-                    "GShsACol1",
-                    "GShsACol2",
-                    "GShsACol3",
-                    "Weight",
-                    "SkinTone",
-                    "Muscles",
-                    "EyeColor",
-                    "Bodytype",
-                    "Clothes",
-                    "Number"]
-        headshapeVals = ["HParam1",
-                         "HParam2",
-                         "HdBrwHght",
-                         "HdBrwWdth",
-                         "HdBrwSlpd",
-                         "HdNkThck",
-                         "HdNkFat",
-                         "HdChnLen",
-                         "HdChnWdth",
-                         "HdChnProt",
-                         "HdJawSqr",
-                         "HdJawWdth",
-                         "HdChkHght",
-                         "HdChkWdth",
-                         "HdChkFull",
-                         "HdDefinit",
-                         "MtULCurve",
-                         "MtULThick",
-                         "MtULProtr",
-                         "MtLLCurve",
-                         "MtLLThick",
-                         "MtLLProtr",
-                         "MtSzHght",
-                         "MtSzWdth",
-                         "MtCrvCorn",
-                         "ErHeight",
-                         "ErWidth",
-                         "ErEarLobe",
-                         "ErTilt",
-                         "NsNsHght",
-                         "NsNsWdth",
-                         "NsNsProtr",
-                         "NsBnBridge",
-                         "NsBnDefin",
-                         "NsBnWdth",
-                         "NsTipHght",
-                         "NsTipWdth",
-                         "NsTipTip",
-                         "NsTipBnd",
-                         "NsNtHght",
-                         "NsNtWdth",
-                         "EsFrmOpen",
-                         "EsFrmSpac",
-                         "EsFrmLwEl",
-                         "EsFrmUpEl",
-                         "EsPlcHght",
-                         "EsPlcWdth",
-                         "EsPlcRot",
-                         "EsPlcProt",
-                         "EsShpOtEl",
-                         "EsShpInEl"]
-
-        for capVal in capVals:
+        for capVal in CAP_FIELDS:
             self.players[spriteID][capVal] = self.rosters[rosterName]["Players"][rosterID][capVal]
-        for headshapeVal in headshapeVals:
+        for headshapeVal in HEADSHAPE_FIELDS:
             self.players[spriteID][headshapeVal] = self.rosters[rosterName]["Headshapes"][rosterID][headshapeVal]
 
         log.debug(f"Updated CAP Info from roster '{rosterName}' for player '{self.players[spriteID]}'")
+
+        if commit:
+            self.playersDB_UploadPlayers()
 
     #endregion === Helpers ===
 

@@ -1,5 +1,6 @@
 import time
 from spritopia.common.logger import log
+from spritopia.common.paths import paths
 from spritopia.interface.red_mc import RedMC
 from spritopia.data_storage.data_storage import d
 
@@ -11,6 +12,12 @@ from spritopia.data_storage.data_storage import d
 # This method imports all CSVs from the given %rosterName%.ROS file into the local program CSV
 # data folder and dataStorageObject.
 def importRosterData(rosterName,dataStorageObject):
+    # Pre-create the destination dir so RedMC's save dialog doesn't have to.
+    # Some RedMC builds silently fail when typing a path to a non-existent
+    # folder rather than creating it.
+    target_dir = paths["rosterCSVs"] / rosterName
+    target_dir.mkdir(parents=True, exist_ok=True)
+
     r = RedMC()
     r.openRedMC()
     r.loadRoster(rosterName)

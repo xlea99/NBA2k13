@@ -177,7 +177,31 @@ class GameScreen(QWidget):
         pg_lo.addWidget(self._load_status_lbl, stretch=1)
 
         pg_lo.addStretch()
+
+        self._pregame_cancel_btn = self._make_cancel_button("Cancel Game")
+        self._pregame_cancel_btn.clicked.connect(self.back_requested)
+        pg_lo.addWidget(self._pregame_cancel_btn)
+
         lo.addWidget(self._pregame_panel)
+
+        # Playing-phase bar (just a Cancel button — no other controls during a live game)
+        self._playing_panel = QFrame()
+        self._playing_panel.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS['bg_medium']};
+                border-top: 1px solid {COLORS['border_dark']};
+            }}
+        """)
+        play_lo = QHBoxLayout(self._playing_panel)
+        play_lo.setContentsMargins(24, 8, 24, 8)
+        play_lo.addStretch()
+
+        self._playing_cancel_btn = self._make_cancel_button("Cancel Game")
+        self._playing_cancel_btn.clicked.connect(self.back_requested)
+        play_lo.addWidget(self._playing_cancel_btn)
+
+        self._playing_panel.setVisible(False)
+        lo.addWidget(self._playing_panel)
 
         # Post-game status bar (save status)
         self._postgame_bar = QFrame()
@@ -337,18 +361,40 @@ class GameScreen(QWidget):
             self._banner.setText("PRE-GAME")
             self._banner.setStyleSheet(self._banner_style("Pre-Game"))
             self._pregame_panel.setVisible(True)
+            self._playing_panel.setVisible(False)
             self._postgame_bar.setVisible(False)
         elif phase == "playing":
             self._banner.setText("PLAYING")
             self._banner.setStyleSheet(self._banner_style("Playing"))
             self._pregame_panel.setVisible(False)
+            self._playing_panel.setVisible(True)
             self._postgame_bar.setVisible(False)
             self._auto_load_timer.stop()
         elif phase == "post_game":
             self._banner.setText("POST-GAME")
             self._banner.setStyleSheet(self._banner_style("Post-Game"))
             self._pregame_panel.setVisible(False)
+            self._playing_panel.setVisible(False)
             self._postgame_bar.setVisible(True)
+
+    def _make_cancel_button(self, text: str) -> QPushButton:
+        btn = QPushButton(text)
+        btn.setFixedHeight(30)
+        btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                color: {COLORS['text_secondary']};
+                border: 1px solid {COLORS['border_dark']};
+                border-radius: 4px;
+                font-size: 12px;
+                padding: 0 14px;
+            }}
+            QPushButton:hover {{
+                color: {COLORS['accent_danger']};
+                border-color: {COLORS['accent_danger']};
+            }}
+        """)
+        return btn
 
     # ── Pre-game: auto-load ───────────────────────────────────────────────────
 

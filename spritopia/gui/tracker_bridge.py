@@ -33,11 +33,14 @@ def _get_ds():
 class TrackerBridge(QObject):
 
     # Signals
-    connection_changed  = Signal(bool)   # True = connected to nba2k13.exe
-    location_changed    = Signal(str)    # "Home", "PickUp", "InGame", "Disconnected", etc.
-    game_status_changed = Signal(str)    # "OutOfGame", "Running", "Paused", "Won"
-    live_stats          = Signal(dict)   # periodic stat snapshot during live game (deep-copied)
-    game_won            = Signal(dict)   # final ripped stats dict (deep-copied)
+    connection_changed   = Signal(bool)    # True = connected to nba2k13.exe
+    location_changed     = Signal(str)     # "Home", "PickUp", "InGame", "Disconnected", etc.
+    game_status_changed  = Signal(str)     # "OutOfGame", "Running", "Paused", "Won"
+    active_roster_changed = Signal(object) # roster name (str without .ROS suffix) or None
+    roster_loaded_in_2k  = Signal(object)  # fires on LoadRoster screen exit — payload is the
+                                           # roster name (str) that's now active, or None.
+    live_stats           = Signal(dict)    # periodic stat snapshot during live game (deep-copied)
+    game_won             = Signal(dict)    # final ripped stats dict (deep-copied)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -46,6 +49,7 @@ class TrackerBridge(QObject):
         self._prev_connected = False
         self._prev_location = "Disconnected"
         self._prev_game_status = "OutOfGame"
+        self._prev_active_roster = None
         self._prev_game_count = 0
         self._won_emitted_for_game = -1
         self._last_rip_tick = -1   # tracker tick of last emitted live stats
@@ -67,6 +71,9 @@ class TrackerBridge(QObject):
             if self._prev_connected:
                 self._prev_connected = False
                 self.connection_changed.emit(False)
+            if self._prev_active_roster is not None:
+                self._prev_active_roster = None
+                self.active_roster_changed.emit(None)
             return
 
         # Snapshot under lock
@@ -78,6 +85,14 @@ class TrackerBridge(QObject):
             have_final = tracker.haveFinalStatsBeenRipped
             ripped = tracker.rippedGames.get(game_count)
             tick = tracker.tick
+
+        # Did the user just exit the LoadRoster screen? This is our cue that 2K
+        # finished (re)loading a roster from disk — used to clear staleness flags.
+        load_roster_exit = (
+            connected
+            and self._prev_location == "LoadRoster"
+            and location != "LoadRoster"
+        )
 
         # Emit on changes
         if connected != self._prev_connected:
@@ -91,6 +106,20 @@ class TrackerBridge(QObject):
         if game_status != self._prev_game_status:
             self._prev_game_status = game_status
             self.game_status_changed.emit(game_status)
+
+        # Active roster — read outside the lock since it does a memory access. The
+        # public wrapper handles ERROR/UNOPENED/NONE → None for us.
+        roster_name = self.get_active_roster() if connected else None
+        if roster_name != self._prev_active_roster:
+            self._prev_active_roster = roster_name
+            self.active_roster_changed.emit(roster_name)
+
+        # Emit AFTER roster_name has been settled — when the user reloads the
+        # SAME roster, active_roster_changed won't fire (no diff), but we still
+        # need to clear the staleness flag on the registry side. This signal
+        # always fires on LoadRoster exit regardless of name change.
+        if load_roster_exit:
+            self.roster_loaded_in_2k.emit(roster_name)
 
         # Live stats: emit periodic snapshots during active games
         if (ripped is not None
@@ -159,6 +188,34 @@ class TrackerBridge(QObject):
             result["error"] = f"Roster '{roster_name}' is not imported in data storage."
             return result
 
+        # Working-roster + freshness gates — refuse if app's working roster
+        # doesn't match 2K's loaded roster, or if 2K's copy is stale relative
+        # to disk. Either case would silently write the wrong RosterIDs to
+        # 2K's slot memory, corrupting the in-game picker.
+        try:
+            from spritopia.gui.app_state import get_app_state
+            registry = get_app_state().roster_registry
+            working = registry.working_roster
+
+            if working is not None and working != roster_name:
+                result["error"] = (
+                    f"App is operating on '{working}' but 2K has '{roster_name}' "
+                    f"loaded. Load '{working}' in 2K (Esc → Load Roster) and try again."
+                )
+                return result
+
+            if registry.is_stale(roster_name):
+                result["error"] = (
+                    f"'{roster_name}' was modified since 2K last loaded it. "
+                    f"2K's in-memory copy is stale — RosterIDs would be wrong. "
+                    f"Reload '{roster_name}' in 2K (Esc → Load Roster) and try again."
+                )
+                return result
+        except Exception as e:
+            # Registry not available — fall back to existing behavior rather
+            # than block on a probe failure.
+            log.warning(f"Working-roster validation skipped: {e}")
+
         # Build slot dict: Ballerz = 0..N-1, Ringers = 5..5+N-1
         slot_dict = {}
 
@@ -217,6 +274,16 @@ class TrackerBridge(QObject):
             return _get_tracker().gameStatus
         except Exception:
             return "OutOfGame"
+
+    def get_active_roster(self):
+        """Return the active roster name (without .ROS suffix) or None if unknown."""
+        try:
+            raw = _get_tracker().getActiveRoster()
+        except Exception:
+            return None
+        if not raw or raw in ("UNOPENED", "NONE", "ERROR", "None"):
+            return None
+        return raw.split(".ROS")[0]
 
 
 # ── Singleton ─────────────────────────────────────────────────────────────────

@@ -30,6 +30,7 @@ class ChangeType(Enum):
     ADD_PLAYER_TO_ROSTER = "add_player_roster"
     REMOVE_PLAYER_FROM_ROSTER = "remove_player_roster"
     SYNC_ROSTER_TO_ROS = "sync_roster_ros"
+    IMPORT_CAP_INFO_FROM_ROSTER = "import_cap_info_from_roster"
 
 
 @dataclass
@@ -93,6 +94,43 @@ class PendingChangesManager(QObject):
         self._pending_changes.append(change)
         log.info(f"Queued change: {change.description}")
         self.changes_updated.emit()
+
+    def has_change_with_group_id(self, group_id: str) -> bool:
+        """Check whether a change with the given group_id is already queued."""
+        return any(c.group_id == group_id for c in self._pending_changes)
+
+    def bump_to_end(self, group_id: str) -> None:
+        """Move the change with this group_id to the end of the queue.
+
+        Useful for changes that must run last regardless of when they were
+        first queued — e.g. SYNC_ROSTER_TO_ROS should always fire after every
+        ADD/REMOVE, otherwise it persists a partial state to disk.
+        """
+        for i, c in enumerate(self._pending_changes):
+            if c.group_id == group_id:
+                self._pending_changes.append(self._pending_changes.pop(i))
+                self.changes_updated.emit()
+                return
+
+    def get_pending_changes(self) -> List[PendingChange]:
+        """Return a shallow copy of the pending change list (for inspection)."""
+        return list(self._pending_changes)
+
+    def remove_changes_where(self, predicate) -> int:
+        """Remove every pending change for which predicate(change) is True.
+
+        Returns the number of changes removed. Emits changes_updated once if
+        any were removed, so listeners (badge, save button, roster manager
+        overlays) re-render in sync.
+        """
+        before = len(self._pending_changes)
+        self._pending_changes = [
+            c for c in self._pending_changes if not predicate(c)
+        ]
+        removed = before - len(self._pending_changes)
+        if removed:
+            self.changes_updated.emit()
+        return removed
 
     def add_player_to_db(self, player, execute_fn: Callable):
         """Queue adding a player to the database."""

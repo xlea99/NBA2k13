@@ -1397,19 +1397,26 @@ class PremierPickerWidget(QWidget):
 
         # Always load stats engine for Standard, veterans-only, or exile mode
         stats_engine = None
+        working_roster = get_app_state().roster_registry.working_roster
         if config.get("veterans_only") or config.get("exile_mode") or player_set == "Standard":
             try:
                 if not hasattr(d, "stats") or not d.stats.get("Raw"):
                     d.statsDB_Open()
                     d.statsDB_DownloadRaw()
                 raw_stats = d.stats.get("Raw", {})
-                premier_raw = {
-                    gid: ginfo for gid, ginfo in raw_stats.items()
-                    if "Premier" in (ginfo.get("LoadedRoster") or "")
-                }
-                if premier_raw:
+                # Filter to games played on the current working roster only — so
+                # Premier-mode picker only sees Premier history, Gauntlet only
+                # sees Gauntlet history. If working_roster is None (rosterless
+                # mode), no games match and the stats engine stays empty.
+                roster_raw: dict = {}
+                if working_roster:
+                    roster_raw = {
+                        gid: ginfo for gid, ginfo in raw_stats.items()
+                        if (ginfo.get("LoadedRoster") or "").split(".ROS")[0] == working_roster
+                    }
+                if roster_raw:
                     from spritopia.gui.stats.stats_engine import StatsEngine
-                    stats_engine = StatsEngine(premier_raw, d.players)
+                    stats_engine = StatsEngine(roster_raw, d.players)
             except Exception as e:
                 print(f"[Picker] Stats engine load failed: {e}")
 
@@ -1427,7 +1434,8 @@ class PremierPickerWidget(QWidget):
             self._stat_cards      = {}
             self._pick_slot_stats = {}
 
-        # Standard player set: restrict pool to players with >= 1 Premier game
+        # Standard player set: restrict pool to players with >= 1 game on the
+        # current working roster (Premier mode → Premier games, etc.).
         if player_set == "Standard" and stats_engine and not config.get("veterans_only"):
             standard_ids = {
                 cs.sprite_id

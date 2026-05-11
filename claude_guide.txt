@@ -35,3 +35,14 @@ Q: Why are you doing this? Who do you do this with, is this for general consumpt
 There's a lot to this codebase. Go ahead and just look around to get acquainted with it. Right now, we're just finishing up various GUI stuff and connecting backend to frontend parts. Look deep and report back what you discover.
 
 GO FORTH MY BROTHER!
+
+====================================================================================
+
+
+1. I think this should like in a new bespoke setitngs area. We were always going to eventually need this. Have gear icon on a tab thats all the way on the right (so NOT adjacent to the other tabs) of the BIG tab list (Premier, Gauntlet, League, Tournametns, Radio). When you do it, it opens a page that like others have tabs of its own. For now, the only tab will just be "Manage Data" and that's where this goes.
+2. Just have any/every field be editable in Players.db. We do NOT NEED any fields in the Roster to be editable - roster is nothing but a pure list of players like you described, you should NEVER be editing values there. And yeah, for now lets just outright not allow deleting players at all from players.db. Thats a later rabbit hol
+3. Both are needed. Both import AND new. Actually, i'm 70% certain i actually wrote the code for new roster creation... i think? at the VERY least i know with 100% certainty i painstakingly built a blank roster template taht you just need to copy/paste in to the game save folder, and this is exactly where we'd WANT to do this. Yep, you can find the template in /data/templates (which should be referencable from the PATHS singleton too)
+4. Yep, this is beautiful. Have ALL edits go through the save_manager. Love it. No apply immediately - queue, then click save to apply.
+5. I love this idea. hell yes mah brotha
+
+implement phase 1
