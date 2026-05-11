@@ -1,0 +1,5 @@
+	Thread ID 27408	0	 (i)  Log subsystem started in elapsed time mode.
+	Thread ID 27408	0	 (i)  Logging [debug info (D), info (i), notices (M), warnings (W), errors (Er), fatal errors (!!)]
+	Thread ID 27408	0	 (i)  Buffered mode: 0
+	Thread ID 27408	0	 (M)  Service thread started
+	Thread ID 27368	30141	 (i)  Service context queue task depleted
